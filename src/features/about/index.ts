@@ -1,0 +1,5 @@
+export { default as AboutStory } from './AboutStory'
+export { default as AboutPhilosophy } from './AboutPhilosophy'
+export { default as AboutValues } from './AboutValues'
+export { default as AboutVision } from './AboutVision'
+export { default as AboutTimeline } from './AboutTimeline'
