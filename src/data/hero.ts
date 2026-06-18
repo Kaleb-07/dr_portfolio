@@ -8,7 +8,7 @@ export interface HeroData {
 }
 
 const heroData: HeroData = {
-  name: "Dr. Liyana",
+  name: "Dr. Girma Ababi",
   title: "Physician · Entrepreneur · Nation Builder",
   subtitle: "He saw a broken system. He built the cure.",
   description:

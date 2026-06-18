@@ -14,7 +14,7 @@ export default function HomeIdentities() {
                 <span className="section-rule" />
               </div>
               <h2 className="font-serif text-3xl sm:text-4xl font-light text-ink mb-6">
-                Dr. Liyana's professional dimensions
+                Dr. Girma Ababi's professional dimensions
               </h2>
               <p className="text-sm font-light text-ink-mid leading-relaxed mb-8">
                 Explore the journey and background of a clinician who stepped beyond practice to build clinical chains, educational systems, and national frameworks.

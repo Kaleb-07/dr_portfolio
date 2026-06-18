@@ -55,7 +55,7 @@ export default function PublicServiceHero() {
           transition={{ duration: 0.6, delay: 0.18 }}
           className="text-sm font-light text-white/60 leading-relaxed max-w-xl mb-16"
         >
-          Bridging clinical excellence with high-level policy advisory, Dr. Liyana serves
+          Bridging clinical excellence with high-level policy advisory, Dr. Girma Ababi serves
           at the intersection of medical innovation and sovereign health infrastructure.
         </motion.p>
 

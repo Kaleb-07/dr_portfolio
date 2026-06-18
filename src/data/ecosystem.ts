@@ -3,7 +3,7 @@ import type { EcosystemNode, EcosystemConnection } from "@/types"
 export const ecosystemTitle = "Healthcare Ecosystem"
 
 export const ecosystemDescription =
-  "Dr. Liyana has built an integrated healthcare ecosystem spanning six critical sectors — from hospital care and medical education to pharmaceutical manufacturing, research, digital health, and healthcare financing. Each sector works in concert to deliver a complete healthcare value chain."
+  "Dr. Girma Ababi has built an integrated healthcare ecosystem spanning six critical sectors — from hospital care and medical education to pharmaceutical manufacturing, research, digital health, and healthcare financing. Each sector works in concert to deliver a complete healthcare value chain."
 
 export const ecosystemNodes: EcosystemNode[] = [
   {

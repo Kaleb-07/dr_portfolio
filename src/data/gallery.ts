@@ -4,7 +4,7 @@ export const galleryItems: GalleryItem[] = [
   {
     id: "gallery-leadership-1",
     src: "/gallery/leadership-board-meeting.jpg",
-    alt: "Dr. Liyana chairing a board meeting",
+    alt: "Dr. Girma Ababi chairing a board meeting",
     caption: "Chairing a private board meeting, providing strategic governance and leadership",
     category: "leadership",
     date: "2024-09-15",
@@ -13,7 +13,7 @@ export const galleryItems: GalleryItem[] = [
   {
     id: "gallery-leadership-2",
     src: "/gallery/leadership-ehf-event.jpg",
-    alt: "Dr. Liyana at Ethiopian Healthcare Federation event",
+    alt: "Dr. Girma Ababi at Ethiopian Healthcare Federation event",
     caption: "Addressing healthcare leaders at the Ethiopian Healthcare Federation annual summit",
     category: "leadership",
     date: "2024-03-20",
@@ -22,7 +22,7 @@ export const galleryItems: GalleryItem[] = [
   {
     id: "gallery-leadership-3",
     src: "/gallery/leadership-stanford-gsb.jpg",
-    alt: "Dr. Liyana at Stanford GSB",
+    alt: "Dr. Girma Ababi at Stanford GSB",
     caption: "Participating in the Stanford GSB Seed Transformation Program",
     category: "leadership",
     date: "2019-06-15",
@@ -31,7 +31,7 @@ export const galleryItems: GalleryItem[] = [
   {
     id: "gallery-healthcare-1",
     src: "/gallery/healthcare-hospital-visit.jpg",
-    alt: "Dr. Liyana at Yanet Hospital",
+    alt: "Dr. Girma Ababi at Yanet Hospital",
     caption: "Conducting rounds at the Yanet Chain of Hospitals",
     category: "healthcare",
     date: "2024-11-08",
@@ -58,7 +58,7 @@ export const galleryItems: GalleryItem[] = [
   {
     id: "gallery-education-1",
     src: "/gallery/education-ylc.jpg",
-    alt: "Dr. Liyana at YLC Health Sciences College",
+    alt: "Dr. Girma Ababi at YLC Health Sciences College",
     caption: "Engaging with faculty and students at YLC Health Sciences College",
     category: "education",
     date: "2024-01-30",

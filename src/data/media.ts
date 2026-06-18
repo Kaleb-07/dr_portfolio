@@ -3,12 +3,12 @@ import type { MediaItem } from "@/types"
 export const mediaItems: MediaItem[] = [
   {
     id: "interview-healthcare-leader",
-    title: "Building Ethiopia's Healthcare Future: A Conversation with Dr. Liyana",
+    title: "Building Ethiopia's Healthcare Future: A Conversation with Dr. Girma Ababi",
     type: "interview",
     source: "Ethiopian Business Review",
     date: "2024-06-15",
     description:
-      "Dr. Liyana discusses his journey from anatomical pathologist to healthcare entrepreneur and his vision for an integrated healthcare ecosystem in Ethiopia.",
+      "Dr. Girma Ababi discusses his journey from anatomical pathologist to healthcare entrepreneur and his vision for an integrated healthcare ecosystem in Ethiopia.",
     url: "https://example.com/ebr-interview",
   },
   {
@@ -28,17 +28,17 @@ export const mediaItems: MediaItem[] = [
     source: "Africa Health Leaders Podcast",
     date: "2024-09-10",
     description:
-      "An in-depth conversation about Dr. Liyana's transition from clinical medicine to building a multi-sector healthcare enterprise spanning six sectors.",
+      "An in-depth conversation about Dr. Girma Ababi's transition from clinical medicine to building a multi-sector healthcare enterprise spanning six sectors.",
     url: "https://example.com/ahp-podcast",
   },
   {
     id: "press-stanford-feature",
-    title: "Stanford GSB Seed Program Spotlight: Dr. Liyana's Healthcare Transformation",
+    title: "Stanford GSB Seed Program Spotlight: Dr. Girma Ababi's Healthcare Transformation",
     type: "press",
     source: "Stanford Graduate School of Business",
     date: "2023-12-01",
     description:
-      "Stanford GSB features Dr. Liyana as a standout alum of the Seed Transformation Program, highlighting his impact on Ethiopian healthcare.",
+      "Stanford GSB features Dr. Girma Ababi as a standout alum of the Seed Transformation Program, highlighting his impact on Ethiopian healthcare.",
     url: "https://example.com/stanford-feature",
   },
   {
@@ -63,7 +63,7 @@ export const mediaItems: MediaItem[] = [
   },
   {
     id: "interview-capital-ethiopia",
-    title: "Dr. Liyana: Why Ethiopia Needs Integrated Healthcare",
+    title: "Dr. Girma Ababi: Why Ethiopia Needs Integrated Healthcare",
     type: "interview",
     source: "Capital Ethiopia Newspaper",
     date: "2024-11-05",

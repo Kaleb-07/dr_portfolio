@@ -102,7 +102,7 @@ export default function PublicServiceListSection() {
                 <div className="border border-rule p-2.5 bg-white shadow-sm">
                   <img
                     src="/image.png"
-                    alt="Dr. Liyana"
+                    alt="Dr. Girma Ababi"
                     className="w-full grayscale object-cover aspect-square hover:grayscale-0 transition-all duration-700"
                   />
                 </div>
@@ -226,7 +226,7 @@ export default function PublicServiceListSection() {
               <em className="not-italic text-gold-light">policy &amp; health systems</em>
             </h2>
             <p className="text-sm font-light text-white/70 leading-relaxed max-w-xl mx-auto mb-10">
-              Whether you represent a government body, professional federation, or international health organisation — Dr. Liyana welcomes strategic collaboration.
+              Whether you represent a government body, professional federation, or international health organisation — Dr. Girma Ababi welcomes strategic collaboration.
             </p>
             <motion.div
               initial={{ opacity: 0, y: 15 }}

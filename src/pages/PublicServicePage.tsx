@@ -17,7 +17,7 @@ export default function PublicServicePage() {
     <>
       <PageBanner
         title="Public Service & Policy Impact"
-        description="Dr. Liyana serves the nation through advisory roles, federation leadership, and innovation boards — shaping healthcare at the highest levels."
+        description="Dr. Girma Ababi serves the nation through advisory roles, federation leadership, and innovation boards — shaping healthcare at the highest levels."
       />
       <PublicServiceRolesSection />
       <PublicServiceAcademicSection />

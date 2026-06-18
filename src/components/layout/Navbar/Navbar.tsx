@@ -230,7 +230,7 @@ export default function Navbar() {
             onClick={() => setMobileOpen(false)}
             className="font-serif text-lg font-medium text-ink"
           >
-            Dr.<em className="text-teal not-italic">Liyana</em>
+            Dr.<em className="text-teal not-italic"> Girma Ababi</em>
           </Link>
         </div>
 
@@ -245,7 +245,7 @@ export default function Navbar() {
             to="/"
             className="font-serif text-lg font-medium text-ink transition-transform duration-200 hover:scale-[1.02]"
           >
-            Dr.<em className="text-teal not-italic">Liyana</em>
+            Dr.<em className="text-teal not-italic"> Girma Ababi</em>
           </Link>
         </div>
 

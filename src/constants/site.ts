@@ -1,12 +1,12 @@
 export const siteConfig = {
-  name: 'Dr. Liyana',
-  shortName: 'Liyana',
+  name: 'Dr. Girma Ababi',
+  shortName: 'Girma Ababi',
   tagline: 'Physician · Entrepreneur · Nation Builder · Philanthropist',
   description:
     'Twenty years ago, a young doctor from Ethiopia made a decision that would reshape an entire nation\'s healthcare landscape — not by treating one patient at a time, but by building the institutions that treat millions.',
   url: 'https://liyanahealthcare.com',
   author: {
-    name: 'Dr. Liyana',
+    name: 'Dr. Girma Ababi',
     title: 'Founder & CEO, Liyana Healthcare',
     email: 'contact@liyanahealthcare.com',
   },
@@ -28,7 +28,7 @@ export const siteConfig = {
   philosophy: {
     label: 'Leadership Philosophy',
     quote: '"Building institutions, empowering professionals, and transforming healthcare for future generations — that is the only legacy worth pursuing."',
-    attribution: '— Dr. Liyana, Founder & CEO, Liyana Healthcare',
+    attribution: '— Dr. Girma Ababi, Founder & CEO, Liyana Healthcare',
   },
 }
 

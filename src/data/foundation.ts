@@ -3,7 +3,7 @@ import type { FoundationProgram } from "@/types"
 export const foundationOverview = {
   title: "Liyana Universal Community Services Foundation (LUCS)",
   description:
-    "Founded and patroned by Dr. Liyana, the LUCS Foundation is dedicated to transforming lives through community health outreach, education access, healthcare access in underserved regions, professional empowerment & mentorship, and future healthcare infrastructure development.",
+    "Founded and patroned by Dr. Girma Ababi, the LUCS Foundation is dedicated to transforming lives through community health outreach, education access, healthcare access in underserved regions, professional empowerment & mentorship, and future healthcare infrastructure development.",
   vision:
     "A future where every individual in underserved communities has access to quality healthcare, education, and the opportunity to thrive through empowered professionals and sustainable infrastructure.",
   mission:

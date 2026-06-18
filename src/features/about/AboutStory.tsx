@@ -30,7 +30,7 @@ export default function AboutStory() {
                 <div className="relative border border-rule p-2 bg-white shadow-sm overflow-hidden">
                   <img
                     src="/image.png"
-                    alt="Dr. Liyana Portrait"
+                    alt="Dr. Girma Ababi Portrait"
                     onError={(e) => {
                       (e.target as HTMLImageElement).src = '/image.png'
                     }}

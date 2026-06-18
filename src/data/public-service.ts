@@ -3,7 +3,7 @@ import type { PublicServiceRole } from "@/types"
 export const publicServiceTitle = "Public Service & Policy Impact"
 
 export const publicServiceDescription =
-  "Dr. Liyana serves the nation through multiple advisory and leadership roles, shaping healthcare policy, regulatory frameworks, and innovation agendas at the highest levels of government and professional bodies."
+  "Dr. Girma Ababi serves the nation through multiple advisory and leadership roles, shaping healthcare policy, regulatory frameworks, and innovation agendas at the highest levels of government and professional bodies."
 
 export const publicServiceRoles: PublicServiceRole[] = [
   {

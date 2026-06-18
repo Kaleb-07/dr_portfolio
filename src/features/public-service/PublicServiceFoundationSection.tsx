@@ -37,7 +37,7 @@ export default function PublicServiceFoundationSection() {
                 />
               </div>
               <p className="mt-3 font-mono text-[9px] tracking-widest uppercase text-ink-muted">
-                Dr. Liyana &mdash; Community Service
+                Dr. Girma Ababi &mdash; Community Service
               </p>
             </div>
           </AnimatedSection>

@@ -73,7 +73,7 @@ export default function EcosystemVisionSection() {
         >
           <span className="w-10 h-px bg-gold-light" />
           <p className="font-mono text-xs tracking-[0.28em] uppercase text-white/50">
-            Dr. Liyana, Founder
+            Dr. Girma Ababi, Founder
           </p>
           <span className="w-10 h-px bg-gold-light" />
         </motion.div>

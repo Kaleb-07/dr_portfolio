@@ -41,7 +41,7 @@ export default function HomeHero() {
 
             {/* <AnimatedSection delay={0.3}>
               <p className="text-base sm:text-lg font-light text-ink-mid leading-relaxed max-w-xl">
-                A lifetime dedicated to recalibrating the intersection of medical precision and systemic scalability. Dr. Liyana transforms clinical challenges into sustainable national infrastructures.
+                A lifetime dedicated to recalibrating the intersection of medical precision and systemic scalability. Dr. Girma Ababi transforms clinical challenges into sustainable national infrastructures.
               </p>
             </AnimatedSection> */}
           </div>
@@ -55,7 +55,7 @@ export default function HomeHero() {
               <div className="border border-rule p-2.5 bg-white shadow-sm">
                 <img
                   src="/image.png"
-                  alt="Dr. Liyana"
+                  alt="Dr. Girma Ababi"
                   className="w-full grayscale object-cover aspect-square hover:grayscale-0 transition-all duration-700"
                 />
               </div>

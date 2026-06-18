@@ -16,7 +16,7 @@ export default function EcosystemPage() {
     <>
       <PageBanner
         title="Healthcare Ecosystem"
-        description="Most investors build one piece. Dr. Liyana built the entire chain — vertically integrating every touchpoint of the patient journey."
+        description="Most investors build one piece. Dr. Girma Ababi built the entire chain — vertically integrating every touchpoint of the patient journey."
       />
       <EcosystemNetworkSection />
       <EcosystemBreakdownSection />
