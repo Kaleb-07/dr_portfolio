@@ -129,3 +129,70 @@
 .animate-reveal {
   animation: reveal 0.7s ease forwards;
 }
+
+@layer utilities {
+  .editorial-dropcap::first-letter {
+    font-family: var(--font-serif);
+    font-size: 3.5rem;
+    font-weight: 300;
+    float: left;
+    margin-right: 0.75rem;
+    line-height: 0.85;
+    color: var(--color-teal);
+  }
+
+  .glass-quote {
+    background: rgba(255, 255, 255, 0.45);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(13, 13, 13, 0.08);
+  }
+
+  .ambient-glow-teal {
+    background: radial-gradient(circle, rgba(15, 110, 86, 0.15) 0%, transparent 70%);
+  }
+
+  .ambient-glow-gold {
+    background: radial-gradient(circle, rgba(138, 106, 42, 0.15) 0%, transparent 70%);
+  }
+
+  .hover-sweep {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hover-sweep::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at bottom right, rgba(29, 158, 117, 0.08) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    pointer-events: none;
+  }
+
+  .hover-sweep:hover::before {
+    opacity: 1;
+  }
+
+  .expanding-line {
+    position: relative;
+  }
+
+  .expanding-line::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 1.5px;
+    background: linear-gradient(to right, var(--color-teal), var(--color-teal-mid));
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .expanding-line:hover::after {
+    transform: scaleX(1);
+  }
+}

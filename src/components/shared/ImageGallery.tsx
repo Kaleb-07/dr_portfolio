@@ -5,6 +5,73 @@ import { useState } from 'react'
 import { X, ChevronLeft, ChevronRight } from 'lucide-react'
 import type { GalleryItem } from '@/types'
 
+// Category-to-placeholder color map for missing images
+const categoryColors: Record<string, { bg: string; label: string }> = {
+  leadership: { bg: 'bg-teal/10', label: 'Leadership' },
+  healthcare:  { bg: 'bg-teal-light',  label: 'Healthcare' },
+  education:   { bg: 'bg-gold-light',  label: 'Education' },
+  awards:      { bg: 'bg-gold/10',     label: 'Awards' },
+  community:   { bg: 'bg-paper-warm', label: 'Community' },
+  conferences: { bg: 'bg-paper-card', label: 'Conferences' },
+}
+
+function GalleryPlaceholder({ item }: { item: GalleryItem }) {
+  const scheme = categoryColors[item.category] ?? { bg: 'bg-paper-warm', label: item.category }
+  return (
+    <div className={`w-full h-full flex flex-col items-center justify-center ${scheme.bg} border border-rule`}>
+      <p className="font-mono text-[8px] tracking-widest uppercase text-teal mb-2">{scheme.label}</p>
+      <p className="font-serif text-sm text-ink-mid text-center px-4 leading-snug max-w-[160px]">{item.caption}</p>
+      {item.location && (
+        <p className="font-mono text-[8px] tracking-widest text-ink-muted mt-2 uppercase">{item.location}</p>
+      )}
+    </div>
+  )
+}
+
+function GalleryCard({
+  item,
+  onClick,
+}: {
+  item: GalleryItem
+  onClick: () => void
+}) {
+  const [imgError, setImgError] = useState(false)
+
+  return (
+    <motion.div
+      variants={staggerItem}
+      className="group relative cursor-pointer overflow-hidden border border-rule"
+      style={{ aspectRatio: '4/3' }}
+      onClick={onClick}
+    >
+      {imgError ? (
+        <GalleryPlaceholder item={item} />
+      ) : (
+        <img
+          src={item.src}
+          alt={item.alt}
+          onError={() => setImgError(true)}
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+        />
+      )}
+      {/* Caption overlay */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 pointer-events-none" />
+      <div className="absolute bottom-0 left-0 right-0 p-4 opacity-0 transition-all duration-300 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 pointer-events-none">
+        <p className="text-sm font-light text-white leading-snug">{item.caption}</p>
+        {item.location && (
+          <p className="mt-1 font-mono text-[9px] tracking-widest uppercase text-white/60">{item.location}</p>
+        )}
+      </div>
+      {/* Category tag */}
+      <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+        <span className="font-mono text-[8px] tracking-widest uppercase bg-white/20 backdrop-blur-sm text-white px-2 py-1">
+          {item.category}
+        </span>
+      </div>
+    </motion.div>
+  )
+}
+
 interface ImageGalleryProps {
   items: GalleryItem[]
   columns?: 2 | 3 | 4
@@ -34,17 +101,17 @@ const ImageGallery = ({ items, columns = 3 }: ImageGalleryProps) => {
 
   return (
     <div>
-      {/* Category Filters */}
-      <div className="mb-8 flex flex-wrap justify-center gap-2">
+      {/* Category Filters — design-system aligned */}
+      <div className="mb-10 flex flex-wrap justify-center gap-2">
         {categories.map((cat) => (
           <button
             key={cat}
             onClick={() => setActiveCategory(cat)}
             className={cn(
-              'rounded-full px-4 py-2 text-sm font-medium transition-colors',
+              'px-4 py-2 text-xs font-mono tracking-widest uppercase transition-all duration-200 border',
               activeCategory === cat
-                ? 'bg-[--color-primary] text-white'
-                : 'bg-[--color-neutral] text-[--color-text-secondary] hover:bg-[--color-border]',
+                ? 'bg-teal text-white border-teal'
+                : 'bg-white text-ink-mid border-rule hover:border-teal hover:text-teal hover:bg-teal-light',
             )}
           >
             {cat === allCategoriesLabel ? 'All' : cat}
@@ -62,29 +129,11 @@ const ImageGallery = ({ items, columns = 3 }: ImageGalleryProps) => {
         className={cn('grid gap-4', gridCols[columns])}
       >
         {filtered.map((item, index) => (
-          <motion.div
+          <GalleryCard
             key={item.id}
-            variants={staggerItem}
-            className="group relative cursor-pointer overflow-hidden rounded-lg"
+            item={item}
             onClick={() => setLightboxIndex(index)}
-          >
-            <img
-              src={item.src}
-              alt={item.alt}
-              className="aspect-4/3 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-            <div className="absolute bottom-0 left-0 right-0 p-4 opacity-0 transition-all duration-300 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0">
-              <p className="text-sm font-medium text-white">
-                {item.caption}
-              </p>
-              {item.location && (
-                <p className="mt-1 text-xs text-white/70">
-                  {item.location}
-                </p>
-              )}
-            </div>
-          </motion.div>
+          />
         ))}
       </motion.div>
 
@@ -142,20 +191,30 @@ const ImageGallery = ({ items, columns = 3 }: ImageGalleryProps) => {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
               transition={{ duration: 0.3 }}
-              className="relative max-h-[85vh] max-w-4xl"
+              className="relative max-h-[85vh] max-w-4xl w-full mx-4"
               onClick={(e) => e.stopPropagation()}
             >
-              <img
-                src={filtered[lightboxIndex]?.src ?? ''}
-                alt={filtered[lightboxIndex]?.alt ?? ''}
-                className="max-h-[85vh] w-auto rounded-lg object-contain"
-              />
-              <div className="mt-3 text-center">
-                <p className="text-sm font-medium text-white">
+              {filtered[lightboxIndex]?.src ? (
+                <img
+                  src={filtered[lightboxIndex]?.src ?? ''}
+                  alt={filtered[lightboxIndex]?.alt ?? ''}
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement
+                    target.style.display = 'none'
+                    const parent = target.parentElement
+                    if (parent) {
+                      parent.classList.add('min-h-[300px]', 'flex', 'items-center', 'justify-center', 'bg-white/10', 'rounded-lg', 'p-8')
+                    }
+                  }}
+                  className="max-h-[70vh] w-auto rounded-lg object-contain mx-auto block"
+                />
+              ) : null}
+              <div className="mt-4 text-center px-4">
+                <p className="text-sm font-serif text-white/90 leading-snug">
                   {filtered[lightboxIndex]?.caption}
                 </p>
                 {filtered[lightboxIndex]?.location && (
-                  <p className="mt-1 text-xs text-white/70">
+                  <p className="mt-2 font-mono text-[9px] tracking-widest uppercase text-white/50">
                     {filtered[lightboxIndex]?.location}
                   </p>
                 )}

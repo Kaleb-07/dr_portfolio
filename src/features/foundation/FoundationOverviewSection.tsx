@@ -1,51 +1,129 @@
-import { AnimatedSection, Container } from '@/components/shared'
+import { useRef } from 'react'
+import { motion, useInView } from 'framer-motion'
+import { Container } from '@/components/shared'
 import { foundationOverview } from '@/data/foundation'
 
-export default function FoundationOverviewSection() {
+const stats = [
+  { value: '5+', label: 'Impact Pillars' },
+  { value: '4', label: 'Board Chairmanships' },
+  { value: '1', label: 'CSO Board Chair' },
+  { value: '1000+', label: 'Lives Impacted' },
+]
+
+function StatCard({ stat, index }: { stat: typeof stats[0]; index: number }) {
+  const ref = useRef<HTMLDivElement>(null)
+  const inView = useInView(ref, { once: true, margin: '-60px' })
+
   return (
-    <section className="section-padding bg-paper">
-      <Container>
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, scale: 0.85, y: 20 }}
+      animate={inView ? { opacity: 1, scale: 1, y: 0 } : {}}
+      transition={{ duration: 0.55, delay: 0.2 + index * 0.08, ease: [0.22, 1, 0.36, 1] }}
+      whileHover={{ y: -4, scale: 1.03 }}
+      className="group relative overflow-hidden bg-white border border-rule p-8 text-center cursor-default hover-sweep"
+    >
+      <motion.p
+        initial={{ opacity: 0, y: 12 }}
+        animate={inView ? { opacity: 1, y: 0 } : {}}
+        transition={{ duration: 0.5, delay: 0.3 + index * 0.08 }}
+        className="relative z-10 font-serif text-4xl font-light text-teal mb-2"
+      >
+        {stat.value}
+      </motion.p>
+      <p className="relative z-10 text-xs font-mono tracking-widest uppercase text-ink-muted leading-snug">
+        {stat.label}
+      </p>
+      <motion.div
+        initial={{ scaleX: 0 }}
+        animate={inView ? { scaleX: 1 } : {}}
+        transition={{ duration: 0.5, delay: 0.45 + index * 0.08 }}
+        className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-teal to-teal-mid origin-left"
+      />
+    </motion.div>
+  )
+}
+
+export default function FoundationOverviewSection() {
+  const headerRef = useRef<HTMLDivElement>(null)
+  const headerInView = useInView(headerRef, { once: true, margin: '-60px' })
+  const leftRef = useRef<HTMLDivElement>(null)
+  const leftInView = useInView(leftRef, { once: true, margin: '-60px' })
+
+  return (
+    <section className="section-padding bg-paper relative overflow-hidden">
+      {/* Ambient background */}
+      <div className="absolute inset-0 pointer-events-none">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.6 }}
+          animate={{ opacity: 0.06, scale: 1 }}
+          transition={{ duration: 1.5, ease: 'easeOut' }}
+          className="absolute -left-24 top-1/4 w-96 h-96 rounded-full bg-teal"
+          style={{ filter: 'blur(70px)' }}
+        />
+      </div>
+
+      <Container className="relative z-10">
+        {/* Header */}
+        <motion.div
+          ref={headerRef}
+          initial={{ opacity: 0, y: 24 }}
+          animate={headerInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          className="section-header mb-14"
+        >
+          <span className="section-tag">Foundation</span>
+          <span className="section-rule" />
+        </motion.div>
+
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-20">
-          <div>
-            <AnimatedSection>
-              <div className="section-header">
-                <span className="section-tag">Foundation</span>
-                <span className="section-rule" />
-              </div>
-              <h2 className="font-serif text-4xl md:text-5xl font-light text-ink mb-6">
-                The <em className="text-teal-mid not-italic">LUCS</em> Foundation
-              </h2>
-              <p className="text-sm font-light text-ink-mid leading-relaxed mb-8">
-                {foundationOverview.description}
-              </p>
-            </AnimatedSection>
-            <AnimatedSection delay={0.1}>
-              <div className="space-y-6">
-                <div>
-                  <p className="font-mono text-[9px] tracking-[0.2em] uppercase text-teal mb-2">Vision</p>
-                  <p className="text-sm font-light text-ink-mid leading-relaxed">{foundationOverview.vision}</p>
-                </div>
-                <div className="border-rule" />
-                <div>
-                  <p className="font-mono text-[9px] tracking-[0.2em] uppercase text-teal mb-2">Mission</p>
-                  <p className="text-sm font-light text-ink-mid leading-relaxed">{foundationOverview.mission}</p>
-                </div>
-              </div>
-            </AnimatedSection>
+          {/* Left: Heading + Vision + Mission */}
+          <div ref={leftRef}>
+            <motion.h2
+              initial={{ opacity: 0, y: 32 }}
+              animate={leftInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.65, delay: 0.05 }}
+              className="font-serif text-4xl md:text-5xl font-light text-ink mb-6"
+            >
+              The <em className="text-teal-mid not-italic">LUCS</em> Foundation
+            </motion.h2>
+
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={leftInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.6, delay: 0.15 }}
+              className="text-sm font-light text-ink-mid leading-relaxed mb-10"
+            >
+              {foundationOverview.description}
+            </motion.p>
+
+            {/* Vision block */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={leftInView ? { opacity: 1, x: 0 } : {}}
+              transition={{ duration: 0.55, delay: 0.25 }}
+              className="border-l-2 border-teal pl-6 mb-8"
+            >
+              <p className="font-mono text-[9px] tracking-[0.2em] uppercase text-teal mb-2">Vision</p>
+              <p className="text-sm font-light text-ink-mid leading-relaxed">{foundationOverview.vision}</p>
+            </motion.div>
+
+            {/* Mission block */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={leftInView ? { opacity: 1, x: 0 } : {}}
+              transition={{ duration: 0.55, delay: 0.35 }}
+              className="border-l-2 border-gold pl-6"
+            >
+              <p className="font-mono text-[9px] tracking-[0.2em] uppercase text-gold mb-2">Mission</p>
+              <p className="text-sm font-light text-ink-mid leading-relaxed">{foundationOverview.mission}</p>
+            </motion.div>
           </div>
-          <div className="grid grid-cols-2 gap-4 self-center">
-            {[
-              { value: '5+', label: 'Impact Pillars' },
-              { value: '4', label: 'Board Chairmanships' },
-              { value: '1', label: 'CSO Board Chair' },
-              { value: '1000+', label: 'Lives Impacted' },
-            ].map((stat, i) => (
-              <AnimatedSection key={stat.label} delay={0.2 + i * 0.05}>
-                <div className="bg-white border border-rule p-6 text-center">
-                  <p className="font-serif text-3xl font-light text-teal mb-1">{stat.value}</p>
-                  <p className="text-xs font-light text-ink-muted">{stat.label}</p>
-                </div>
-              </AnimatedSection>
+
+          {/* Right: Animated Stat Grid */}
+          <div className="grid grid-cols-2 gap-4 content-start">
+            {stats.map((stat, i) => (
+              <StatCard key={stat.label} stat={stat} index={i} />
             ))}
           </div>
         </div>
