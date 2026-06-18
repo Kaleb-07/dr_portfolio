@@ -10,23 +10,21 @@ export default function FoundationFutureSection() {
   return (
     <section
       ref={ref}
-      className="relative overflow-hidden py-28 bg-gradient-to-br from-[#0a3d2c] via-teal to-[#0b4e3d] text-white"
+      className="relative overflow-hidden py-28 bg-gradient-to-br from-teal to-[#0b4e3d] text-white"
     >
-      {/* Layered ambient orbs */}
+      {/* Ambient orbs using theme color vars */}
       <div className="absolute inset-0 pointer-events-none">
         <motion.div
           initial={{ opacity: 0, scale: 0.6 }}
           animate={inView ? { opacity: 0.18, scale: 1.2 } : {}}
           transition={{ duration: 2, ease: 'easeOut' }}
-          className="absolute top-0 right-1/4 w-[500px] h-[500px] rounded-full"
-          style={{ background: 'var(--color-gold-light)', filter: 'blur(120px)' }}
+          className="absolute top-0 right-1/4 w-[500px] h-[500px] rounded-full blur-[120px] bg-gold-light"
         />
         <motion.div
           initial={{ opacity: 0, scale: 0.6 }}
           animate={inView ? { opacity: 0.12, scale: 1 } : {}}
           transition={{ duration: 2.5, ease: 'easeOut', delay: 0.3 }}
-          className="absolute bottom-0 left-1/3 w-[400px] h-[400px] rounded-full"
-          style={{ background: 'var(--color-teal-light)', filter: 'blur(100px)' }}
+          className="absolute bottom-0 left-1/3 w-[400px] h-[400px] rounded-full blur-[100px] bg-teal-light"
         />
       </div>
 
@@ -35,7 +33,7 @@ export default function FoundationFutureSection() {
           initial={{ opacity: 0, y: 40 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-          className="relative border border-white/10 p-12 md:p-16 bg-white/5 backdrop-blur-[3px] shadow-2xl text-center"
+          className="relative border border-white/10 p-12 md:p-16 bg-white/5 backdrop-blur-sm shadow-2xl text-center"
         >
           {/* Corner ornaments */}
           <div className="absolute top-4 left-4 w-5 h-5 border-t-2 border-l-2 border-white/25" />
@@ -43,7 +41,6 @@ export default function FoundationFutureSection() {
           <div className="absolute bottom-4 left-4 w-5 h-5 border-b-2 border-l-2 border-white/25" />
           <div className="absolute bottom-4 right-4 w-5 h-5 border-b-2 border-r-2 border-white/25" />
 
-          {/* Section tag */}
           <motion.p
             initial={{ opacity: 0, y: 10 }}
             animate={inView ? { opacity: 1, y: 0 } : {}}
@@ -53,12 +50,11 @@ export default function FoundationFutureSection() {
             Future Vision
           </motion.p>
 
-          {/* Decorative separator */}
           <motion.div
             initial={{ scaleX: 0 }}
             animate={inView ? { scaleX: 1 } : {}}
             transition={{ duration: 0.7, delay: 0.3 }}
-            className="w-16 h-[1px] bg-gradient-to-r from-transparent via-white/50 to-transparent mx-auto mb-8"
+            className="w-16 h-px bg-white/30 mx-auto mb-8"
           />
 
           <motion.h2
@@ -70,7 +66,7 @@ export default function FoundationFutureSection() {
             Looking <em className="italic">ahead</em>
           </motion.h2>
 
-          {/* Background decorative quote */}
+          {/* Decorative background quote mark */}
           <span className="absolute top-8 left-8 font-serif text-[8rem] leading-none text-white/4 pointer-events-none select-none">
             &ldquo;
           </span>
@@ -84,12 +80,11 @@ export default function FoundationFutureSection() {
             &ldquo;{futureVision}&rdquo;
           </motion.blockquote>
 
-          {/* Bottom ornamental separator */}
           <motion.div
             initial={{ scaleX: 0 }}
             animate={inView ? { scaleX: 1 } : {}}
             transition={{ duration: 0.7, delay: 0.6 }}
-            className="w-24 h-[1px] bg-gradient-to-r from-transparent via-gold/50 to-transparent mx-auto mt-10"
+            className="w-24 h-px bg-gold/40 mx-auto mt-10"
           />
         </motion.div>
       </Container>

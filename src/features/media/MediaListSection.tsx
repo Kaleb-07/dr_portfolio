@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { AnimatedSection, Container, Card } from '@/components/shared'
+import { AnimatedSection, Container } from '@/components/shared'
 import { mediaItems } from '@/data/media'
 import { cn } from '@/lib/utils'
 import type { MediaItem } from '@/types'
@@ -24,51 +24,83 @@ export default function MediaListSection() {
   }, [activeType])
 
   return (
-    <section className="section-padding bg-paper">
-      <Container>
+    <section className="section-padding bg-paper relative overflow-hidden">
+      {/* Ambient background accent */}
+      <div className="absolute inset-0 pointer-events-none opacity-20">
+        <div className="absolute bottom-10 -left-10 w-[300px] h-[300px] rounded-full blur-[90px] bg-teal-light" />
+      </div>
+
+      <Container className="relative z-10">
         <AnimatedSection>
           <div className="section-header">
-            <span className="section-tag">Media</span>
+            <span className="section-tag">Media & Speaking</span>
             <span className="section-rule" />
           </div>
-          <h2 className="font-serif text-4xl md:text-5xl font-light text-ink mb-6">
-            Media appearances & <em className="text-teal-mid not-italic">speaking</em>
+          <h2 className="font-serif text-4xl md:text-5xl font-light text-ink mb-4">
+            Voices of <em className="text-teal-mid not-italic">leadership</em>
           </h2>
+          <p className="text-sm font-light text-ink-mid leading-relaxed max-w-xl mb-10">
+            Interviews, keynotes, podcasts, and press coverage that amplify the vision for healthcare transformation.
+          </p>
         </AnimatedSection>
 
-        {/* Filters */}
-        <div className="mb-10 flex flex-wrap gap-2">
-          {(['all', ...allTypes] as const).map((type) => (
-            <button
-              key={type}
-              onClick={() => setActiveType(type)}
-              className={cn(
-                'font-mono text-[9px] tracking-[0.2em] uppercase px-4 py-2 transition-colors cursor-pointer',
-                activeType === type
-                  ? 'bg-teal text-white'
-                  : 'border border-rule text-ink-muted hover:text-ink',
-              )}
-            >
-              {type === 'all' ? 'All' : mediaTypeLabels[type]}
-            </button>
-          ))}
-        </div>
+        {/* Filter tabs */}
+        <AnimatedSection delay={0.1}>
+          <div className="mb-10 flex flex-wrap gap-2">
+            {(['all', ...allTypes] as const).map((type) => (
+              <button
+                key={type}
+                onClick={() => setActiveType(type)}
+                className={cn(
+                  'font-mono text-[9px] tracking-[0.2em] uppercase px-4 py-2 transition-colors duration-200 cursor-pointer',
+                  activeType === type
+                    ? 'bg-teal text-white'
+                    : 'border border-rule text-ink-muted hover:text-ink hover:border-ink/30',
+                )}
+              >
+                {type === 'all' ? 'All' : mediaTypeLabels[type]}
+              </button>
+            ))}
+          </div>
+        </AnimatedSection>
 
         {/* Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filtered.map((item, i) => (
-            <AnimatedSection key={item.id} delay={i * 0.05}>
-              <Card className="bg-white border border-rule h-full">
-                <div className="flex items-center gap-3 mb-4">
-                  <span className="font-mono text-[9px] tracking-[0.2em] uppercase text-teal bg-teal-light px-2 py-1">
-                    {mediaTypeLabels[item.type]}
+            <AnimatedSection key={item.id} delay={i * 0.06}>
+              <div className="bg-white border border-rule h-full p-6 group hover:border-teal-mid/50 hover:shadow-md transition-all duration-300 relative overflow-hidden">
+                {/* Top hover accent strip */}
+                <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-teal to-teal-mid origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300" />
+
+                {/* Type badge + date */}
+                <div className="flex items-center justify-between mb-4">
+                  <span className="badge-teal">{mediaTypeLabels[item.type]}</span>
+                  <span className="font-mono text-[9px] tracking-[0.2em] uppercase text-ink-muted">
+                    {item.date}
                   </span>
                 </div>
-                <h3 className="font-serif text-lg font-light text-ink mb-2">{item.title}</h3>
-                <p className="text-xs text-teal mb-1">{item.source}</p>
-                <p className="text-xs text-ink-muted mb-3">{item.date}</p>
-                <p className="text-sm font-light text-ink-mid leading-relaxed">{item.description}</p>
-              </Card>
+
+                <h3 className="font-serif text-lg font-light text-ink mb-2 group-hover:text-teal transition-colors duration-300">
+                  {item.title}
+                </h3>
+                <p className="font-mono text-[9px] tracking-widest uppercase text-teal-mid mb-3">
+                  {item.source}
+                </p>
+                <p className="text-sm font-light text-ink-mid leading-relaxed">
+                  {item.description}
+                </p>
+
+                {item.url && (
+                  <a
+                    href={item.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 mt-4 font-mono text-[9px] tracking-widest uppercase text-teal hover:text-teal-mid transition-colors duration-200 expanding-line pb-0.5"
+                  >
+                    View Source
+                  </a>
+                )}
+              </div>
             </AnimatedSection>
           ))}
         </div>

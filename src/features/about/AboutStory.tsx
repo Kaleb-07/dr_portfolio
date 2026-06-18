@@ -29,7 +29,7 @@ export default function AboutStory() {
                 <div className="absolute inset-0 border border-gold/30 translate-x-3 translate-y-3 pointer-events-none transition-transform duration-500 group-hover:translate-x-1.5 group-hover:translate-y-1.5" />
                 <div className="relative border border-rule p-2 bg-white shadow-sm overflow-hidden">
                   <img
-                    src="/dr-liyana-portrait.png"
+                    src="/image.png"
                     alt="Dr. Liyana Portrait"
                     onError={(e) => {
                       (e.target as HTMLImageElement).src = '/image.png'
@@ -43,7 +43,7 @@ export default function AboutStory() {
                   &ldquo;We don't just build healthcare facilities; we build the future of our nation's wellness.&rdquo;
                 </p>
                 <p className="font-mono text-[9px] tracking-widest uppercase text-ink-muted mt-2">
-                  — Dr. Liyana, Founder
+                  — Dr. Girma Ababi, Founder
                 </p>
               </div>
             </AnimatedSection>

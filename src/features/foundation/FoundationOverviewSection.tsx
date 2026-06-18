@@ -5,23 +5,22 @@ import { foundationOverview } from '@/data/foundation'
 
 const stats = [
   { value: '5+', label: 'Impact Pillars' },
-  { value: '4', label: 'Board Chairmanships' },
-  { value: '1', label: 'CSO Board Chair' },
+  { value: '4',  label: 'Board Chairmanships' },
+  { value: '1',  label: 'CSO Board Chair' },
   { value: '1000+', label: 'Lives Impacted' },
 ]
 
-function StatCard({ stat, index }: { stat: typeof stats[0]; index: number }) {
+function StatBlock({ stat, index }: { stat: typeof stats[0]; index: number }) {
   const ref = useRef<HTMLDivElement>(null)
   const inView = useInView(ref, { once: true, margin: '-60px' })
 
   return (
     <motion.div
       ref={ref}
-      initial={{ opacity: 0, scale: 0.85, y: 20 }}
-      animate={inView ? { opacity: 1, scale: 1, y: 0 } : {}}
+      initial={{ opacity: 0, y: 20 }}
+      animate={inView ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 0.55, delay: 0.2 + index * 0.08, ease: [0.22, 1, 0.36, 1] }}
-      whileHover={{ y: -4, scale: 1.03 }}
-      className="group relative overflow-hidden bg-white border border-rule p-8 text-center cursor-default hover-sweep"
+      className="group relative overflow-hidden border border-rule bg-white p-8 text-center hover-sweep cursor-default"
     >
       <motion.p
         initial={{ opacity: 0, y: 12 }}
@@ -31,9 +30,10 @@ function StatCard({ stat, index }: { stat: typeof stats[0]; index: number }) {
       >
         {stat.value}
       </motion.p>
-      <p className="relative z-10 text-xs font-mono tracking-widest uppercase text-ink-muted leading-snug">
+      <p className="relative z-10 font-mono text-xs tracking-widest uppercase text-ink-muted leading-snug">
         {stat.label}
       </p>
+      {/* Bottom accent line */}
       <motion.div
         initial={{ scaleX: 0 }}
         animate={inView ? { scaleX: 1 } : {}}
@@ -52,32 +52,26 @@ export default function FoundationOverviewSection() {
 
   return (
     <section className="section-padding bg-paper relative overflow-hidden">
-      {/* Ambient background */}
-      <div className="absolute inset-0 pointer-events-none">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.6 }}
-          animate={{ opacity: 0.06, scale: 1 }}
-          transition={{ duration: 1.5, ease: 'easeOut' }}
-          className="absolute -left-24 top-1/4 w-96 h-96 rounded-full bg-teal"
-          style={{ filter: 'blur(70px)' }}
-        />
+      {/* Ambient accent */}
+      <div className="absolute inset-0 pointer-events-none opacity-20">
+        <div className="absolute -left-24 top-1/4 w-96 h-96 rounded-full blur-[70px] bg-teal-light" />
       </div>
 
       <Container className="relative z-10">
-        {/* Header */}
+        {/* Section header */}
         <motion.div
           ref={headerRef}
           initial={{ opacity: 0, y: 24 }}
           animate={headerInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          className="section-header mb-14"
+          className="section-header"
         >
           <span className="section-tag">Foundation</span>
           <span className="section-rule" />
         </motion.div>
 
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-20">
-          {/* Left: Heading + Vision + Mission */}
+          {/* Left: heading + vision + mission */}
           <div ref={leftRef}>
             <motion.h2
               initial={{ opacity: 0, y: 32 }}
@@ -120,10 +114,10 @@ export default function FoundationOverviewSection() {
             </motion.div>
           </div>
 
-          {/* Right: Animated Stat Grid */}
+          {/* Right: stat grid */}
           <div className="grid grid-cols-2 gap-4 content-start">
             {stats.map((stat, i) => (
-              <StatCard key={stat.label} stat={stat} index={i} />
+              <StatBlock key={stat.label} stat={stat} index={i} />
             ))}
           </div>
         </div>
