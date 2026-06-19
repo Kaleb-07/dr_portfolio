@@ -163,7 +163,6 @@ const gap = 28
 
 export default function HomeAwards() {
   const [activeIndex, setActiveIndex] = useState(0)
-  const [prevIndex, setPrevIndex] = useState(0)
   const sectionRef = useRef<HTMLDivElement>(null)
   const headerRef = useRef<HTMLDivElement>(null)
   const headerInView = useInView(headerRef, { once: true })
@@ -171,11 +170,6 @@ export default function HomeAwards() {
   const total = featuredAwards.length
 
   const goTo = useCallback((next: number) => {
-    setPrevIndex((prev) => {
-      const n = ((next % total) + total) % total
-      const curr = ((prev) + total) % total
-      return n !== curr ? curr : prev
-    })
     setActiveIndex(((next % total) + total) % total)
   }, [total])
 
