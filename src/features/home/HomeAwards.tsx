@@ -81,16 +81,16 @@ function TrophyAnimation({ index }: { index: number }) {
       <AnimatePresence mode="popLayout">
         <motion.div
           key={`trophy-${index}`}
-          initial={{ opacity: 0, scale: 0.5, y: 150, rotate: -20 }}
+          initial={{ opacity: 0, scale: 0.8, y: 120, rotate: -20 }}
           animate={{ 
-            opacity: [0, 0.3, 0.4, 0], 
-            scale: [0.5, 1.8, 2.2, 3], 
-            y: [150, 0, -80, -250], 
+            opacity: [0, 0.6, 0.8, 0], 
+            scale: [0.8, 2.0, 2.4, 3.2], 
+            y: [120, 0, -60, -200], 
             rotate: [-20, 0, 15, 30] 
           }}
           exit={{ opacity: 0 }}
           transition={{ duration: 3.5, times: [0, 0.3, 0.7, 1], ease: "easeOut" }}
-          className="absolute z-0 text-gold/20 mix-blend-plus-lighter"
+          className="absolute z-0 text-gold/60 mix-blend-plus-lighter drop-shadow-[0_0_40px_rgba(255,215,0,0.4)]"
         >
           <FaTrophy size={320} />
         </motion.div>
@@ -104,17 +104,17 @@ function Fireworks({ index, count = 50 }: { index: number; count?: number }) {
     return Array.from({ length: count }, (_, i) => {
       const angle = (i / count) * 360 + Math.random() * 30
       const rad = (angle * Math.PI) / 180
-      const velocity = 80 + Math.random() * 200
-      const size = 4 + Math.random() * 8
+      const velocity = 120 + Math.random() * 250
+      const size = 6 + Math.random() * 10
       const colors = ['bg-teal', 'bg-teal-mid', 'bg-teal-light', 'bg-gold', 'bg-gold-light']
       const shape = Math.random() > 0.5 ? 'rounded-full' : 'rounded-sm'
-      const isStar = Math.random() > 0.8
+      const isStar = Math.random() > 0.7
       return {
         id: i,
         rad,
         velocity,
         size,
-        delay: Math.random() * 0.4,
+        delay: Math.random() * 0.3,
         color: colors[Math.floor(Math.random() * colors.length)],
         shape,
         isStar
@@ -126,7 +126,7 @@ function Fireworks({ index, count = 50 }: { index: number; count?: number }) {
     <motion.div className="absolute inset-0 pointer-events-none" key={`${index}-${count}`}>
       {particles.map((p) => {
         const xDistance = Math.cos(p.rad) * p.velocity
-        const yDistance = Math.sin(p.rad) * p.velocity - 60 // Upward burst bias
+        const yDistance = Math.sin(p.rad) * p.velocity - 80 // Upward burst bias
         return (
           <motion.div
             key={p.id}
@@ -134,23 +134,23 @@ function Fireworks({ index, count = 50 }: { index: number; count?: number }) {
             animate={{
               opacity: [0, 1, 1, 0],
               x: ["-50%", `calc(-50% + ${xDistance * 0.8}px)`, `calc(-50% + ${xDistance}px)`],
-              y: ["-50%", `calc(-50% + ${yDistance}px)`, `calc(-50% + ${yDistance + 150}px)`],
-              scale: [0, 1, Math.random() * 0.5 + 0.5, 0],
+              y: ["-50%", `calc(-50% + ${yDistance}px)`, `calc(-50% + ${yDistance + 180}px)`],
+              scale: [0, 1, Math.random() * 0.5 + 0.8, 0],
               rotate: 180 + Math.random() * 360,
             }}
             transition={{
-              duration: 1.8 + Math.random(),
+              duration: 2.0 + Math.random(),
               delay: p.delay,
               times: [0, 0.2, 0.7, 1],
               ease: "easeOut",
             }}
             className={cn(
               `absolute top-1/2 left-1/2 flex items-center justify-center ${p.shape}`,
-              !p.isStar ? p.color : 'text-gold'
+              !p.isStar ? `${p.color} shadow-[0_0_12px_currentColor]` : 'text-gold drop-shadow-[0_0_16px_rgba(255,215,0,0.8)]'
             )}
             style={{ width: p.size, height: p.size }}
           >
-            {p.isStar && <FaStar size={p.size * 2} className="drop-shadow-[0_0_8px_rgba(255,215,0,0.8)]" />}
+            {p.isStar && <FaStar size={p.size * 2} className="drop-shadow-[0_0_12px_rgba(255,215,0,1)]" />}
           </motion.div>
         )
       })}
@@ -207,52 +207,80 @@ export default function HomeAwards() {
     >
       {/* ── Cinematic ambient lighting ── */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {/* Top spotlight */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] opacity-[0.05] bg-teal blur-[120px] rounded-full" />
-        {/* Bottom warm glow */}
-        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[500px] h-[200px] opacity-[0.04] bg-teal-light blur-[100px] rounded-full" />
+        {/* Top spotlight — boosted */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[350px] opacity-20 bg-teal blur-[100px] rounded-full" />
+        {/* Bottom warm glow — boosted */}
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[600px] h-[260px] opacity-15 bg-gold blur-[90px] rounded-full" />
         {/* Left/right vignette */}
         <div className="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-paper to-transparent z-10 pointer-events-none" />
         <div className="absolute inset-y-0 right-0 w-32 bg-gradient-to-r from-transparent to-paper z-10 pointer-events-none" />
 
-        {/* ── Decorative ripple on award change ── */}
+        {/* ── Ripple ring 1 — brighter ── */}
         <AnimatePresence mode="popLayout">
           <motion.div
-            key={activeIndex}
+            key={`r1-${activeIndex}`}
             initial={{ opacity: 0, scale: 0.3 }}
-            animate={{ opacity: 0.12, scale: 2.5 }}
-            exit={{ opacity: 0 }}
+            animate={{ opacity: 0.5, scale: 2.8 }}
+            exit={{ opacity: 0, scale: 3.2 }}
             transition={{ duration: 1.2, ease: 'easeOut' }}
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[180px] h-[180px] rounded-full border border-teal/50 pointer-events-none"
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200px] h-[200px] rounded-full border-2 border-teal/70 pointer-events-none"
           />
         </AnimatePresence>
 
+        {/* ── Ripple ring 2 — brighter ── */}
         <AnimatePresence mode="popLayout">
           <motion.div
-            key={activeIndex}
+            key={`r2-${activeIndex}`}
             initial={{ opacity: 0, scale: 0.2 }}
-            animate={{ opacity: 0.08, scale: 3.5 }}
-            exit={{ opacity: 0 }}
+            animate={{ opacity: 0.35, scale: 4.0 }}
+            exit={{ opacity: 0, scale: 4.5 }}
             transition={{ duration: 1.6, ease: 'easeOut', delay: 0.15 }}
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[180px] h-[180px] rounded-full border border-teal/30 pointer-events-none"
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200px] h-[200px] rounded-full border-2 border-gold/50 pointer-events-none"
           />
         </AnimatePresence>
 
-        {/* Floating orbs */}
+        {/* ── Ripple ring 3 — new outer ring ── */}
+        <AnimatePresence mode="popLayout">
+          <motion.div
+            key={`r3-${activeIndex}`}
+            initial={{ opacity: 0, scale: 0.1 }}
+            animate={{ opacity: 0.2, scale: 5.5 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 2.0, ease: 'easeOut', delay: 0.3 }}
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200px] h-[200px] rounded-full border border-teal/30 pointer-events-none"
+          />
+        </AnimatePresence>
+
+        {/* Floating orbs — more visible */}
         <motion.div
           key={`orb1-${activeIndex}`}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 0.05, y: 0 }}
+          initial={{ opacity: 0, y: 20, scale: 0.8 }}
+          animate={{ opacity: 0.25, y: 0, scale: 1 }}
           transition={{ duration: 1, delay: 0.3 }}
-          className="absolute top-16 left-[15%] w-16 h-16 rounded-full bg-teal blur-[40px] pointer-events-none"
+          className="absolute top-16 left-[15%] w-28 h-28 rounded-full bg-teal blur-[50px] pointer-events-none"
         />
         <motion.div
           key={`orb2-${activeIndex}`}
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 0.04, y: 0 }}
+          initial={{ opacity: 0, y: -20, scale: 0.8 }}
+          animate={{ opacity: 0.25, y: 0, scale: 1 }}
           transition={{ duration: 1, delay: 0.5 }}
-          className="absolute bottom-20 right-[12%] w-20 h-20 rounded-full bg-teal blur-[50px] pointer-events-none"
+          className="absolute bottom-20 right-[12%] w-32 h-32 rounded-full bg-gold blur-[60px] pointer-events-none"
         />
+
+        {/* Center flash burst on award change */}
+        <AnimatePresence mode="popLayout">
+          <motion.div
+            key={`flash-${activeIndex}`}
+            initial={{ opacity: 0, scale: 0.5 }}
+            animate={{ opacity: [0, 0.45, 0] }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.9, ease: 'easeOut', times: [0, 0.2, 1] }}
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[360px] h-[360px] rounded-full blur-[50px] pointer-events-none"
+            style={{
+              background: 'radial-gradient(circle, rgba(255, 215, 0, 0.6) 0%, rgba(15, 110, 86, 0.25) 50%, transparent 75%)',
+            }}
+          />
+        </AnimatePresence>
 
         {/* Trophy Animation */}
         <TrophyAnimation index={activeIndex} />
