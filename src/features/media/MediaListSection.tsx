@@ -55,7 +55,7 @@ export default function MediaListSection() {
                   'font-mono text-[9px] tracking-[0.2em] uppercase px-4 py-2 transition-colors duration-200 cursor-pointer',
                   activeType === type
                     ? 'bg-teal text-white'
-                    : 'border border-rule text-ink-muted hover:text-ink hover:border-ink/30',
+                    : 'border border-rule text-ink-muted hover:text-ink hover:border-ink/30 active:bg-teal active:text-white active:border-teal active:scale-95',
                 )}
               >
                 {type === 'all' ? 'All' : mediaTypeLabels[type]}

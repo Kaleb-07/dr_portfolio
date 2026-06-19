@@ -210,7 +210,7 @@ export default function ContactFormSection() {
                 variants={formItemVariants}
                 initial="hidden"
                 animate={isInView ? 'visible' : 'hidden'}
-                className="grid sm:grid-cols-2 gap-6"
+                className="grid md:grid-cols-2 gap-4 sm:gap-6"
               >
                 <div>
                   <label className="block font-mono text-[9px] tracking-[0.2em] uppercase text-ink-mid mb-2">
@@ -243,7 +243,7 @@ export default function ContactFormSection() {
                 initial="hidden"
                 animate={isInView ? 'visible' : 'hidden'}
                 transition={{ delay: 0.1 }}
-                className="grid sm:grid-cols-2 gap-6"
+                className="grid md:grid-cols-2 gap-4 sm:gap-6"
               >
                 <div>
                   <label className="block font-mono text-[9px] tracking-[0.2em] uppercase text-ink-mid mb-2">

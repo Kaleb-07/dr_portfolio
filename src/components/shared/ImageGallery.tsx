@@ -102,16 +102,16 @@ const ImageGallery = ({ items, columns = 3 }: ImageGalleryProps) => {
   return (
     <div>
       {/* Category Filters — design-system aligned */}
-      <div className="mb-10 flex flex-wrap justify-center gap-2">
+      <div className="mb-8 sm:mb-10 flex flex-wrap justify-center gap-1.5 sm:gap-2">
         {categories.map((cat) => (
           <button
             key={cat}
             onClick={() => setActiveCategory(cat)}
             className={cn(
-              'px-4 py-2 text-xs font-mono tracking-widest uppercase transition-all duration-200 border',
+              'px-3 py-1.5 sm:px-4 sm:py-2 text-[10px] sm:text-xs font-mono tracking-widest uppercase transition-all duration-200 border',
               activeCategory === cat
                 ? 'bg-teal text-white border-teal'
-                : 'bg-white text-ink-mid border-rule hover:border-teal hover:text-teal hover:bg-teal-light',
+                : 'bg-white text-ink-mid border-rule hover:border-teal hover:text-teal hover:bg-teal-light active:bg-teal active:text-white active:border-teal active:scale-95',
             )}
           >
             {cat === allCategoriesLabel ? 'All' : cat}
@@ -191,7 +191,7 @@ const ImageGallery = ({ items, columns = 3 }: ImageGalleryProps) => {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
               transition={{ duration: 0.3 }}
-              className="relative max-h-[85vh] max-w-4xl w-full mx-4"
+              className="relative max-h-[80vh] sm:max-h-[85vh] max-w-sm sm:max-w-2xl md:max-w-4xl w-full mx-4"
               onClick={(e) => e.stopPropagation()}
             >
               {filtered[lightboxIndex]?.src ? (

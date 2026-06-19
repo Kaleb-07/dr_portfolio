@@ -18,9 +18,9 @@ const sizeStyles: Record<string, string> = {
 
 const variantStyles: Record<string, string> = {
   primary:
-    'bg-teal text-white hover:bg-teal-light',
+    'bg-teal text-white hover:bg-teal-mid active:bg-teal-mid active:scale-[0.98]',
   ghost:
-    'bg-transparent text-ink border-[0.5px] border-[var(--color-ink-faint)] hover:bg-paper-warm hover:border-ink-mid',
+    'bg-transparent text-ink border-[0.5px] border-[var(--color-ink-faint)] hover:bg-paper-warm hover:border-ink-mid active:bg-paper-warm active:scale-[0.98]',
 }
 
 const Button = ({

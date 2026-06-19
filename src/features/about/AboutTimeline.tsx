@@ -15,7 +15,7 @@ export default function AboutTimeline() {
             <span className="section-tag">Milestones</span>
             <span className="section-rule" />
           </div>
-          <h2 className="font-serif text-4xl md:text-5xl font-light text-ink mb-16">
+          <h2 className="font-serif text-4xl md:text-5xl font-light text-ink mb-10 md:mb-16">
             Key moments that <em className="text-teal-mid not-italic">defined</em> the journey
           </h2>
         </AnimatedSection>
@@ -43,7 +43,7 @@ export default function AboutTimeline() {
 
                     {/* Timeline Card Column */}
                     <div className={`w-full sm:w-[calc(50%-2rem)] ml-12 sm:ml-0 ${isEven ? 'sm:pl-8' : 'sm:pr-8'} text-left`}>
-                      <div className="bg-white p-6 border border-rule shadow-[0_1px_3px_rgba(0,0,0,0.02)] relative group hover:border-teal-mid/50 hover:shadow-md transition-all duration-300">
+                      <div className="bg-white p-4 sm:p-6 border border-rule shadow-[0_1px_3px_rgba(0,0,0,0.02)] relative group hover:border-teal-mid/50 hover:shadow-md transition-all duration-300">
                         {/* Hover accent gold strip */}
                         <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-gold to-gold-light origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300" />
                         

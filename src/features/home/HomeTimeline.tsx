@@ -55,7 +55,7 @@ function BubbleCard({
       animate={inView ? { opacity: 1, y: 0, scale: 1 } : {}}
       transition={{ duration: 0.6, delay, ease: [0.22, 1, 0.36, 1] }}
       className="relative flex flex-col items-center"
-      style={{ minWidth: 160 }}
+      style={{ minWidth: 'min(160px, 42vw)' }}
     >
       {/* ── Icon node ── */}
       <motion.div
@@ -84,7 +84,7 @@ function BubbleCard({
         whileHover={{ scale: 1.05, rotate: 1.5 }}
         transition={{ type: 'spring', stiffness: 220, damping: 14 }}
         className={`
-          relative w-44 h-44 rounded-full
+          relative w-36 h-36 sm:w-44 sm:h-44 rounded-full
           bg-gradient-to-br ${palette.bg}
           shadow-2xl flex flex-col items-center justify-center
           text-center px-4 cursor-default select-none

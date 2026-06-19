@@ -104,7 +104,7 @@ export default function Footer() {
             >
               <Link
                 to="/contact"
-                className="inline-flex items-center gap-3 border border-white/20 px-8 py-3.5 font-mono text-xs tracking-widest uppercase text-white/70 hover:border-teal hover:text-teal hover:bg-teal/5 transition-all duration-300 group"
+                className="inline-flex items-center gap-3 border border-white/20 px-8 py-3.5 font-mono text-xs tracking-widest uppercase text-white/70 hover:border-teal hover:text-teal hover:bg-teal/5 active:border-teal active:text-teal active:bg-teal/5 active:scale-[0.98] transition-all duration-300 group"
               >
                 Get in Touch
                 <span className="w-4 h-px bg-white/40 group-hover:w-6 group-hover:bg-teal transition-all duration-300" />
@@ -215,7 +215,7 @@ export default function Footer() {
                   aria-label={label}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-8 h-8 border border-white/10 flex items-center justify-center text-white/30 hover:border-teal hover:text-teal hover:bg-teal/5 transition-all duration-300"
+                  className="w-8 h-8 border border-white/10 flex items-center justify-center text-white/30 hover:border-teal hover:text-teal hover:bg-teal/5 active:border-teal active:text-teal active:bg-teal/10 active:scale-90 transition-all duration-300"
                 >
                   <Icon size={13} />
                 </a>

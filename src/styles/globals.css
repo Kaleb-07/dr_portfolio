@@ -24,11 +24,11 @@
   /* micro mono labels (tagline, copyright, section-tag) */
   --text-xs: 12px;
   /* tiny mono labels                   */
-  --text-sm: 15px;
+  --text-sm: 17px;
   /* body descriptions, card text       */
-  --text-base: 17px;
+  --text-base: 20px;
   /* standard body paragraphs           */
-  --text-lg: 19px;
+  --text-lg: 22px;
   /* slightly larger body                */
   --text-xl: 21px;
   /* sub-headings                        */
@@ -151,13 +151,23 @@
 }
 
 @keyframes orbit-cw {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes orbit-ccw {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(-360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(-360deg);
+  }
 }
 
 @keyframes reveal {

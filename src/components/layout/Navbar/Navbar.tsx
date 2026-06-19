@@ -125,7 +125,7 @@ export default function Navbar() {
           <button
             type="button"
             className={cn(
-              'relative flex items-center gap-1 font-mono text-[11px] tracking-widest uppercase transition-colors duration-200 cursor-pointer h-full px-2',
+              'relative flex items-center gap-1 font-mono text-[length:var(--text-nav)] tracking-widest uppercase transition-colors duration-200 cursor-pointer h-full px-2',
               isActive ? 'text-teal font-medium' : 'text-ink-muted hover:text-teal',
               isOpen && 'text-teal'
             )}
@@ -188,7 +188,7 @@ export default function Navbar() {
         <Link
           to={link.path!}
           className={cn(
-            'relative flex items-center font-mono text-[11px] tracking-widest uppercase transition-colors duration-200 h-full px-2',
+            'relative flex items-center font-mono text-[length:var(--text-nav)] tracking-widest uppercase transition-colors duration-200 h-full px-2',
             isActive ? 'text-teal font-medium' : 'text-ink-muted hover:text-teal'
           )}
         >
@@ -206,6 +206,7 @@ export default function Navbar() {
   }
 
   return (
+    <>
     <header
       className={cn(
         'fixed top-0 z-50 transition-all duration-300',
@@ -218,7 +219,7 @@ export default function Navbar() {
           : 'lg:shadow-sm lg:h-16 lg:top-0'
       )}
     >
-      <div className="mx-auto flex h-full items-center justify-between px-6 sm:px-12 lg:px-16 relative">
+      <div className="mx-auto flex h-full items-center justify-between px-4 sm:px-6 lg:px-10 xl:px-16 relative">
         {/* Concave corners for bridge look (hidden on mobile, absolute top of header) */}
         <div className="absolute top-0 right-full w-4 h-4 bg-transparent rounded-tr-2xl shadow-[8px_-8px_0_8px_var(--color-paper-card)] pointer-events-none hidden lg:block" />
         <div className="absolute top-0 left-full w-4 h-4 bg-transparent rounded-tl-2xl shadow-[-8px_-8px_0_8px_var(--color-paper-card)] pointer-events-none hidden lg:block" />
@@ -228,36 +229,36 @@ export default function Navbar() {
           <Link
             to="/"
             onClick={() => setMobileOpen(false)}
-            className="font-serif text-lg font-medium text-ink"
+            className="font-serif text-base sm:text-lg font-medium text-ink"
           >
             Dr.<em className="text-teal not-italic"> Girma Ababi</em>
           </Link>
         </div>
 
         {/* Desktop Left Nav Links */}
-        <div className="hidden lg:flex items-center gap-6 xl:gap-8 h-full justify-start flex-1">
+        <div className="hidden lg:flex items-center gap-4 xl:gap-8 h-full justify-start flex-1">
           {navLinks.slice(0, 3).map((link) => renderNavLink(link))}
         </div>
 
         {/* Desktop Center Logo */}
-        <div className="hidden lg:flex items-center justify-center shrink-0 mx-6 xl:mx-8">
+        <div className="hidden lg:flex items-center justify-center shrink-0 mx-4 xl:mx-8">
           <Link
             to="/"
-            className="font-serif text-lg font-medium text-ink transition-transform duration-200 hover:scale-[1.02]"
+            className="font-serif text-base lg:text-lg font-medium text-ink transition-transform duration-200 hover:scale-[1.02]"
           >
             Dr.<em className="text-teal not-italic"> Girma Ababi</em>
           </Link>
         </div>
 
         {/* Desktop Right Nav Links */}
-        <div className="hidden lg:flex items-center gap-6 xl:gap-8 h-full justify-end flex-1">
+        <div className="hidden lg:flex items-center gap-4 xl:gap-8 h-full justify-end flex-1">
           {navLinks.slice(3, 5).map((link) => renderNavLink(link))}
           {/* Contact action button */}
           <Link to="/contact">
             <button
               type="button"
               className={cn(
-                'font-mono text-[10px] tracking-widest uppercase transition-all duration-200 cursor-pointer px-4 py-2 rounded-full border border-teal text-teal hover:bg-teal hover:text-white',
+                'font-mono text-[length:var(--text-nav)] tracking-widest uppercase transition-all duration-200 cursor-pointer px-4 py-2 rounded-full border border-teal text-teal hover:bg-teal hover:text-white active:bg-teal active:text-white active:scale-[0.97]',
                 pathname === '/contact' && 'bg-teal text-white'
               )}
             >
@@ -277,97 +278,98 @@ export default function Navbar() {
         </button>
       </div>
 
-      {/* Mobile Navigation */}
-      <AnimatePresence>
-        {mobileOpen && (
-          <motion.div
-            initial={{ opacity: 0, x: '100%' }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: '100%' }}
-            transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
-            className="fixed inset-0 top-16 z-40 bg-paper lg:hidden overflow-y-auto"
+    </header>
+
+    {/* Mobile Navigation — rendered OUTSIDE header to avoid stacking context clip */}
+    <AnimatePresence>
+      {mobileOpen && (
+        <motion.div
+          initial={{ opacity: 0, x: '100%' }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: '100%' }}
+          transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
+          className="fixed inset-0 top-16 z-[48] bg-paper lg:hidden overflow-y-auto"
+        >
+          <motion.nav
+            variants={mobileContainerVariants}
+            initial="hidden"
+            animate="show"
+            className="flex flex-col items-center py-12 gap-8 px-6"
           >
-            <motion.nav
-              variants={mobileContainerVariants}
-              initial="hidden"
-              animate="show"
-              className="flex flex-col items-center py-12 gap-8 px-6"
-            >
-              {navLinks.map((link) => {
-                if (link.children) {
-                  const isOpen = !!mobileSubmenuOpen[link.label]
-                  const isActive = link.children.some((child) => pathname === child.path)
+            {navLinks.map((link) => {
+              if (link.children) {
+                const isOpen = !!mobileSubmenuOpen[link.label]
+                const isActive = link.children.some((child) => pathname === child.path)
 
-                  return (
-                    <motion.div key={link.label} variants={mobileItemVariants} className="w-full text-center">
-                      <button
-                        type="button"
-                        onClick={() => toggleMobileSubmenu(link.label)}
-                        className={cn(
-                          'flex items-center justify-center gap-1.5 mx-auto font-mono text-sm tracking-widest uppercase transition-colors duration-200 cursor-pointer',
-                          isActive ? 'text-teal' : 'text-ink-muted hover:text-teal'
-                        )}
-                      >
-                        {link.label}
-                        <ChevronDown
-                          size={14}
-                          className={cn('transition-transform duration-200', isOpen && 'rotate-180')}
-                        />
-                      </button>
-
-                      <AnimatePresence>
-                        {isOpen && (
-                          <motion.div
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: 'auto', opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            transition={{ duration: 0.2, ease: 'easeInOut' }}
-                            className="overflow-hidden flex flex-col gap-4 mt-3 bg-paper-warm/40 py-4 px-2 rounded"
-                          >
-                            {link.children.map((child) => {
-                              const isChildActive = pathname === child.path
-                              return (
-                                <Link
-                                  key={child.path}
-                                  to={child.path}
-                                  onClick={() => setMobileOpen(false)}
-                                  className={cn(
-                                    'font-mono text-xs tracking-widest uppercase transition-colors duration-200',
-                                    isChildActive ? 'text-teal font-medium' : 'text-ink-muted hover:text-teal'
-                                  )}
-                                >
-                                  {child.label}
-                                </Link>
-                              )
-                            })}
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </motion.div>
-                  )
-                }
-
-                const isActive = pathname === link.path
                 return (
-                  <motion.div key={link.path} variants={mobileItemVariants} className="w-full text-center">
-                    <Link
-                      key={link.path}
-                      to={link.path!}
-                      onClick={() => setMobileOpen(false)}
+                  <motion.div key={link.label} variants={mobileItemVariants} className="w-full text-center">
+                    <button
+                      type="button"
+                      onClick={() => toggleMobileSubmenu(link.label)}
                       className={cn(
-                        'font-mono text-sm tracking-widest uppercase transition-colors duration-200',
+                        'flex items-center justify-center gap-1.5 mx-auto font-mono text-sm tracking-widest uppercase transition-colors duration-200 cursor-pointer',
                         isActive ? 'text-teal' : 'text-ink-muted hover:text-teal'
                       )}
                     >
                       {link.label}
-                    </Link>
+                      <ChevronDown
+                        size={14}
+                        className={cn('transition-transform duration-200', isOpen && 'rotate-180')}
+                      />
+                    </button>
+
+                    <AnimatePresence>
+                      {isOpen && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.2, ease: 'easeInOut' }}
+                          className="overflow-hidden flex flex-col gap-4 mt-3 bg-paper-warm/40 py-4 px-2 rounded"
+                        >
+                          {link.children.map((child) => {
+                            const isChildActive = pathname === child.path
+                            return (
+                              <Link
+                                key={child.path}
+                                to={child.path}
+                                onClick={() => setMobileOpen(false)}
+                                className={cn(
+                                  'font-mono text-xs tracking-widest uppercase transition-colors duration-200',
+                                  isChildActive ? 'text-teal font-medium' : 'text-ink-muted hover:text-teal'
+                                )}
+                              >
+                                {child.label}
+                              </Link>
+                            )
+                          })}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </motion.div>
                 )
-              })}
-            </motion.nav>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </header>
+              }
+
+              const isActive = pathname === link.path
+              return (
+                <motion.div key={link.path} variants={mobileItemVariants} className="w-full text-center">
+                  <Link
+                    to={link.path!}
+                    onClick={() => setMobileOpen(false)}
+                    className={cn(
+                      'font-mono text-sm tracking-widest uppercase transition-colors duration-200',
+                      isActive ? 'text-teal' : 'text-ink-muted hover:text-teal'
+                    )}
+                  >
+                    {link.label}
+                  </Link>
+                </motion.div>
+              )
+            })}
+          </motion.nav>
+        </motion.div>
+      )}
+    </AnimatePresence>
+    </>
   )
 }

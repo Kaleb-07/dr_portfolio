@@ -34,7 +34,7 @@ export default function AboutStory() {
                     onError={(e) => {
                       (e.target as HTMLImageElement).src = '/image.png'
                     }}
-                    className="w-full h-auto object-cover grayscale transition-all duration-700 group-hover:grayscale-0 scale-100 group-hover:scale-102"
+                    className="w-full h-auto object-cover grayscale transition-all duration-700 group-hover:grayscale-0 scale-100 group-hover:scale-105"
                   />
                 </div>
               </div>
@@ -62,7 +62,7 @@ export default function AboutStory() {
                   <p className="font-mono text-[9px] tracking-[0.25em] uppercase text-gold mb-4 border-b border-rule/30 pb-2">
                     Chapter {String(chapterIndex + 1).padStart(2, '0')}
                   </p>
-                  <p className="text-base font-light text-ink-mid leading-[2.0] editorial-dropcap text-justify">
+                  <p className="text-base font-light text-ink-mid leading-[2.0] editorial-dropcap text-left md:text-justify">
                     {text}
                   </p>
                 </AnimatedSection>

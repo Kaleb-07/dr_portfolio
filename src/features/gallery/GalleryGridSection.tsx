@@ -20,7 +20,7 @@ export default function GalleryGridSection() {
           <h2 className="font-serif text-4xl md:text-5xl font-light text-ink mb-4">
             A <em className="text-teal-mid not-italic">visual</em> journey
           </h2>
-          <p className="text-sm font-light text-ink-muted mb-14 max-w-xl">
+          <p className="text-sm font-light text-ink-muted mb-8 sm:mb-14 max-w-xl">
             A curated archive of milestones, leadership moments, and community impact captured over the years.
           </p>
         </AnimatedSection>
