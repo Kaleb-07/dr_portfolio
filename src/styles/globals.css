@@ -20,6 +20,8 @@
   --font-mono: 'Space Mono', monospace;
 
   /* ── Font sizes — edit here to control all text across every page ── */
+  --text-nav: 11px;
+  /* navigation links                      */
   --text-2xs: 9px;
   /* micro mono labels (tagline, copyright, section-tag) */
   --text-xs: 12px;

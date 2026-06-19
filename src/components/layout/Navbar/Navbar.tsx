@@ -127,8 +127,8 @@ export default function Navbar() {
           <button
             type="button"
             className={cn(
-              'relative flex items-center gap-1 font-mono text-[length:var(--text-nav)] tracking-widest uppercase transition-colors duration-200 cursor-pointer h-full px-2',
-              isActive ? 'text-teal font-medium' : 'text-ink-muted hover:text-teal',
+              'relative flex items-center gap-1 font-mono text-[length:var(--text-nav)] tracking-widest uppercase transition-colors duration-200 cursor-pointer h-full px-2 font-medium',
+              isActive ? 'text-teal' : 'text-ink hover:text-teal',
               isOpen && 'text-teal'
             )}
           >
@@ -190,8 +190,8 @@ export default function Navbar() {
         <Link
           to={link.path!}
           className={cn(
-            'relative flex items-center font-mono text-[length:var(--text-nav)] tracking-widest uppercase transition-colors duration-200 h-full px-2',
-            isActive ? 'text-teal font-medium' : 'text-ink-muted hover:text-teal'
+            'relative flex items-center font-mono text-[length:var(--text-nav)] tracking-widest uppercase transition-colors duration-200 h-full px-2 font-medium',
+            isActive ? 'text-teal' : 'text-ink hover:text-teal'
           )}
         >
           {link.label}
@@ -310,8 +310,8 @@ export default function Navbar() {
                       type="button"
                       onClick={() => toggleMobileSubmenu(link.label)}
                       className={cn(
-                        'flex items-center justify-center gap-1.5 mx-auto font-mono text-sm tracking-widest uppercase transition-colors duration-200 cursor-pointer',
-                        isActive ? 'text-teal' : 'text-ink-muted hover:text-teal'
+                        'flex items-center justify-center gap-1.5 mx-auto font-mono text-sm tracking-widest uppercase transition-colors duration-200 cursor-pointer font-medium',
+                        isActive ? 'text-teal' : 'text-ink hover:text-teal'
                       )}
                     >
                       {link.label}
@@ -338,8 +338,8 @@ export default function Navbar() {
                                 to={child.path}
                                 onClick={() => setMobileOpen(false)}
                                 className={cn(
-                                  'font-mono text-xs tracking-widest uppercase transition-colors duration-200',
-                                  isChildActive ? 'text-teal font-medium' : 'text-ink-muted hover:text-teal'
+                                  'font-mono text-xs tracking-widest uppercase transition-colors duration-200 font-medium',
+                                  isChildActive ? 'text-teal' : 'text-ink hover:text-teal'
                                 )}
                               >
                                 {child.label}
@@ -360,8 +360,8 @@ export default function Navbar() {
                     to={link.path!}
                     onClick={() => setMobileOpen(false)}
                     className={cn(
-                      'font-mono text-sm tracking-widest uppercase transition-colors duration-200',
-                      isActive ? 'text-teal' : 'text-ink-muted hover:text-teal'
+                      'font-mono text-sm tracking-widest uppercase transition-colors duration-200 font-medium',
+                      isActive ? 'text-teal' : 'text-ink hover:text-teal'
                     )}
                   >
                     {link.label}
