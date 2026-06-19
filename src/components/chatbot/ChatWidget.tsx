@@ -8,9 +8,8 @@ import {
   Maximize2,
   AlertCircle,
   ShieldCheck,
-  MessageSquareCode,
-  Sparkles,
 } from "lucide-react";
+import { HealthcareChatIcon } from "@/components/shared/HealthcareChatIcon";
 import { streamGeminiChat, type ChatMessage } from "../../services/geminiService";
 
 // Helper to escape HTML and format basic Markdown
@@ -210,7 +209,7 @@ export const ChatWidget: React.FC = () => {
               whileTap={{ scale: 0.96 }}
               className="w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 shadow-md border border-rule bg-teal text-white cursor-pointer relative overflow-hidden group"
             >
-              <Sparkles size={20} className="text-white group-hover:scale-110 transition-transform" />
+              <HealthcareChatIcon className="w-full h-full group-hover:scale-110 transition-transform" />
               <motion.span
                 initial={{ opacity: 0, x: -10 }}
                 whileHover={{ opacity: 1, x: 0 }}
@@ -274,7 +273,7 @@ export const ChatWidget: React.FC = () => {
 
               <div className="flex items-center gap-3 relative z-10">
                 <div className="w-9 h-9 rounded-full bg-white/15 flex items-center justify-center overflow-hidden border border-white/20">
-                  <Sparkles size={16} className="text-white" />
+                  <HealthcareChatIcon className="w-full h-full" />
                 </div>
                 <div>
                   <h3 className="font-serif font-medium text-xs leading-none tracking-wide text-white">
@@ -333,7 +332,7 @@ export const ChatWidget: React.FC = () => {
                               : "bg-paper-card border border-teal/20 text-teal"
                           }`}
                         >
-                          {m.role === "user" ? <User size={12} /> : <Sparkles size={11} />}
+                          {m.role === "user" ? <User size={12} /> : <HealthcareChatIcon className="w-full h-full" />}
                         </div>
 
                         <div
@@ -357,7 +356,7 @@ export const ChatWidget: React.FC = () => {
                     <div className="flex justify-start">
                       <div className="flex gap-2 max-w-[85%]">
                         <div className="w-7 h-7 bg-paper-card border border-teal/20 rounded-full flex items-center justify-center overflow-hidden shrink-0 mt-auto text-teal">
-                          <Sparkles size={11} />
+                          <HealthcareChatIcon className="w-full h-full" />
                         </div>
                         <div className="p-3 bg-paper-card text-ink-mid border border-rule rounded-xl rounded-bl-none shadow-2xs">
                           <div
@@ -374,7 +373,7 @@ export const ChatWidget: React.FC = () => {
                     <div className="flex justify-start">
                       <div className="flex gap-2">
                         <div className="w-7 h-7 bg-paper-card border border-teal/20 rounded-full flex items-center justify-center overflow-hidden shrink-0 mt-auto text-teal">
-                          <Sparkles size={11} />
+                          <HealthcareChatIcon className="w-full h-full" />
                         </div>
                         <div className="px-4 py-2.5 bg-paper-card border border-rule rounded-xl rounded-bl-none shadow-2xs flex items-center gap-1.5">
                           <span className="w-1.5 h-1.5 bg-teal/40 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
@@ -388,14 +387,14 @@ export const ChatWidget: React.FC = () => {
                   {/* API Key Missing or Error States */}
                   {error === "API_KEY_MISSING" && (
                     <div className="flex justify-center px-2 py-1">
-                      <div className="bg-orange-50 border border-orange-200 text-orange-950 p-3 rounded-lg text-[11px] flex items-start gap-2.5 max-w-[95%] shadow-sm">
-                        <AlertCircle size={15} className="shrink-0 mt-0.5 text-orange-600" />
+                      <div className="bg-gold-light border border-gold/30 text-ink p-3 rounded-lg text-[11px] flex items-start gap-2.5 max-w-[95%] shadow-sm">
+                        <AlertCircle size={15} className="shrink-0 mt-0.5 text-gold" />
                         <div>
-                          <p className="font-bold tracking-wide">Assistant Configuration Required</p>
-                          <p className="mt-1 text-orange-800 leading-relaxed font-sans">
+                          <p className="font-bold tracking-wide">Configuration Required</p>
+                          <p className="mt-1 text-ink-mid leading-relaxed font-sans">
                             Please set up the environment configuration by adding your Google Gemini API Key:
                           </p>
-                          <code className="block mt-1.5 px-1.5 py-1 rounded bg-orange-100/80 font-mono text-[10px] break-all select-all">
+                          <code className="block mt-1.5 px-1.5 py-1 rounded bg-gold-light/80 border border-gold/20 font-mono text-[10px] break-all select-all">
                             VITE_GEMINI_API_KEY=your_key_here
                           </code>
                         </div>
@@ -405,11 +404,11 @@ export const ChatWidget: React.FC = () => {
 
                   {error === "GENERAL_ERROR" && (
                     <div className="flex justify-center px-2 py-1">
-                      <div className="bg-red-50 border border-red-200 text-red-950 p-3 rounded-lg text-[11px] flex items-start gap-2.5 max-w-[95%] shadow-sm">
-                        <AlertCircle size={15} className="shrink-0 mt-0.5 text-red-500" />
+                      <div className="bg-teal-light border border-teal/30 text-ink p-3 rounded-lg text-[11px] flex items-start gap-2.5 max-w-[95%] shadow-sm">
+                        <AlertCircle size={15} className="shrink-0 mt-0.5 text-teal" />
                         <div>
                           <p className="font-bold tracking-wide">Service Unavailable</p>
-                          <p className="mt-0.5 text-red-800 leading-relaxed font-sans">
+                          <p className="mt-0.5 text-ink-mid leading-relaxed font-sans">
                             I am currently unable to reach the AI model service. Please check your network connection or try again in a few moments.
                           </p>
                         </div>
@@ -471,8 +470,8 @@ export const ChatWidget: React.FC = () => {
               <div className="absolute -right-2 top-1/2 -translate-y-1/2 w-0 h-0 border-t-6 border-t-transparent border-b-6 border-b-transparent border-l-6 border-l-paper-card" />
 
               <div className="flex-1 flex gap-2 items-center">
-                <div className="w-8 h-8 rounded-full bg-teal/5 flex items-center justify-center text-teal group-hover:scale-105 transition-transform border border-rule shrink-0">
-                  <MessageSquareCode size={14} />
+                <div className="w-8 h-8 rounded-full bg-teal/5 flex items-center justify-center text-teal group-hover:scale-105 transition-transform border border-rule shrink-0 overflow-hidden">
+                  <HealthcareChatIcon className="w-full h-full" />
                 </div>
                 <div className="text-left font-sans">
                   <p className="text-[10px] font-bold text-ink uppercase tracking-wide">Girma Representative</p>
@@ -500,7 +499,7 @@ export const ChatWidget: React.FC = () => {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={toggleMain}
-          className={`relative w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all duration-200 cursor-pointer ${
+          className={`relative w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all duration-200 cursor-pointer overflow-hidden ${
             isOpen || isMenuOpen
               ? "bg-teal text-white rotate-90"
               : "bg-paper-card border border-rule hover:border-teal/30 text-teal"
@@ -509,7 +508,7 @@ export const ChatWidget: React.FC = () => {
           {isOpen || isMenuOpen ? (
             <X size={22} />
           ) : (
-            <MessageSquareCode size={24} />
+            <HealthcareChatIcon className="w-full h-full" />
           )}
         </motion.button>
 
