@@ -1,6 +1,6 @@
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import { Link } from 'react-router-dom'
-import { motion, useInView } from 'framer-motion'
+import { motion, useInView, AnimatePresence } from 'framer-motion'
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa'
 import { Container } from '@/components/shared'
 import { awards } from '@/data/awards'
@@ -21,7 +21,7 @@ function GoldenFrame({
         className={cn(
           'relative transition-all duration-700 ease-out',
           isActive
-            ? 'shadow-[0_0_50px_rgba(138,106,42,0.2),0_0_100px_rgba(138,106,42,0.08)]'
+            ? 'shadow-[0_0_50px_rgba(15,110,86,0.2),0_0_100px_rgba(15,110,86,0.08)]'
             : 'shadow-none'
         )}
       >
@@ -29,17 +29,37 @@ function GoldenFrame({
           className={cn(
             'relative transition-all duration-700 ease-out',
             isActive
-              ? 'p-[2px] bg-gradient-to-br from-gold via-yellow-600 to-gold'
-              : 'p-[1px] bg-white/10'
+              ? 'p-[2px] bg-gradient-to-br from-teal via-teal-mid to-teal'
+              : 'p-[1px] bg-teal/20'
           )}
         >
-          <div className={cn('bg-ink transition-all duration-700', isActive ? 'p-[2px]' : 'p-[1px]')}>
+          <div className={cn('bg-paper transition-all duration-700', isActive ? 'p-[2px]' : 'p-[1px]')}>
             {isActive && (
               <>
-                <div className="absolute -top-[2px] -left-[2px] w-5 h-5 border-t-[2.5px] border-l-[2.5px] border-gold-light z-10" />
-                <div className="absolute -top-[2px] -right-[2px] w-5 h-5 border-t-[2.5px] border-r-[2.5px] border-gold-light z-10" />
-                <div className="absolute -bottom-[2px] -left-[2px] w-5 h-5 border-b-[2.5px] border-l-[2.5px] border-gold-light z-10" />
-                <div className="absolute -bottom-[2px] -right-[2px] w-5 h-5 border-b-[2.5px] border-r-[2.5px] border-gold-light z-10" />
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.4, delay: 0.15 }}
+                  className="absolute -top-[2px] -left-[2px] w-5 h-5 border-t-[2.5px] border-l-[2.5px] border-teal z-10"
+                />
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.4, delay: 0.2 }}
+                  className="absolute -top-[2px] -right-[2px] w-5 h-5 border-t-[2.5px] border-r-[2.5px] border-teal z-10"
+                />
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.4, delay: 0.25 }}
+                  className="absolute -bottom-[2px] -left-[2px] w-5 h-5 border-b-[2.5px] border-l-[2.5px] border-teal z-10"
+                />
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.4, delay: 0.3 }}
+                  className="absolute -bottom-[2px] -right-[2px] w-5 h-5 border-b-[2.5px] border-r-[2.5px] border-teal z-10"
+                />
               </>
             )}
             {children}
@@ -48,10 +68,52 @@ function GoldenFrame({
       </div>
       {isActive && (
         <div className="absolute -inset-20 -z-10 pointer-events-none">
-          <div className="w-full h-full rounded-full opacity-20 blur-[80px] bg-gold" />
+          <div className="w-full h-full rounded-full opacity-20 blur-[80px] bg-teal" />
         </div>
       )}
     </div>
+  )
+}
+
+function Fireworks({ index, count = 32 }: { index: number; count?: number }) {
+  const particles = useMemo(() => {
+    return Array.from({ length: count }, (_, i) => {
+      const angle = (i / count) * 360 + Math.random() * 20
+      const rad = (angle * Math.PI) / 180
+      const distance = 80 + Math.random() * 140
+      const size = 4 + Math.random() * 5
+      const colors = ['bg-teal', 'bg-teal-mid', 'bg-teal-light']
+      return {
+        x: Math.cos(rad) * distance,
+        y: Math.sin(rad) * distance,
+        size,
+        delay: Math.random() * 0.2,
+        color: colors[Math.floor(Math.random() * colors.length)],
+      }
+    })
+  }, [index, count])
+
+  return (
+    <motion.div className="absolute inset-0 pointer-events-none" key={`${index}-${count}`}>
+      {particles.map((p, i) => (
+        <motion.div
+          key={i}
+          initial={{ opacity: 1, x: "-50%", y: "-50%", scale: 1 }}
+          animate={{
+            opacity: 0,
+            x: `calc(-50% + ${p.x}px)`,
+            y: `calc(-50% + ${p.y}px)`,
+            scale: 0,
+          }}
+          transition={{
+            duration: 1.2 + p.delay,
+            ease: 'easeOut',
+          }}
+          className={`absolute top-1/2 left-1/2 rounded-full ${p.color}`}
+          style={{ width: p.size, height: p.size }}
+        />
+      ))}
+    </motion.div>
   )
 }
 
@@ -60,6 +122,7 @@ const gap = 28
 
 export default function HomeAwards() {
   const [activeIndex, setActiveIndex] = useState(0)
+  const [prevIndex, setPrevIndex] = useState(0)
   const sectionRef = useRef<HTMLDivElement>(null)
   const headerRef = useRef<HTMLDivElement>(null)
   const headerInView = useInView(headerRef, { once: true })
@@ -67,6 +130,11 @@ export default function HomeAwards() {
   const total = featuredAwards.length
 
   const goTo = useCallback((next: number) => {
+    setPrevIndex((prev) => {
+      const n = ((next % total) + total) % total
+      const curr = ((prev) + total) % total
+      return n !== curr ? curr : prev
+    })
     setActiveIndex(((next % total) + total) % total)
   }, [total])
 
@@ -94,23 +162,76 @@ export default function HomeAwards() {
   return (
     <section
       ref={sectionRef}
-      className="py-12 md:py-16 bg-ink text-white relative overflow-hidden"
+      className="py-12 md:py-16 bg-paper text-ink relative overflow-hidden"
     >
       {/* ── Cinematic ambient lighting ── */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {/* Top spotlight */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] opacity-[0.06] bg-gold blur-[120px] rounded-full" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] opacity-[0.05] bg-teal blur-[120px] rounded-full" />
         {/* Bottom warm glow */}
-        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[500px] h-[200px] opacity-[0.04] bg-teal blur-[100px] rounded-full" />
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[500px] h-[200px] opacity-[0.04] bg-teal-light blur-[100px] rounded-full" />
         {/* Left/right vignette */}
-        <div className="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-ink to-transparent z-10 pointer-events-none" />
-        <div className="absolute inset-y-0 right-0 w-32 bg-gradient-to-r from-transparent to-ink z-10 pointer-events-none" />
+        <div className="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-paper to-transparent z-10 pointer-events-none" />
+        <div className="absolute inset-y-0 right-0 w-32 bg-gradient-to-r from-transparent to-paper z-10 pointer-events-none" />
+
+        {/* ── Decorative ripple on award change ── */}
+        <AnimatePresence mode="popLayout">
+          <motion.div
+            key={activeIndex}
+            initial={{ opacity: 0, scale: 0.3 }}
+            animate={{ opacity: 0.12, scale: 2.5 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 1.2, ease: 'easeOut' }}
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[180px] h-[180px] rounded-full border border-teal/50 pointer-events-none"
+          />
+        </AnimatePresence>
+
+        <AnimatePresence mode="popLayout">
+          <motion.div
+            key={activeIndex}
+            initial={{ opacity: 0, scale: 0.2 }}
+            animate={{ opacity: 0.08, scale: 3.5 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 1.6, ease: 'easeOut', delay: 0.15 }}
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[180px] h-[180px] rounded-full border border-teal/30 pointer-events-none"
+          />
+        </AnimatePresence>
+
+        {/* Floating orbs */}
+        <motion.div
+          key={`orb1-${activeIndex}`}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 0.05, y: 0 }}
+          transition={{ duration: 1, delay: 0.3 }}
+          className="absolute top-16 left-[15%] w-16 h-16 rounded-full bg-teal blur-[40px] pointer-events-none"
+        />
+        <motion.div
+          key={`orb2-${activeIndex}`}
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 0.04, y: 0 }}
+          transition={{ duration: 1, delay: 0.5 }}
+          className="absolute bottom-20 right-[12%] w-20 h-20 rounded-full bg-teal blur-[50px] pointer-events-none"
+        />
+
+        {/* Firework particle burst — center */}
+        <Fireworks key={`c-${activeIndex}`} index={activeIndex} count={32} />
+
+        {/* Firework particle burst — left side */}
+        <div className="absolute left-0 top-0 w-1/4 h-full">
+          <Fireworks key={`l-${activeIndex}`} index={activeIndex} count={16} />
+        </div>
+
+        {/* Firework particle burst — right side */}
+        <div className="absolute right-0 top-0 w-1/4 h-full">
+          <Fireworks key={`r-${activeIndex}`} index={activeIndex} count={16} />
+        </div>
+
         {/* Subtle texture overlay */}
         <div
-          className="absolute inset-0 opacity-[0.015]"
+          className="absolute inset-0 opacity-[0.02]"
           style={{
             backgroundImage:
-              'radial-gradient(circle at 25% 25%, white 0.5px, transparent 0.5px), radial-gradient(circle at 75% 75%, white 0.5px, transparent 0.5px)',
+              'radial-gradient(circle at 25% 25%, rgba(0,0,0,0.3) 0.5px, transparent 0.5px), radial-gradient(circle at 75% 75%, rgba(0,0,0,0.3) 0.5px, transparent 0.5px)',
             backgroundSize: '40px 40px',
           }}
         />
@@ -126,21 +247,21 @@ export default function HomeAwards() {
           className="mb-6 md:mb-8"
         >
           <div className="section-header">
-            <span className="section-tag text-gold tracking-[0.25em]">Recognition</span>
-            <span className="section-rule !bg-white/10" />
+            <span className="section-tag text-teal tracking-[0.25em]">Recognition</span>
+            <span className="section-rule" />
           </div>
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
             <div>
-              <h2 className="font-serif text-2xl md:text-3xl font-light text-white">
-                Awards &amp; <em className="text-gold not-italic">honours</em>
+              <h2 className="font-serif text-3xl md:text-4xl font-light text-ink">
+                Awards &amp; <em className="text-teal not-italic">honours</em>
               </h2>
-              <p className="mt-1 text-xs font-light text-white/30 max-w-lg">
+              <p className="mt-2 text-sm font-light text-ink-muted max-w-lg">
                 Distinctions that reflect a career of transformative leadership in healthcare.
               </p>
             </div>
             <Link
               to="/awards-recognition"
-              className="inline-flex items-center gap-2 font-mono text-[11px] tracking-[0.2em] uppercase text-white/40 hover:text-gold transition-colors duration-300 shrink-0"
+              className="inline-flex items-center gap-2 font-mono text-xs tracking-[0.2em] uppercase text-ink-faint hover:text-teal-mid transition-colors duration-300 shrink-0"
             >
               View All
               <span className="text-base leading-none">→</span>
@@ -153,14 +274,14 @@ export default function HomeAwards() {
           {/* Navigation arrows */}
           <button
             onClick={goPrev}
-            className="absolute left-0 top-1/2 -translate-y-1/2 z-20 w-11 h-11 flex items-center justify-center rounded-full border border-gold/30 text-gold hover:bg-gold/10 hover:border-gold/60 transition-all duration-300 focus:outline-none"
+            className="absolute left-0 top-1/2 -translate-y-1/2 z-20 w-11 h-11 flex items-center justify-center rounded-full border border-teal/30 text-teal hover:bg-teal/10 hover:border-teal/60 transition-all duration-300 focus:outline-none"
             aria-label="Previous award"
           >
             <FaChevronLeft size={16} />
           </button>
           <button
             onClick={goNext}
-            className="absolute right-0 top-1/2 -translate-y-1/2 z-20 w-11 h-11 flex items-center justify-center rounded-full border border-gold/30 text-gold hover:bg-gold/10 hover:border-gold/60 transition-all duration-300 focus:outline-none"
+            className="absolute right-0 top-1/2 -translate-y-1/2 z-20 w-11 h-11 flex items-center justify-center rounded-full border border-teal/30 text-teal hover:bg-teal/10 hover:border-teal/60 transition-all duration-300 focus:outline-none"
             aria-label="Next award"
           >
             <FaChevronRight size={16} />
@@ -205,10 +326,10 @@ export default function HomeAwards() {
                         )}
                       />
                       {isActive && (
-                        <div className="absolute inset-0 bg-gradient-to-t from-ink/60 via-transparent to-ink/10 pointer-events-none" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-paper/60 via-transparent to-paper/10 pointer-events-none" />
                       )}
                       {isActive && (
-                        <span className="absolute bottom-3 right-3 font-serif text-2xl font-light text-white/20 leading-none select-none">
+                        <span className="absolute bottom-3 right-3 font-serif text-3xl font-light text-ink-faint/40 leading-none select-none">
                           {award.year}
                         </span>
                       )}
@@ -229,24 +350,24 @@ export default function HomeAwards() {
             transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
           >
             <div className="flex items-center justify-center gap-3 mb-2">
-              <span className="font-mono text-[9px] tracking-[0.25em] uppercase text-gold">
+              <span className="font-mono text-xs tracking-[0.25em] uppercase text-teal">
                 {activeAward.category}
               </span>
-              <span className="w-6 h-px bg-gold/40" />
-              <span className="font-mono text-[9px] tracking-[0.2em] uppercase text-white/40">
+              <span className="w-8 h-px bg-teal/40" />
+              <span className="font-mono text-xs tracking-[0.2em] uppercase text-ink-faint">
                 {activeAward.year}
               </span>
             </div>
 
-            <h3 className="font-serif text-lg md:text-xl font-light text-white leading-snug mb-1">
+            <h3 className="font-serif text-xl md:text-2xl font-light text-ink leading-snug mb-2">
               {activeAward.title}
             </h3>
 
-            <p className="font-mono text-[10px] tracking-[0.2em] uppercase text-gold/70 mb-2">
+            <p className="font-mono text-xs tracking-[0.2em] uppercase text-teal/70 mb-3">
               {activeAward.organization}
             </p>
 
-            <p className="text-sm font-light text-white/50 leading-relaxed max-w-xl mx-auto">
+            <p className="text-base font-light text-ink-muted leading-relaxed max-w-xl mx-auto">
               {activeAward.description}
             </p>
           </motion.div>
@@ -261,8 +382,8 @@ export default function HomeAwards() {
               className={cn(
                 'rounded-full transition-all duration-500 focus:outline-none',
                 i === activeIndex
-                  ? 'w-8 h-[3px] bg-gold'
-                  : 'w-[6px] h-[6px] bg-white/20 hover:bg-white/40'
+                  ? 'w-8 h-[3px] bg-teal'
+                  : 'w-[6px] h-[6px] bg-ink-faint/50 hover:bg-ink-muted/60'
               )}
               aria-label={`Go to award ${i + 1}`}
             />

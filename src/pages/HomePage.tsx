@@ -26,8 +26,8 @@ export default function HomePage() {
       <HomeEcosystem />
       <HomeFoundation />
       <HomeAwards />
-      <HomeTestimonials />
       <HomePhilosophy />
+      <HomeTestimonials />
       <HomeContact />
     </>
   )
