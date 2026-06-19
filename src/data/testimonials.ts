@@ -8,6 +8,7 @@ export const testimonials: Testimonial[] = [
     author: "H.E. Dr. Mekdes Daba",
     title: "Minister of Health",
     organization: "Federal Ministry of Health, Ethiopia",
+    avatar: "/avatar_mekdes.png",
   },
   {
     id: "testimonial-colleague-pathologist",
@@ -16,6 +17,7 @@ export const testimonials: Testimonial[] = [
     author: "Prof. Yonas Desta",
     title: "Professor of Anatomical Pathology",
     organization: "Addis Ababa University",
+    avatar: "/avatar_yonas.png",
   },
   {
     id: "testimonial-board-colleague",
@@ -24,6 +26,7 @@ export const testimonials: Testimonial[] = [
     author: "W/ro Tirunesh Ayele",
     title: "Board Member",
     organization: "Liyana Healthcare",
+    avatar: "/avatar_tirunesh.png",
   },
   {
     id: "testimonial-stanford-peer",

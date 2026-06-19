@@ -149,6 +149,7 @@ export interface Testimonial {
   author: string
   title: string
   organization: string
+  avatar?: string
 }
 
 export interface LegacySection {

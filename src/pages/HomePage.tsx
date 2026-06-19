@@ -8,6 +8,7 @@ import {
   HomeAwards,
   HomePhilosophy,
   HomeFoundation,
+  HomeTestimonials,
   HomeContact,
 } from '@/features/home'
 
@@ -25,6 +26,7 @@ export default function HomePage() {
       <HomeEcosystem />
       <HomeFoundation />
       <HomeAwards />
+      <HomeTestimonials />
       <HomePhilosophy />
       <HomeContact />
     </>
