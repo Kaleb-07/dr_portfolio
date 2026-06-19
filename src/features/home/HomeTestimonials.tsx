@@ -1,5 +1,5 @@
-import { useRef } from 'react'
-import { motion, useInView } from 'framer-motion'
+import { useRef, useState } from 'react'
+import { motion, useInView, type Variants } from 'framer-motion'
 import { Container } from '@/components/shared'
 import { testimonials } from '@/data/testimonials'
 import { cn } from '@/lib/utils'
@@ -15,7 +15,7 @@ function getInitials(name: string) {
     .slice(0, 2)
 }
 
-const containerVariants = {
+const containerVariants: Variants = {
   hidden: {},
   visible: {
     transition: {
@@ -25,7 +25,7 @@ const containerVariants = {
   },
 }
 
-const leftItemVariants = {
+const leftItemVariants: Variants = {
   hidden: { opacity: 0, y: 20 },
   visible: {
     opacity: 1,
@@ -34,7 +34,7 @@ const leftItemVariants = {
   },
 }
 
-const cardVariants = {
+const cardVariants: Variants = {
   hidden: { opacity: 0, y: 30, scale: 0.97 },
   visible: (i: number) => ({
     opacity: 1,
@@ -47,6 +47,7 @@ const cardVariants = {
 export default function HomeTestimonials() {
   const sectionRef = useRef<HTMLDivElement>(null)
   const isInView = useInView(sectionRef, { once: true, margin: '-80px' })
+  const [expandedId, setExpandedId] = useState<string | null>(null)
 
   return (
     <section ref={sectionRef} className="relative overflow-hidden bg-paper py-20 md:py-28">
@@ -201,9 +202,28 @@ export default function HomeTestimonials() {
                     <p className="text-2xs text-ink-muted mt-0.5 leading-snug">
                       {t.title}, {t.organization}
                     </p>
-                    <p className="mt-2 text-xs text-ink-mid leading-relaxed font-light line-clamp-3">
-                      &ldquo;{t.quote}&rdquo;
-                    </p>
+                    <div className="mt-2">
+                      <motion.p
+                        layout
+                        className={cn(
+                          'text-xs text-ink-mid leading-relaxed font-light',
+                          expandedId !== t.id && 'line-clamp-3'
+                        )}
+                        onClick={() =>
+                          setExpandedId(expandedId === t.id ? null : t.id)
+                        }
+                      >
+                        &ldquo;{t.quote}&rdquo;
+                      </motion.p>
+                      <button
+                        onClick={() =>
+                          setExpandedId(expandedId === t.id ? null : t.id)
+                        }
+                        className="mt-1 text-[10px] font-medium tracking-wider uppercase text-teal hover:text-teal-mid transition-colors duration-200"
+                      >
+                        {expandedId === t.id ? 'Show less' : 'Read more'}
+                      </button>
+                    </div>
                   </div>
                 </motion.div>
               )
