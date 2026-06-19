@@ -24,6 +24,7 @@ export interface Award {
   organization: string
   year: number
   description: string
+  image: string
   category: 'professional' | 'alumni' | 'industry' | 'leadership'
 }
 

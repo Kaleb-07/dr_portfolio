@@ -3,6 +3,8 @@ import { Link, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Menu, X, ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { LanguageSelector } from '@/components/ui/LanguageSelector'
+
 
 interface NavChildLink {
   label: string
@@ -265,6 +267,7 @@ export default function Navbar() {
               Contact
             </button>
           </Link>
+          <LanguageSelector />
         </div>
 
         {/* Mobile menu toggle */}
@@ -366,6 +369,9 @@ export default function Navbar() {
                 </motion.div>
               )
             })}
+            <motion.div variants={mobileItemVariants} className="mt-4 w-full flex justify-center">
+              <LanguageSelector />
+            </motion.div>
           </motion.nav>
         </motion.div>
       )}

@@ -252,3 +252,38 @@
     transform: scaleX(1);
   }
 }
+
+/* Hide Google Translate Widgets completely */
+#google_translate_element,
+.goog-te-banner-frame,
+.goog-te-balloon-frame,
+.goog-te-menu-frame,
+.goog-te-gadget-simple,
+.goog-te-gadget-icon,
+.goog-te-spinner-pos,
+.goog-te-spinner,
+iframe.goog-te-banner-frame,
+.VIpgJd-ZVi9od-ORHb-OEVmcd,
+iframe[src*="translate.googleapis.com"] {
+  display: none !important;
+  visibility: hidden !important;
+  height: 0 !important;
+  width: 0 !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  position: absolute !important;
+  top: -9999px !important;
+  left: -9999px !important;
+}
+
+body {
+  top: 0 !important;
+}
+
+.translated-rtl {
+  direction: rtl;
+}
+
+.translated-ltr {
+  direction: ltr;
+}
