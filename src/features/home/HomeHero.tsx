@@ -56,7 +56,7 @@ export default function HomeHero() {
                 <img
                   src="/image.png"
                   alt="Dr. Girma Ababi"
-                  className="w-full grayscale object-cover aspect-square hover:grayscale-0 transition-all duration-700"
+                  className="w-full object-cover aspect-square hover:grayscale transition-all duration-700"
                 />
               </div>
             </AnimatedSection>

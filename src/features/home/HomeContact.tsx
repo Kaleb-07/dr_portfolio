@@ -100,10 +100,10 @@ export default function HomeContact() {
             >
               <div className="border border-rule p-2 bg-white shadow-sm group">
                 <img
-                  src="/image.png"
+                  src="/lab-connect."
                   alt="Contact"
                   onError={(e) => { (e.target as HTMLImageElement).src = '/lab-connect.png' }}
-                  className="w-full grayscale-[30%] object-cover aspect-[16/10] group-hover:grayscale-0 transition-all duration-700"
+                  className="w-full brightness-105 object-cover aspect-[16/10] transition-all duration-700"
                 />
               </div>
               <p className="mt-2 text-[9px] font-mono tracking-widest uppercase text-ink-muted">

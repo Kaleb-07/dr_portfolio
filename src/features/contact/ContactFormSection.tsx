@@ -160,12 +160,11 @@ export default function ContactFormSection() {
               className="mt-10 max-w-sm w-full hidden lg:block"
             >
               <div className="border border-rule p-2 bg-white shadow-sm relative group">
-                <div className="absolute inset-0 bg-teal/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10 pointer-events-none" />
                 <img
                   src="/image.png"
                   alt="Contact Profile"
                   onError={(e) => { (e.target as HTMLImageElement).src = '/lab-connect.png' }}
-                  className="w-full grayscale-[50%] object-cover aspect-[4/5] hover:grayscale-0 transition-all duration-700"
+                  className="w-full object-cover aspect-[4/5] hover:grayscale transition-all duration-700"
                 />
               </div>
               <p className="mt-3 text-[9px] font-mono tracking-widest uppercase text-ink-muted text-center">
