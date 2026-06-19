@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, useInView, AnimatePresence } from 'framer-motion'
-import { FaChevronLeft, FaChevronRight } from 'react-icons/fa'
+import { FaChevronLeft, FaChevronRight, FaTrophy, FaStar } from 'react-icons/fa'
 import { Container } from '@/components/shared'
 import { awards } from '@/data/awards'
 import { cn } from '@/lib/utils'
@@ -75,44 +75,85 @@ function GoldenFrame({
   )
 }
 
-function Fireworks({ index, count = 32 }: { index: number; count?: number }) {
+function TrophyAnimation({ index }: { index: number }) {
+  return (
+    <div className="absolute inset-0 pointer-events-none flex items-center justify-center overflow-hidden">
+      <AnimatePresence mode="popLayout">
+        <motion.div
+          key={`trophy-${index}`}
+          initial={{ opacity: 0, scale: 0.5, y: 150, rotate: -20 }}
+          animate={{ 
+            opacity: [0, 0.3, 0.4, 0], 
+            scale: [0.5, 1.8, 2.2, 3], 
+            y: [150, 0, -80, -250], 
+            rotate: [-20, 0, 15, 30] 
+          }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 3.5, times: [0, 0.3, 0.7, 1], ease: "easeOut" }}
+          className="absolute z-0 text-gold/20 mix-blend-plus-lighter"
+        >
+          <FaTrophy size={320} />
+        </motion.div>
+      </AnimatePresence>
+    </div>
+  )
+}
+
+function Fireworks({ index, count = 50 }: { index: number; count?: number }) {
   const particles = useMemo(() => {
     return Array.from({ length: count }, (_, i) => {
-      const angle = (i / count) * 360 + Math.random() * 20
+      const angle = (i / count) * 360 + Math.random() * 30
       const rad = (angle * Math.PI) / 180
-      const distance = 80 + Math.random() * 140
-      const size = 4 + Math.random() * 5
-      const colors = ['bg-teal', 'bg-teal-mid', 'bg-teal-light']
+      const velocity = 80 + Math.random() * 200
+      const size = 4 + Math.random() * 8
+      const colors = ['bg-teal', 'bg-teal-mid', 'bg-teal-light', 'bg-gold', 'bg-gold-light']
+      const shape = Math.random() > 0.5 ? 'rounded-full' : 'rounded-sm'
+      const isStar = Math.random() > 0.8
       return {
-        x: Math.cos(rad) * distance,
-        y: Math.sin(rad) * distance,
+        id: i,
+        rad,
+        velocity,
         size,
-        delay: Math.random() * 0.2,
+        delay: Math.random() * 0.4,
         color: colors[Math.floor(Math.random() * colors.length)],
+        shape,
+        isStar
       }
     })
   }, [index, count])
 
   return (
     <motion.div className="absolute inset-0 pointer-events-none" key={`${index}-${count}`}>
-      {particles.map((p, i) => (
-        <motion.div
-          key={i}
-          initial={{ opacity: 1, x: "-50%", y: "-50%", scale: 1 }}
-          animate={{
-            opacity: 0,
-            x: `calc(-50% + ${p.x}px)`,
-            y: `calc(-50% + ${p.y}px)`,
-            scale: 0,
-          }}
-          transition={{
-            duration: 1.2 + p.delay,
-            ease: 'easeOut',
-          }}
-          className={`absolute top-1/2 left-1/2 rounded-full ${p.color}`}
-          style={{ width: p.size, height: p.size }}
-        />
-      ))}
+      {particles.map((p) => {
+        const xDistance = Math.cos(p.rad) * p.velocity
+        const yDistance = Math.sin(p.rad) * p.velocity - 60 // Upward burst bias
+        return (
+          <motion.div
+            key={p.id}
+            initial={{ opacity: 1, x: "-50%", y: "-50%", scale: 0, rotate: 0 }}
+            animate={{
+              opacity: [0, 1, 1, 0],
+              x: ["-50%", `calc(-50% + ${xDistance * 0.8}px)`, `calc(-50% + ${xDistance}px)`],
+              y: ["-50%", `calc(-50% + ${yDistance}px)`, `calc(-50% + ${yDistance + 150}px)`],
+              scale: [0, 1, Math.random() * 0.5 + 0.5, 0],
+              rotate: 180 + Math.random() * 360,
+            }}
+            transition={{
+              duration: 1.8 + Math.random(),
+              delay: p.delay,
+              times: [0, 0.2, 0.7, 1],
+              ease: "easeOut",
+            }}
+            className={cn(
+              `absolute top-1/2 left-1/2 flex items-center justify-center ${p.shape}`,
+              !p.isStar ? p.color : 'text-gold'
+            )}
+            style={{ width: p.size, height: p.size }}
+          >
+            {p.isStar && <FaStar size={p.size * 2} className="drop-shadow-[0_0_8px_rgba(255,215,0,0.8)]" />}
+          </motion.div>
+        )
+      })}
     </motion.div>
   )
 }
@@ -213,17 +254,20 @@ export default function HomeAwards() {
           className="absolute bottom-20 right-[12%] w-20 h-20 rounded-full bg-teal blur-[50px] pointer-events-none"
         />
 
+        {/* Trophy Animation */}
+        <TrophyAnimation index={activeIndex} />
+
         {/* Firework particle burst — center */}
-        <Fireworks key={`c-${activeIndex}`} index={activeIndex} count={32} />
+        <Fireworks key={`c-${activeIndex}`} index={activeIndex} count={64} />
 
         {/* Firework particle burst — left side */}
         <div className="absolute left-0 top-0 w-1/4 h-full">
-          <Fireworks key={`l-${activeIndex}`} index={activeIndex} count={16} />
+          <Fireworks key={`l-${activeIndex}`} index={activeIndex} count={32} />
         </div>
 
         {/* Firework particle burst — right side */}
         <div className="absolute right-0 top-0 w-1/4 h-full">
-          <Fireworks key={`r-${activeIndex}`} index={activeIndex} count={16} />
+          <Fireworks key={`r-${activeIndex}`} index={activeIndex} count={32} />
         </div>
 
         {/* Subtle texture overlay */}
