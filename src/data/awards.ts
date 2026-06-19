@@ -18,7 +18,7 @@ export const awards: Award[] = [
     year: 2023,
     description:
       "Appointed Vice President of the Ethiopian Healthcare Federation, recognizing national leadership in healthcare policy, strategy, and sector development.",
-    image: "/dr-liyana-portrait.png",
+    image: "/image.png",
     category: "leadership",
   },
   {
@@ -38,7 +38,7 @@ export const awards: Award[] = [
     year: 2023,
     description:
       "Honored as a Rotarian and Community Leadership Member for dedicated service to community health and development initiatives.",
-    image: "/lab-connect.png",
+    image: "/image.png",
     category: "professional",
   },
 ]

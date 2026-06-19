@@ -29,11 +29,11 @@ function GoldenFrame({
           className={cn(
             'relative transition-all duration-700 ease-out',
             isActive
-              ? 'p-[3px] bg-gradient-to-br from-gold via-yellow-600 to-gold'
+              ? 'p-[2px] bg-gradient-to-br from-gold via-yellow-600 to-gold'
               : 'p-[1px] bg-white/10'
           )}
         >
-          <div className={cn('bg-ink transition-all duration-700', isActive ? 'p-[3px]' : 'p-[2px]')}>
+          <div className={cn('bg-ink transition-all duration-700', isActive ? 'p-[2px]' : 'p-[1px]')}>
             {isActive && (
               <>
                 <div className="absolute -top-[2px] -left-[2px] w-5 h-5 border-t-[2.5px] border-l-[2.5px] border-gold-light z-10" />
@@ -55,8 +55,8 @@ function GoldenFrame({
   )
 }
 
-const cardWidth = 280
-const gap = 40
+const cardWidth = 200
+const gap = 28
 
 export default function HomeAwards() {
   const [activeIndex, setActiveIndex] = useState(0)
@@ -94,7 +94,7 @@ export default function HomeAwards() {
   return (
     <section
       ref={sectionRef}
-      className="section-padding bg-ink text-white relative overflow-hidden min-h-[700px]"
+      className="py-12 md:py-16 bg-ink text-white relative overflow-hidden"
     >
       {/* ── Cinematic ambient lighting ── */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -123,7 +123,7 @@ export default function HomeAwards() {
           initial={{ opacity: 0, y: 24 }}
           animate={headerInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6 }}
-          className="mb-12 md:mb-16"
+          className="mb-6 md:mb-8"
         >
           <div className="section-header">
             <span className="section-tag text-gold tracking-[0.25em]">Recognition</span>
@@ -131,10 +131,10 @@ export default function HomeAwards() {
           </div>
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
             <div>
-              <h2 className="font-serif text-4xl md:text-5xl font-light text-white">
+              <h2 className="font-serif text-2xl md:text-3xl font-light text-white">
                 Awards &amp; <em className="text-gold not-italic">honours</em>
               </h2>
-              <p className="mt-2 text-sm font-light text-white/30 max-w-lg leading-relaxed">
+              <p className="mt-1 text-xs font-light text-white/30 max-w-lg">
                 Distinctions that reflect a career of transformative leadership in healthcare.
               </p>
             </div>
@@ -167,7 +167,7 @@ export default function HomeAwards() {
           </button>
 
           {/* Carousel viewport */}
-          <div className="relative mx-auto" style={{ height: 440, maxWidth: 900 }}>
+          <div className="relative mx-auto" style={{ height: 300, maxWidth: 700 }}>
             {featuredAwards.map((award, i) => {
               const diff = i - activeIndex
               const isVisible = Math.abs(diff) <= 1
@@ -221,14 +221,14 @@ export default function HomeAwards() {
         </div>
 
         {/* ── Biography panel ── */}
-        <div className="max-w-2xl mx-auto text-center mt-10 md:mt-12 min-h-[160px] flex flex-col justify-center">
+        <div className="max-w-2xl mx-auto text-center mt-4 min-h-[100px] flex flex-col justify-center">
           <motion.div
             key={activeAward.id}
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
           >
-            <div className="flex items-center justify-center gap-4 mb-5">
+            <div className="flex items-center justify-center gap-3 mb-2">
               <span className="font-mono text-[9px] tracking-[0.25em] uppercase text-gold">
                 {activeAward.category}
               </span>
@@ -238,11 +238,11 @@ export default function HomeAwards() {
               </span>
             </div>
 
-            <h3 className="font-serif text-2xl md:text-3xl font-light text-white leading-snug mb-2">
+            <h3 className="font-serif text-lg md:text-xl font-light text-white leading-snug mb-1">
               {activeAward.title}
             </h3>
 
-            <p className="font-mono text-[11px] tracking-[0.2em] uppercase text-gold/70 mb-5">
+            <p className="font-mono text-[10px] tracking-[0.2em] uppercase text-gold/70 mb-2">
               {activeAward.organization}
             </p>
 
@@ -253,7 +253,7 @@ export default function HomeAwards() {
         </div>
 
         {/* ── Pagination dots ── */}
-        <div className="flex items-center justify-center gap-3 mt-8">
+        <div className="flex items-center justify-center gap-3 mt-4">
           {featuredAwards.map((_, i) => (
             <button
               key={i}
