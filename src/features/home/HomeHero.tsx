@@ -1,5 +1,6 @@
 import { AnimatedSection } from '@/components/shared'
 import { useSiteContent } from '@/hooks/useSiteContent'
+import { mapCmsHtml } from '@/lib/html'
 
 export default function HomeHero() {
   const { content } = useSiteContent()
@@ -22,7 +23,7 @@ export default function HomeHero() {
             <AnimatedSection delay={0.1}>
               <h1
                 className="font-serif text-4xl sm:text-5xl lg:text-[4.75rem] lg:leading-[1.15] font-light text-ink mb-10"
-                dangerouslySetInnerHTML={{ __html: section.title || '' }}
+                dangerouslySetInnerHTML={{ __html: mapCmsHtml(section.title || '') }}
               />
             </AnimatedSection>
 

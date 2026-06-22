@@ -2,6 +2,7 @@ import { ArrowDown, ArrowUp, Image, Loader2, Plus, Save, Trash2 } from 'lucide-r
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import api from '../api'
+import { mapCmsHtml } from '@/lib/html'
 
 const STORY_SECTIONS = [
   {
@@ -142,38 +143,32 @@ export default function StoryEditor() {
     }
   }, [navigate, sectionSlug])
 
-  // When the route section changes, reset draft/loading state briefly
+  // Immediately initialize a draft shape when the section route changes.
+  // This ensures all inputs are controlled from first render and avoids
+  // uncontrolled -> controlled warnings or flashes when the real content
+  // is loaded asynchronously. The effect below (watching `content`)
+  // will overwrite this draft with the real data once available.
   useEffect(() => {
-    let active = true
-
     setMessage('')
     setError('')
-    setDraft(null)
-    setIsLoading(true)
 
-    const run = async () => {
-      if (!content) {
-        try {
-          const response = await api.get('/cms/site-content')
-          if (!active) return
-          setContent(response.data)
-        } catch {
-          if (!active) return
-          setError('Unable to load Story content.')
-        }
-      }
-
-      if (!active) return
-      // small delay so UI shows a loading state when switching
-      setTimeout(() => active && setIsLoading(false), 120)
+    if (selectedSection.type === 'timeline') {
+      setDraft({ events: buildTimelineEvents([]) })
+      return
     }
 
-    run()
-
-    return () => {
-      active = false
+    if (selectedSection.backendSlug) {
+      setDraft(buildSectionDraft({}))
+      return
     }
-  }, [sectionSlug])
+
+    setDraft(buildSectionDraft({}))
+  }, [sectionSlug, selectedSection])
+
+  // When the route section changes we no longer toggle a loading state or
+  // use a timeout. Draft is built synchronously from `content` in the
+  // effect below (which watches `content` and `selectedSection`). Removing
+  // the artificial loading prevents flicker/blank screens when switching.
 
   useEffect(() => {
     let active = true
@@ -259,29 +254,35 @@ export default function StoryEditor() {
   }
 
   const addTimelineEvent = () => {
-    setDraft((current) => ({
-      ...current,
-      events: [
-        ...current.events,
-        {
-          id: `new-${Date.now()}`,
-          year: '',
-          title: '',
-          subtitle: '',
-          description: '',
-          category: 'milestone',
-          icon: '',
-          sort_order: current.events.length + 1,
-        },
-      ],
-    }))
+    setDraft((current) => {
+      const events = Array.isArray(current?.events) ? current.events : []
+      return {
+        ...current,
+        events: [
+          ...events,
+          {
+            id: `new-${Date.now()}`,
+            year: '',
+            title: '',
+            subtitle: '',
+            description: '',
+            category: 'milestone',
+            icon: '',
+            sort_order: events.length + 1,
+          },
+        ],
+      }
+    })
   }
 
   const updateTimelineEvent = (index, patch) => {
-    setDraft((current) => ({
-      ...current,
-      events: current.events.map((item, itemIndex) => (itemIndex === index ? { ...item, ...patch } : item)),
-    }))
+    setDraft((current) => {
+      if (!Array.isArray(current?.events)) return current
+      return {
+        ...current,
+        events: current.events.map((item, itemIndex) => (itemIndex === index ? { ...item, ...patch } : item)),
+      }
+    })
   }
 
   const saveSection = async () => {
@@ -293,6 +294,7 @@ export default function StoryEditor() {
 
     try {
       if (selectedSection.type === 'timeline') {
+        if (!Array.isArray(draft.events)) throw new Error('No timeline events to save')
         for (const event of draft.events) {
           if (typeof event.id === 'number') {
             await api.put(`/cms/timeline-events/${event.id}`, event)
@@ -336,7 +338,7 @@ export default function StoryEditor() {
   }
 
   const renderTimelineEditor = () => {
-    if (!draft) return null
+    if (!draft || !Array.isArray(draft.events)) return null
 
     return (
       <div className="space-y-4">
@@ -379,7 +381,7 @@ export default function StoryEditor() {
                   <IconButton label="Move up" disabled={index === 0} onClick={() => reorderTimeline(index, -1)}>
                     <ArrowUp size={15} />
                   </IconButton>
-                  <IconButton label="Move down" disabled={index === draft.events.length - 1} onClick={() => reorderTimeline(index, 1)}>
+                  <IconButton label="Move down" disabled={index === (draft.events || []).length - 1} onClick={() => reorderTimeline(index, 1)}>
                     <ArrowDown size={15} />
                   </IconButton>
                 </div>
@@ -396,6 +398,7 @@ export default function StoryEditor() {
 
   const reorderTimeline = (index, direction) => {
     setDraft((current) => {
+      if (!Array.isArray(current?.events)) return current
       const next = [...current.events]
       const target = index + direction
       if (target < 0 || target >= next.length) return current
@@ -407,11 +410,17 @@ export default function StoryEditor() {
   }
 
   const removeTimelineEvent = (index) => {
-    setDraft((current) => ({ ...current, events: current.events.filter((_, itemIndex) => itemIndex !== index) }))
+    setDraft((current) => {
+      if (!Array.isArray(current?.events)) return current
+      return { ...current, events: current.events.filter((_, itemIndex) => itemIndex !== index) }
+    })
   }
 
   const renderGenericEditor = () => {
     if (!draft) return null
+
+    const buttons = Array.isArray(draft.buttons) ? draft.buttons : []
+    const blocks = Array.isArray(draft.blocks) ? draft.blocks : []
 
     return (
       <div className="space-y-6">
@@ -431,28 +440,28 @@ export default function StoryEditor() {
 
               <div className="mt-6 grid gap-4 md:grid-cols-2">
                 <Field label="Eyebrow">
-                  <input className={baseField} value={draft.eyebrow} onChange={(e) => updateDraft({ eyebrow: e.target.value })} />
+                  <input className={baseField} value={draft.eyebrow ?? ''} onChange={(e) => updateDraft({ eyebrow: e.target.value })} />
                 </Field>
                 <Field label="Subtitle">
-                  <input className={baseField} value={draft.subtitle} onChange={(e) => updateDraft({ subtitle: e.target.value })} />
+                  <input className={baseField} value={draft.subtitle ?? ''} onChange={(e) => updateDraft({ subtitle: e.target.value })} />
                 </Field>
                 <Field label="Title">
-                  <textarea className={baseField} rows={3} value={draft.title} onChange={(e) => updateDraft({ title: e.target.value })} />
+                  <textarea className={baseField} rows={3} value={draft.title ?? ''} onChange={(e) => updateDraft({ title: e.target.value })} />
                 </Field>
                 <Field label="Description">
-                  <textarea className={baseField} rows={4} value={draft.description} onChange={(e) => updateDraft({ description: e.target.value })} />
+                  <textarea className={baseField} rows={4} value={draft.description ?? ''} onChange={(e) => updateDraft({ description: e.target.value })} />
                 </Field>
                 <Field label="Image URL">
-                  <input className={baseField} value={draft.image_url} onChange={(e) => updateDraft({ image_url: e.target.value })} />
+                  <input className={baseField} value={draft.image_url ?? ''} onChange={(e) => updateDraft({ image_url: e.target.value })} />
                 </Field>
                 <Field label="Image Alt">
-                  <input className={baseField} value={draft.image_alt} onChange={(e) => updateDraft({ image_alt: e.target.value })} />
+                  <input className={baseField} value={draft.image_alt ?? ''} onChange={(e) => updateDraft({ image_alt: e.target.value })} />
                 </Field>
                 <Field label="Brand Color">
-                  <input type="color" className="h-11 w-full rounded border border-rule bg-paper p-1" value={draft.color} onChange={(e) => updateDraft({ color: e.target.value })} />
+                  <input type="color" className="h-11 w-full rounded border border-rule bg-paper p-1" value={draft.color ?? ''} onChange={(e) => updateDraft({ color: e.target.value })} />
                 </Field>
                 <Field label="Icon">
-                  <input className={baseField} value={draft.icon} onChange={(e) => updateDraft({ icon: e.target.value })} placeholder="Icon name or keyword" />
+                  <input className={baseField} value={draft.icon ?? ''} onChange={(e) => updateDraft({ icon: e.target.value })} placeholder="Icon name or keyword" />
                 </Field>
               </div>
             </div>
@@ -468,7 +477,7 @@ export default function StoryEditor() {
                 </button>
               </div>
               <div className="space-y-4">
-                {draft.buttons.map((button, index) => (
+                {buttons.map((button, index) => (
                   <div key={index} className="grid gap-3 rounded-2xl border border-rule bg-paper p-4 md:grid-cols-[1fr_1fr_120px]">
                     <Field label="Label">
                       <input className={baseField} value={button.label} onChange={(e) => updateButton(index, { label: e.target.value })} />
@@ -483,7 +492,7 @@ export default function StoryEditor() {
                     </div>
                   </div>
                 ))}
-                {draft.buttons.length === 0 && <p className="text-sm text-ink-mid">No buttons added yet.</p>}
+                {buttons.length === 0 && <p className="text-sm text-ink-mid">No buttons added yet.</p>}
               </div>
             </div>
           </div>
@@ -493,8 +502,9 @@ export default function StoryEditor() {
               <p className="section-tag">Preview</p>
               <div className="mt-5 rounded-3xl border border-dashed border-rule bg-paper px-5 py-6 text-ink">
                 <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-muted">{draft.eyebrow || 'Section label'}</p>
-                <h3 className="mt-3 text-2xl font-light text-ink">{draft.title || selectedSection.title}</h3>
-                <p className="mt-3 text-sm leading-relaxed text-ink-mid">{draft.description || selectedSection.description}</p>
+                {/* Use mapping to preserve simple CMS classes (e.g. text-teal-mid, italic) */}
+                <h3 className="mt-3 text-2xl font-light text-ink" dangerouslySetInnerHTML={{ __html: mapCmsHtml(draft.title || selectedSection.title) }} />
+                <p className="mt-3 text-sm leading-relaxed text-ink-mid" dangerouslySetInnerHTML={{ __html: mapCmsHtml(draft.description || selectedSection.description) }} />
                 {draft.image_url ? (
                   <div className="mt-5 overflow-hidden rounded-3xl border border-rule bg-paper">
                     <img src={draft.image_url} alt={draft.image_alt || ''} className="h-48 w-full object-cover" />
