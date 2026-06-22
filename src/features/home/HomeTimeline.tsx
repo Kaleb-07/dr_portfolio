@@ -3,7 +3,8 @@ import { motion, useInView } from 'framer-motion'
 import { FaGraduationCap, FaBriefcase, FaStar } from 'react-icons/fa'
 import type { IconType } from 'react-icons'
 import { Container } from '@/components/shared'
-import { timeline } from '@/data/timeline'
+import { useSiteContent } from '@/hooks/useSiteContent'
+import type { TimelineEvent } from '@/services/cms'
 
 /* ── Icon map per category ─────────────────────────────────────────────── */
 const categoryIcon: Record<string, IconType> = {
@@ -36,10 +37,12 @@ function BubbleCard({
   item,
   index,
   isLast,
+  totalItems,
 }: {
-  item: (typeof timeline)[0]
+  item: TimelineEvent
   index: number
   isLast: boolean
+  totalItems: number
 }) {
   const ref = useRef<HTMLDivElement>(null)
   const inView = useInView(ref, { once: true, margin: '-60px' })
@@ -90,7 +93,7 @@ function BubbleCard({
           text-center px-4 cursor-default select-none
           ${isLast ? '' : '-mr-5'}
         `}
-        style={{ zIndex: timeline.length - index }}
+        style={{ zIndex: totalItems - index }}
       >
         {/* inner glow ring */}
         <div className="absolute inset-2 rounded-full border border-white/15 pointer-events-none" />
@@ -120,6 +123,10 @@ function BubbleCard({
 export default function HomeTimeline() {
   const headerRef  = useRef<HTMLDivElement>(null)
   const headerInView = useInView(headerRef, { once: true })
+  const { content } = useSiteContent()
+  const timeline = content?.timelineEvents || []
+
+  if (timeline.length === 0) return null
 
   return (
     <section className="section-padding bg-paper-warm">
@@ -166,6 +173,7 @@ export default function HomeTimeline() {
                 item={item}
                 index={i}
                 isLast={i === timeline.length - 1}
+                totalItems={timeline.length}
               />
             ))}
           </div>

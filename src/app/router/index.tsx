@@ -1,5 +1,6 @@
 import { lazy, Suspense } from 'react'
-import { Routes, Route } from 'react-router-dom'
+import type { ReactNode } from 'react'
+import { Navigate, Routes, Route } from 'react-router-dom'
 import { PageLoader } from '@/components/shared/PageLoader'
 
 const HomePage = lazy(() => import('@/pages/HomePage'))
@@ -14,6 +15,34 @@ const MediaPage = lazy(() => import('@/pages/MediaPage'))
 const GalleryPage = lazy(() => import('@/pages/GalleryPage'))
 const ContactPage = lazy(() => import('@/pages/ContactPage'))
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'))
+const Login = lazy(() => import('@/admin/pages/Login.jsx'))
+const Dashboard = lazy(() => import('@/admin/pages/Dashboard.jsx'))
+const HeroEditor = lazy(() => import('@/admin/pages/HeroEditor.jsx'))
+const CmsEditor = lazy(() => import('@/admin/pages/CmsEditor.jsx'))
+const StoryEditor = lazy(() => import('@/admin/pages/StoryEditor.jsx'))
+const AdminLayout = lazy(() => import('@/admin/layout/AdminLayout.jsx'))
+
+function RequireAdmin({ children }: { children: ReactNode }) {
+  const token = localStorage.getItem('token')
+
+  if (!token) {
+    return <Navigate to="/admin/login" replace />
+  }
+
+  return children
+}
+
+function SectionPlaceholder({ title }: { title: string }) {
+  return (
+    <section className="mx-auto max-w-4xl border border-rule bg-paper-card p-6 sm:p-8">
+      <p className="section-tag">Editor</p>
+      <h1 className="mt-3 font-serif text-4xl font-light text-ink">{title}</h1>
+      <p className="mt-4 max-w-2xl text-sm font-light leading-relaxed text-ink-mid">
+        This editor shell is ready for the next CMS phase.
+      </p>
+    </section>
+  )
+}
 
 export function AppRouter() {
   return (
@@ -30,6 +59,37 @@ export function AppRouter() {
         <Route path="/media-speaking" element={<MediaPage />} />
         <Route path="/gallery" element={<GalleryPage />} />
         <Route path="/contact" element={<ContactPage />} />
+        <Route path="/admin/login" element={<Login />} />
+        <Route
+          path="/admin"
+          element={
+            <RequireAdmin>
+              <AdminLayout />
+            </RequireAdmin>
+          }
+        >
+          <Route index element={<Dashboard />} />
+          <Route path="story" element={<StoryEditor />} />
+          <Route path="story/:sectionSlug" element={<StoryEditor />} />
+          <Route path="content" element={<CmsEditor />} />
+          <Route path="hero" element={<HeroEditor />} />
+          <Route path="awards" element={<SectionPlaceholder title="Awards" />} />
+          <Route path="leadership" element={<SectionPlaceholder title="Leadership" />} />
+          <Route path="timeline" element={<SectionPlaceholder title="Timeline" />} />
+          <Route path="profile" element={<SectionPlaceholder title="Profile" />} />
+          <Route path="profile/journey" element={<SectionPlaceholder title="Journey" />} />
+          <Route path="profile/education" element={<SectionPlaceholder title="Education" />} />
+          <Route path="profile/gallery" element={<SectionPlaceholder title="Gallery" />} />
+          <Route path="ecosystem" element={<SectionPlaceholder title="Ecosystem" />} />
+          <Route path="impact" element={<SectionPlaceholder title="Impact" />} />
+          <Route path="impact/public-service" element={<SectionPlaceholder title="Public Service" />} />
+          <Route path="impact/leadership" element={<SectionPlaceholder title="Leadership" />} />
+          <Route path="impact/foundation" element={<SectionPlaceholder title="Foundation" />} />
+          <Route path="achievements" element={<SectionPlaceholder title="Achievements" />} />
+          <Route path="achievements/awards" element={<SectionPlaceholder title="Awards & Recognition" />} />
+          <Route path="achievements/media" element={<SectionPlaceholder title="Media & Speaking" />} />
+          <Route path="contact" element={<SectionPlaceholder title="Contact" />} />
+        </Route>
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </Suspense>

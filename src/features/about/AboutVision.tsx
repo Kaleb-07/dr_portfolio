@@ -1,7 +1,12 @@
 import { AnimatedSection, Container } from '@/components/shared'
-import { vision } from '@/data/about'
+import { useSiteContent } from '@/hooks/useSiteContent'
 
 export default function AboutVision() {
+  const { content } = useSiteContent()
+  const section = content?.sections.about_vision
+
+  if (!section) return null
+
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-teal to-[#0b4e3d] text-white py-24 border-y border-rule/10">
       {/* Background soft ambient lights */}
@@ -18,13 +23,13 @@ export default function AboutVision() {
           <div className="absolute bottom-4 right-4 w-4 h-4 border-b border-r border-white/20" />
 
           <p className="font-mono text-[9px] tracking-[0.25em] uppercase text-white/60 mb-6 text-center">
-            Vision
+            {section.eyebrow}
           </p>
           <h2 className="font-serif text-4xl md:text-5xl font-light text-white mb-8 text-center">
-            A healthier Africa
+            {section.title}
           </h2>
           <blockquote className="font-serif text-xl lg:text-2xl italic font-light text-white/90 leading-relaxed max-w-2xl mx-auto text-center">
-            &ldquo;{vision}&rdquo;
+            &ldquo;{section.description}&rdquo;
           </blockquote>
         </AnimatedSection>
       </Container>

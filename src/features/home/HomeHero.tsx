@@ -1,6 +1,12 @@
 import { AnimatedSection } from '@/components/shared'
+import { useSiteContent } from '@/hooks/useSiteContent'
 
 export default function HomeHero() {
+  const { content } = useSiteContent()
+  const section = content?.sections.vision_agenda
+
+  if (!section) return null
+
   return (
     <section className="section-padding bg-paper min-h-[85vh] flex items-center pt-24 lg:pt-32">
       <div className="mx-auto max-w-6xl px-6 sm:px-12 lg:px-16 w-full">
@@ -9,32 +15,26 @@ export default function HomeHero() {
           <div className="lg:col-span-7 flex flex-col justify-center">
             <AnimatedSection>
               <p className="font-mono text-[10px] tracking-[0.25em] uppercase text-teal mb-6">
-                The Visionary Agenda
+                {section.eyebrow}
               </p>
             </AnimatedSection>
 
             <AnimatedSection delay={0.1}>
-              <h1 className="font-serif text-4xl sm:text-5xl lg:text-[4.75rem] lg:leading-[1.15] font-light text-ink mb-10">
-                One doctor&rsquo;s blueprint for a <br />
-                <em className="text-teal-mid italic">self-sufficient healthcare Africa</em>
-              </h1>
+              <h1
+                className="font-serif text-4xl sm:text-5xl lg:text-[4.75rem] lg:leading-[1.15] font-light text-ink mb-10"
+                dangerouslySetInnerHTML={{ __html: section.title || '' }}
+              />
             </AnimatedSection>
 
             {/* Split Grid */}
             <AnimatedSection delay={0.2}>
               <div className="border-t border-rule py-6 grid grid-cols-3 gap-6">
-                <div>
-                  <p className="font-mono text-[9px] tracking-widest uppercase text-ink-muted mb-2">Identity I</p>
-                  <h3 className="font-serif text-lg sm:text-xl text-ink font-normal">Physician</h3>
-                </div>
-                <div>
-                  <p className="font-mono text-[9px] tracking-widest uppercase text-ink-muted mb-2">Identity II</p>
-                  <h3 className="font-serif text-lg sm:text-xl text-ink font-normal">Entrepreneur</h3>
-                </div>
-                <div>
-                  <p className="font-mono text-[9px] tracking-widest uppercase text-ink-muted mb-2">Identity III</p>
-                  <h3 className="font-serif text-lg sm:text-xl text-ink font-normal">Nation Builder</h3>
-                </div>
+                {section.blocks.map((item) => (
+                  <div key={item.id}>
+                    <p className="font-mono text-[9px] tracking-widest uppercase text-ink-muted mb-2">{item.eyebrow}</p>
+                    <h3 className="font-serif text-lg sm:text-xl text-ink font-normal">{item.title}</h3>
+                  </div>
+                ))}
               </div>
               <div className="border-b border-rule mb-8" />
             </AnimatedSection>
@@ -50,12 +50,12 @@ export default function HomeHero() {
           <div className="lg:col-span-5 flex flex-col items-center lg:items-end w-full">
             <AnimatedSection delay={0.2} className="w-full max-w-sm">
               <p className="font-mono text-[9px] tracking-[0.25em] uppercase text-ink-muted text-center mb-3">
-                DR. LIYANA — PROFILE
+                {section.subtitle}
               </p>
               <div className="border border-rule p-2.5 bg-white shadow-sm">
                 <img
-                  src="/image.png"
-                  alt="Dr. Girma Ababi"
+                  src={section.image_url || ''}
+                  alt={section.image_alt || ''}
                   className="w-full object-cover aspect-square hover:grayscale transition-all duration-700"
                 />
               </div>
