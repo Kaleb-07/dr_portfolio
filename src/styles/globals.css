@@ -1,18 +1,18 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @theme {
-  --color-ink: #0D0D0D;
-  --color-ink-mid: #3A3A3A;
-  --color-ink-muted: #7A7A7A;
-  --color-ink-faint: #C2BDB6;
-  --color-paper: #FAF8F5;
-  --color-paper-warm: #F2EDE6;
-  --color-paper-card: #FFFFFF;
-  --color-teal: #0F6E56;
-  --color-teal-light: #E1F5EE;
-  --color-teal-mid: #1D9E75;
-  --color-gold: #8A6A2A;
-  --color-gold-light: #F5EDD8;
+  --color-ink: #0d0d0d;
+  --color-ink-mid: #3a3a3a;
+  --color-ink-muted: #7a7a7a;
+  --color-ink-faint: #c2bdb6;
+  --color-paper: #faf8f5;
+  --color-paper-warm: #f2ede6;
+  --color-paper-card: #ffffff;
+  --color-teal: #0f6e56;
+  --color-teal-light: #e1f5ee;
+  --color-teal-mid: #1d9e75;
+  --color-gold: #8a6a2a;
+  --color-gold-light: #f5edd8;
   --color-rule: rgba(13, 13, 13, 0.12);
 
   --font-serif: 'Cormorant Garamond', Georgia, serif;
@@ -223,7 +223,11 @@
     content: '';
     position: absolute;
     inset: 0;
-    background: radial-gradient(circle at bottom right, rgba(29, 158, 117, 0.08) 0%, transparent 70%);
+    background: radial-gradient(
+      circle at bottom right,
+      rgba(29, 158, 117, 0.08) 0%,
+      transparent 70%
+    );
     opacity: 0;
     transition: opacity 0.5s ease;
     pointer-events: none;
@@ -266,7 +270,7 @@
 .goog-te-spinner,
 iframe.goog-te-banner-frame,
 .VIpgJd-ZVi9od-ORHb-OEVmcd,
-iframe[src*="translate.googleapis.com"] {
+iframe[src*='translate.googleapis.com'] {
   display: none !important;
   visibility: hidden !important;
   height: 0 !important;
