@@ -26,6 +26,7 @@ const navItems = [
       { label: 'Foundation', path: '/admin/story/foundation' },
       { label: 'Recognition & Awards', path: '/admin/story/recognition-awards' },
       { label: 'Leadership Philosophy', path: '/admin/story/leadership-philosophy' },
+      { label: 'Testimonials', path: '/admin/story/testimonials' },
     ],
   },
   {
@@ -84,6 +85,7 @@ export default function AdminLayout() {
     navigate('/admin/login')
   }
 
+  // Removed type annotations: (item) instead of (item: any)
   const isMenuActive = (item) => {
     if (item.path && location.pathname === item.path) return true
     if (item.children) {
@@ -92,6 +94,7 @@ export default function AdminLayout() {
     return false
   }
 
+  // Removed type annotation: (label) instead of (label: string)
   const toggleMenu = (label) => {
     setExpandedMenus((current) =>
       current.includes(label) ? current.filter((item) => item !== label) : [...current, label],

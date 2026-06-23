@@ -40,11 +40,11 @@ export default function AwardsList() {
             <span className="section-rule" />
           </div>
           <h2 className="font-serif text-4xl md:text-5xl font-light text-ink mb-4">
-            Honours that reflect a life of{' '}
-            <em className="text-teal-mid not-italic">impact</em>
+            Honours that reflect a life of <em className="text-teal-mid not-italic">impact</em>
           </h2>
           <p className="text-sm font-light text-ink-mid leading-relaxed max-w-xl mb-12">
-            Recognition from institutions and peers for sustained excellence in healthcare leadership, service, and innovation.
+            Recognition from institutions and peers for sustained excellence in healthcare
+            leadership, service, and innovation.
           </p>
         </AnimatedSection>
 
