@@ -12,6 +12,8 @@ import {
 import type { IconType } from 'react-icons'
 import { Container } from '@/components/shared'
 import { ecosystemNodes } from '@/data/ecosystem'
+import { useSiteContent } from '@/hooks/useSiteContent'
+import { mapCmsHtml } from '@/lib/html'
 
 /* ── Icon per category ─────────────────────────────────────────────────── */
 const categoryIcon: Record<string, IconType> = {
@@ -21,6 +23,11 @@ const categoryIcon: Record<string, IconType> = {
   research:       FaMicroscope,
   'digital-health': FaMobileAlt,
   insurance:      FaPiggyBank,
+  'graduation-cap': FaGraduationCap,
+  flask: FaFlask,
+  microscope: FaMicroscope,
+  mobile: FaMobileAlt,
+  wallet: FaPiggyBank,
 }
 
 const preview = ecosystemNodes.slice(0, 6)
@@ -30,12 +37,12 @@ function EcosystemCell({
   node,
   index,
 }: {
-  node: (typeof preview)[0]
+  node: { id: string; name: string; description: string; category: string; icon?: string }
   index: number
 }) {
   const ref    = useRef<HTMLDivElement>(null)
   const inView = useInView(ref, { once: true, margin: '-60px' })
-  const Icon   = categoryIcon[node.category] ?? FaHospital
+  const Icon   = categoryIcon[node.icon || node.category] ?? FaHospital
   const num    = String(index + 1).padStart(2, '0')
   const isRightCol = (index % 3) !== 2   // has right border
   const isTopRow   = index < 3            // has bottom border
@@ -96,6 +103,19 @@ function EcosystemCell({
 export default function HomeEcosystem() {
   const headerRef  = useRef<HTMLDivElement>(null)
   const headerInView = useInView(headerRef, { once: true })
+  const { content } = useSiteContent()
+  const section = content?.sections.liyana_framework
+  const nodes = section?.blocks?.length
+    ? section.blocks.map((block) => ({
+        id: String(block.id),
+        name: block.title || '',
+        description: block.body || '',
+        category: String(block.metadata?.category || block.metadata?.icon || 'hospital'),
+        icon: String(block.metadata?.icon || ''),
+        metrics: [],
+        link: '/ecosystem',
+      }))
+    : preview
 
   return (
     <section className="section-padding bg-paper">
@@ -112,16 +132,16 @@ export default function HomeEcosystem() {
           <div>
             {/* Override global section-header bottom margin to tighten the gap */}
             <div className="section-header" style={{ marginBottom: 12 }}>
-              <span className="section-tag font-bold">The Liyana Healthcare Framework</span>
+              <span className="section-tag font-bold">{section?.eyebrow || 'The Liyana Healthcare Framework'}</span>
               <span className="section-rule" />
             </div>
             <h2
               className="font-serif text-3xl md:text-4xl font-light text-ink leading-tight"
               style={{ maxWidth: '38rem' }}
-            >
-              A vertically integrated ecosystem{' '}
-              <em className="not-italic text-teal-mid">for sovereignty and scale.</em>
-            </h2>
+              dangerouslySetInnerHTML={{
+                __html: mapCmsHtml(section?.title || 'A vertically integrated ecosystem <em class="not-italic text-teal-mid">for sovereignty and scale.</em>'),
+              }}
+            />
           </div>
 
           {/* right: dashed explore button */}
@@ -148,7 +168,7 @@ export default function HomeEcosystem() {
           transition={{ duration: 0.5, delay: 0.15 }}
           className="border border-rule grid grid-cols-1 md:grid-cols-3"
         >
-          {preview.map((node, i) => (
+          {nodes.map((node, i) => (
             <EcosystemCell key={node.id} node={node} index={i} />
           ))}
         </motion.div>

@@ -1,4 +1,17 @@
-import { BarChart3, ChevronDown, Crown, FolderTree, Home, Layers, LogOut, Mail, Menu, Sparkles, Trophy } from 'lucide-react'
+import {
+  BarChart3,
+  ChevronDown,
+  Crown,
+  FolderTree,
+  Home,
+  Layers,
+  LogOut,
+  Mail,
+  Menu,
+  Sparkles,
+  Trophy,
+  X,
+} from 'lucide-react'
 import { useState } from 'react'
 import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom'
 
@@ -9,13 +22,10 @@ const navItems = [
     children: [
       { label: 'The Visionary Agenda', path: '/admin/story/vision-agenda' },
       { label: 'Career Timeline', path: '/admin/story/career-timeline' },
-      { label: 'Liyana Healthcare', path: '/admin/story/liyana-healthcare' },
+      { label: 'The Liyana Healthcare Framework', path: '/admin/story/liyana-framework' },
       { label: 'Foundation', path: '/admin/story/foundation' },
-      { label: 'Recognition', path: '/admin/story/recognition' },
+      { label: 'Recognition & Awards', path: '/admin/story/recognition-awards' },
       { label: 'Leadership Philosophy', path: '/admin/story/leadership-philosophy' },
-      { label: 'Testimonials', path: '/admin/story/testimonials' },
-      { label: 'Connect', path: '/admin/story/connect' },
-      { label: 'Footer', path: '/admin/story/footer' },
     ],
   },
   {
@@ -27,7 +37,15 @@ const navItems = [
       { label: 'Gallery', path: '/admin/profile/gallery' },
     ],
   },
-  { label: 'Ecosystem', path: '/admin/ecosystem', icon: Layers },
+  {
+    label: 'Ecosystem',
+    icon: Layers,
+    children: [
+      { label: 'Network', path: '/admin/ecosystem' },
+      { label: 'Vision', path: '/admin/ecosystem/vision' },
+      { label: 'Breakdown', path: '/admin/ecosystem/breakdown' },
+    ],
+  },
   {
     label: 'Impact',
     icon: Crown,
@@ -45,11 +63,19 @@ const navItems = [
       { label: 'Media & Speaking', path: '/admin/achievements/media' },
     ],
   },
-  { label: 'Contact', path: '/admin/contact', icon: Mail },
+  {
+    label: 'Contact',
+    icon: Mail,
+    children: [
+      { label: 'Contact Details', path: '/admin/contact' },
+      { label: 'Inquiry Types', path: '/admin/contact/inquiry-types' },
+    ],
+  },
 ]
 
 export default function AdminLayout() {
   const [isOpen, setIsOpen] = useState(false)
+  const [expandedMenus, setExpandedMenus] = useState(['Story'])
   const location = useLocation()
   const navigate = useNavigate()
 
@@ -72,60 +98,69 @@ export default function AdminLayout() {
     )
   }
 
-  const [expandedMenus, setExpandedMenus] = useState(['Story'])
-
   return (
-    <div className="min-h-screen bg-paper text-ink">
+    <div className="min-h-screen bg-slate-50 text-slate-950">
+      {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-40 w-72 border-r border-rule bg-paper-card transition-transform duration-300 lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-40 w-64 bg-white transition-transform duration-300 lg:translate-x-0 ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
+        style={{
+          boxShadow: isOpen ? '8px 0 32px rgba(0, 0, 0, 0.08)' : 'none',
+        }}
       >
         <div className="flex h-full flex-col">
-          <div className="border-b border-rule px-6 py-6">
-            <div className="mb-5 flex h-11 w-11 items-center justify-center border border-rule bg-paper">
-              <BarChart3 size={19} className="text-teal" />
+          {/* Sidebar Header */}
+          <div className="px-6 py-8">
+            <div className="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-teal-500 to-teal-600 text-white shadow-lg">
+              <BarChart3 size={20} />
             </div>
-            <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-teal">CMS Workspace</p>
-            <h1 className="mt-2 font-serif text-3xl font-light text-ink">Admin Panel</h1>
+            <p className="text-xs font-semibold uppercase tracking-wider text-teal-600">CMS</p>
+            <h1 className="mt-2 text-2xl font-bold tracking-tight text-slate-900">Admin</h1>
           </div>
 
-          <nav className="flex-1 px-3 py-5">
+          {/* Navigation */}
+          <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
             {navItems.map((item) => {
               const Icon = item.icon
               const activeMenu = isMenuActive(item)
 
               return item.children ? (
-                <div key={item.label} className="mb-1">
+                <div key={item.label}>
                   <button
                     type="button"
                     onClick={() => toggleMenu(item.label)}
-                    className={`group flex w-full items-center justify-between gap-3 border border-transparent px-4 py-3 font-sans text-[13px] font-medium uppercase tracking-[0.12em] transition-colors ${
+                    className={`group flex w-full items-center justify-between gap-3 rounded-lg px-4 py-3 text-sm font-semibold transition-all duration-200 ${
                       activeMenu
-                        ? 'border-rule bg-teal-light text-teal'
-                        : 'text-ink-mid hover:border-rule hover:bg-paper-warm hover:text-ink'
+                        ? 'bg-teal-50 text-teal-700'
+                        : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                     }`}
                   >
                     <span className="inline-flex items-center gap-3">
-                      <Icon size={17} />
+                      <Icon size={18} strokeWidth={1.5} />
                       {item.label}
                     </span>
-                    <ChevronDown size={15} className={`transition-transform ${expandedMenus.includes(item.label) ? 'rotate-180' : ''}`} />
+                    <ChevronDown
+                      size={16}
+                      className={`transition-transform duration-300 ${expandedMenus.includes(item.label) ? 'rotate-180' : ''}`}
+                    />
                   </button>
+
                   {expandedMenus.includes(item.label) && (
-                    <div className="mt-2 space-y-1 rounded-xl border border-rule bg-paper-card p-2 shadow-sm">
+                    <div className="mt-2 space-y-1 overflow-y-auto pl-2">
                       {item.children.map((child) => (
                         <NavLink
                           key={child.path}
                           to={child.path}
                           onClick={() => setIsOpen(false)}
                           className={({ isActive }) =>
-                            `flex items-center gap-2 rounded-lg px-4 py-3 text-sm transition-colors ${
-                              isActive ? 'bg-teal text-white' : 'text-ink-mid hover:bg-paper-warm hover:text-ink'
+                            `block rounded-lg px-4 py-2.5 text-sm font-medium transition-all duration-200 ${
+                              isActive
+                                ? 'bg-teal-500 text-white shadow-md shadow-teal-500/20'
+                                : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                             }`
                           }
                         >
-                          <span className="h-2.5 w-2.5 rounded-full bg-ink-muted" />
                           {child.label}
                         </NavLink>
                       ))}
@@ -138,71 +173,83 @@ export default function AdminLayout() {
                   to={item.path}
                   onClick={() => setIsOpen(false)}
                   className={({ isActive }) =>
-                    `mb-1 flex items-center gap-3 border border-transparent px-4 py-3 font-sans text-[13px] font-medium uppercase tracking-[0.12em] transition-colors ${
+                    `flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-semibold transition-all duration-200 ${
                       isActive
-                        ? 'border-rule bg-teal-light text-teal'
-                        : 'text-ink-mid hover:border-rule hover:bg-paper-warm hover:text-ink'
+                        ? 'bg-teal-50 text-teal-700'
+                        : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                     }`
                   }
                 >
-                  <Icon size={17} />
+                  <Icon size={18} strokeWidth={1.5} />
                   <span>{item.label}</span>
                 </NavLink>
               )
             })}
           </nav>
 
-          <div className="border-t border-rule p-4">
+          {/* Sidebar Footer */}
+          <div className="border-t border-slate-200 p-4">
             <NavLink
               to="/"
-              className="flex items-center gap-3 px-4 py-3 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-muted transition-colors hover:bg-paper-warm hover:text-ink"
+              className="flex items-center gap-3 rounded-lg px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-600 transition-all duration-200 hover:bg-slate-100 hover:text-slate-900"
             >
-              <Home size={16} />
-              Public Site
+              <Home size={16} strokeWidth={1.5} />
+              <span>Public Site</span>
             </NavLink>
           </div>
         </div>
       </aside>
 
+      {/* Mobile Overlay */}
       {isOpen && (
         <button
           type="button"
           aria-label="Close admin menu"
-          className="fixed inset-0 z-30 bg-ink/30 lg:hidden"
+          className="fixed inset-0 z-30 bg-black/20 transition-opacity duration-300 lg:hidden"
           onClick={() => setIsOpen(false)}
         />
       )}
 
-      <div className="lg:pl-72">
-        <header className="sticky top-0 z-20 border-b border-rule bg-paper/95 backdrop-blur">
-          <div className="flex min-h-20 items-center justify-between gap-4 px-5 sm:px-8">
+      {/* Main Content */}
+      <div className="lg:pl-64">
+        {/* Header */}
+        <header
+          className="sticky top-0 z-20 bg-white/80 backdrop-blur-xl"
+          style={{
+            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.08)',
+          }}
+        >
+          <div className="flex min-h-16 items-center justify-between gap-4 px-6 sm:px-8">
             <div className="flex items-center gap-4">
               <button
                 type="button"
                 aria-label="Open admin menu"
-                className="inline-flex h-10 w-10 items-center justify-center border border-rule bg-paper-card text-ink transition-colors hover:bg-paper-warm lg:hidden"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 text-slate-600 transition-all duration-200 hover:bg-slate-200 lg:hidden"
                 onClick={() => setIsOpen(true)}
               >
-                <Menu size={18} />
+                <Menu size={20} strokeWidth={1.5} />
               </button>
               <div>
-                <p className="font-mono text-[9px] uppercase tracking-[0.24em] text-ink-muted">Content Management</p>
-                <h2 className="font-serif text-2xl font-light text-ink sm:text-3xl">Portfolio CMS</h2>
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                  Content Management
+                </p>
+                <h2 className="text-xl font-bold text-slate-900 sm:text-2xl">Portfolio CMS</h2>
               </div>
             </div>
 
             <button
               type="button"
               onClick={logout}
-              className="inline-flex items-center gap-2 border border-rule bg-paper-card px-4 py-2.5 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-mid transition-colors hover:bg-paper-warm hover:text-ink"
+              className="inline-flex items-center gap-2 rounded-lg bg-slate-100 px-4 py-2.5 text-xs font-semibold uppercase tracking-wide text-slate-600 transition-all duration-200 hover:bg-slate-200 hover:text-slate-900"
             >
-              <LogOut size={15} />
+              <LogOut size={16} strokeWidth={1.5} />
               <span className="hidden sm:inline">Logout</span>
             </button>
           </div>
         </header>
 
-        <main className="px-5 py-8 sm:px-8 lg:px-10">
+        {/* Main */}
+        <main className="min-h-[calc(100vh-64px)] bg-gradient-to-br from-slate-50 to-slate-100 px-6 py-8 sm:px-8 lg:px-10">
           <Outlet />
         </main>
       </div>

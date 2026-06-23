@@ -2,13 +2,19 @@ import { useRef } from 'react'
 import { motion, useInView, type Variants } from 'framer-motion'
 import { Container } from '@/components/shared'
 import { siteConfig } from '@/constants/site'
+import { useSiteContent } from '@/hooks/useSiteContent'
 
 export default function HomePhilosophy() {
   const containerRef = useRef<HTMLDivElement>(null)
   const isInView = useInView(containerRef, { once: true, margin: '-100px' })
+  const { content } = useSiteContent()
+  const section = content?.sections.leadership_philosophy
+  const quote = section?.description || siteConfig.philosophy.quote
+  const label = section?.eyebrow || siteConfig.philosophy.label
+  const attribution = section?.subtitle || siteConfig.philosophy.attribution
 
   // Prepare quote words for staggered anim
-  const cleanQuote = siteConfig.philosophy.quote.replace(/[“”"]/g, '')
+  const cleanQuote = quote.replace(/[“”"]/g, '')
   const words = cleanQuote.split(' ')
 
   const containerVariants: Variants = {
@@ -65,7 +71,7 @@ export default function HomePhilosophy() {
           transition={{ duration: 0.8, ease: 'easeOut' }}
           className="font-mono text-[9px] uppercase text-white mb-10"
         >
-          {siteConfig.philosophy.label}
+          {label}
         </motion.p>
 
         {/* Animated blockquote */}
@@ -97,7 +103,7 @@ export default function HomePhilosophy() {
           transition={{ duration: 0.6, delay: 0.8, ease: 'easeOut' }}
           className="mt-10 text-sm font-light text-white/80 tracking-wide"
         >
-          {siteConfig.philosophy.attribution}
+          {attribution}
         </motion.p>
       </Container>
     </section>

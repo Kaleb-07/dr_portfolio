@@ -5,6 +5,8 @@ import { FaChevronLeft, FaChevronRight, FaTrophy, FaStar } from 'react-icons/fa'
 import { Container } from '@/components/shared'
 import { awards } from '@/data/awards'
 import { cn } from '@/lib/utils'
+import { useSiteContent } from '@/hooks/useSiteContent'
+import { mapCmsHtml } from '@/lib/html'
 
 const featuredAwards = awards
 
@@ -166,8 +168,21 @@ export default function HomeAwards() {
   const sectionRef = useRef<HTMLDivElement>(null)
   const headerRef = useRef<HTMLDivElement>(null)
   const headerInView = useInView(headerRef, { once: true })
+  const { content } = useSiteContent()
+  const section = content?.sections.recognition_awards
+  const displayedAwards = section?.blocks?.length
+    ? section.blocks.map((block) => ({
+        id: String(block.id),
+        title: block.title || '',
+        organization: String(block.metadata?.organization || ''),
+        year: Number(block.metadata?.year || new Date().getFullYear()),
+        description: block.body || '',
+        image: block.image_url || '/image.png',
+        category: String(block.metadata?.category || 'recognition'),
+      }))
+    : featuredAwards
 
-  const total = featuredAwards.length
+  const total = displayedAwards.length
 
   const goTo = useCallback((next: number) => {
     setActiveIndex(((next % total) + total) % total)
@@ -185,7 +200,7 @@ export default function HomeAwards() {
     return () => window.removeEventListener('keydown', handleKey)
   }, [goPrev, goNext])
 
-  const activeAward = featuredAwards[activeIndex]
+  const activeAward = displayedAwards[activeIndex]
 
   useEffect(() => {
     const timer = setInterval(goNext, 5000)
@@ -313,23 +328,24 @@ export default function HomeAwards() {
           className="mb-6 md:mb-8"
         >
           <div className="section-header">
-            <span className="section-tag text-teal tracking-[0.25em]">Recognition</span>
+            <span className="section-tag text-teal tracking-[0.25em]">{section?.eyebrow || 'Recognition'}</span>
             <span className="section-rule" />
           </div>
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
             <div>
-              <h2 className="font-serif text-3xl md:text-4xl font-light text-ink">
-                Awards &amp; <em className="text-teal not-italic">honours</em>
-              </h2>
+              <h2
+                className="font-serif text-3xl md:text-4xl font-light text-ink"
+                dangerouslySetInnerHTML={{ __html: mapCmsHtml(section?.title || 'Awards &amp; <em class="text-teal not-italic">honours</em>') }}
+              />
               <p className="mt-2 text-sm font-light text-ink-muted max-w-lg">
-                Distinctions that reflect a career of transformative leadership in healthcare.
+                {section?.description || 'Distinctions that reflect a career of transformative leadership in healthcare.'}
               </p>
             </div>
             <Link
-              to="/awards-recognition"
+              to={section?.metadata?.cta?.[0]?.path || '/awards-recognition'}
               className="inline-flex items-center gap-2 font-mono text-xs tracking-[0.2em] uppercase text-ink-faint hover:text-teal-mid transition-colors duration-300 shrink-0"
             >
-              View All
+              {section?.metadata?.cta?.[0]?.label || 'View All'}
               <span className="text-base leading-none">→</span>
             </Link>
           </div>
@@ -355,7 +371,7 @@ export default function HomeAwards() {
 
           {/* Carousel viewport */}
           <div className="relative mx-auto" style={{ height: 300, maxWidth: 700 }}>
-            {featuredAwards.map((award, i) => {
+                {displayedAwards.map((award, i) => {
               const diff = i - activeIndex
               const isVisible = Math.abs(diff) <= 1
               const isActive = diff === 0
@@ -441,7 +457,7 @@ export default function HomeAwards() {
 
         {/* ── Pagination dots ── */}
         <div className="flex items-center justify-center gap-3 mt-4">
-          {featuredAwards.map((_, i) => (
+          {displayedAwards.map((_, i) => (
             <button
               key={i}
               onClick={() => goTo(i)}

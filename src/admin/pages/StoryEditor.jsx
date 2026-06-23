@@ -1,4 +1,28 @@
-import { ArrowDown, ArrowUp, Image, Loader2, Plus, Save, Trash2 } from 'lucide-react'
+import {
+  ArrowDown,
+  ArrowUp,
+  BriefcaseBusiness,
+  GraduationCap,
+  Handshake,
+  HeartPulse,
+  Hospital,
+  Image,
+  Landmark,
+  Loader2,
+  Microscope,
+  Plus,
+  Save,
+  Smartphone,
+  Sparkles,
+  Syringe,
+  Trash2,
+  Trophy,
+  Upload,
+  Wallet,
+  AlertCircle,
+  CheckCircle2,
+  ChevronRight,
+} from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import api from '../api'
@@ -20,56 +44,60 @@ const STORY_SECTIONS = [
     hint: 'Add, reorder, and update career timeline events.',
   },
   {
-    slug: 'liyana-healthcare',
-    title: 'Liyana Healthcare',
-    description: 'Brand story tile with headline, description and visual assets.',
-    hint: 'Manage messaging, section imagery, buttons, and layout details.',
+    slug: 'liyana-framework',
+    title: 'The Liyana Healthcare Framework',
+    description: 'Manage the framework grid, ordering, descriptions, and selected icons.',
+    backendSlug: 'liyana_framework',
+    blockLabel: 'Framework Item',
+    hint: 'Edit the section heading and every framework card visible in the grid.',
   },
   {
     slug: 'foundation',
     title: 'Foundation',
-    description: 'Foundation narrative and philanthropic messaging.',
-    hint: 'Update headings, descriptive copy, button links, and imagery.',
+    description: 'Manage the LUCS Foundation preview section, pillars, and statistics.',
+    backendSlug: 'foundation_story',
+    blockLabel: 'Foundation Pillar',
+    hint: 'Edit the heading, paragraph, CTA, pillars, icons, and stat cards.',
   },
   {
-    slug: 'recognition',
-    title: 'Recognition',
-    description: 'Editorial recognition stories and awards narrative.',
-    hint: 'Describe honors, media highlights, and social proof assets.',
+    slug: 'recognition-awards',
+    title: 'Recognition & Awards',
+    description: 'Manage the awards carousel content and section heading.',
+    backendSlug: 'recognition_awards',
+    blockLabel: 'Award Card',
+    hint: 'Edit award title, organization, year, category, description, image, and order.',
   },
   {
     slug: 'leadership-philosophy',
     title: 'Leadership Philosophy',
-    description: 'Leadership voice and mission-driven perspective.',
-    hint: 'Refine philosophy copy, iconography, and CTA messaging.',
-  },
-  {
-    slug: 'testimonials',
-    title: 'Testimonials',
-    description: 'Manage story-first testimonial cards and author notes.',
-    hint: 'Add and reorder testimonials for the brand story experience.',
-  },
-  {
-    slug: 'connect',
-    title: 'Connect',
-    description: 'Contact and connection messaging for the Story section.',
-    hint: 'Adjust heading, description, button links, and image assets.',
-  },
-  {
-    slug: 'footer',
-    title: 'Footer',
-    description: 'Footer copy, links and brand credentials.',
-    hint: 'Control footer headings, links, and brand closing statements.',
+    description: 'Manage the full-width quote section and attribution.',
+    backendSlug: 'leadership_philosophy',
+    hint: 'Edit the label, quote, and attribution exactly as shown on the screen.',
   },
 ]
 
-const baseField =
-  'w-full border border-rule bg-paper px-3 py-2.5 text-sm text-ink outline-none transition-colors placeholder:text-ink-faint focus:border-teal'
-const labelClass = 'mb-1.5 block font-mono text-[9px] uppercase tracking-[0.18em] text-ink-muted'
+const ICON_OPTIONS = [
+  { value: 'hospital', label: 'Hospital', Icon: Hospital },
+  { value: 'graduation-cap', label: 'Education', Icon: GraduationCap },
+  { value: 'flask', label: 'Manufacturing', Icon: Syringe },
+  { value: 'microscope', label: 'Research', Icon: Microscope },
+  { value: 'mobile', label: 'Digital Health', Icon: Smartphone },
+  { value: 'wallet', label: 'Financing', Icon: Wallet },
+  { value: 'heart-pulse', label: 'Community Health', Icon: HeartPulse },
+  { value: 'handshake', label: 'Mentorship', Icon: Handshake },
+  { value: 'briefcase', label: 'Career', Icon: BriefcaseBusiness },
+  { value: 'trophy', label: 'Award', Icon: Trophy },
+  { value: 'landmark', label: 'Policy', Icon: Landmark },
+  { value: 'sparkles', label: 'Milestone', Icon: Sparkles },
+]
+
+const formInput =
+  'w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/10'
+const labelClass = 'mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-600'
 
 function Field({ label, children }) {
   return (
-    <label>
+    <label className="block">
       <span className={labelClass}>{label}</span>
       {children}
     </label>
@@ -84,14 +112,54 @@ function IconButton({ label, onClick, children, disabled, danger = false }) {
       title={label}
       disabled={disabled}
       onClick={onClick}
-      className={`inline-flex h-9 w-9 items-center justify-center rounded border text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
+      className={`inline-flex h-9 w-9 items-center justify-center rounded-lg transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-40 ${
         danger
-          ? 'border-red-200 text-red-700 hover:bg-red-50'
-          : 'border-rule text-ink-muted hover:bg-paper-warm hover:text-ink'
+          ? 'bg-red-50 text-red-600 hover:bg-red-100'
+          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
       }`}
     >
       {children}
     </button>
+  )
+}
+
+function Toast({ message, error }) {
+  if (!message && !error) return null
+
+  return (
+    <div
+      className={`fixed bottom-6 right-6 flex items-center gap-3 rounded-lg px-5 py-3.5 text-sm font-medium shadow-lg transition-all duration-300 ${
+        error ? 'bg-red-50 text-red-700' : 'bg-emerald-50 text-emerald-700'
+      }`}
+    >
+      {error ? <AlertCircle size={18} /> : <CheckCircle2 size={18} />}
+      <span>{message || error}</span>
+    </div>
+  )
+}
+
+function IconPicker({ value, onChange }) {
+  return (
+    <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-6">
+      {ICON_OPTIONS.map(({ value: optionValue, label, Icon }) => {
+        const isSelected = value === optionValue
+        return (
+          <button
+            key={optionValue}
+            type="button"
+            onClick={() => onChange(optionValue)}
+            className={`group relative flex flex-col items-center justify-center gap-2 rounded-lg border-2 px-3 py-4 text-center transition-all duration-200 ${
+              isSelected
+                ? 'border-teal-500 bg-gradient-to-br from-teal-50 to-teal-100 text-teal-700 shadow-lg'
+                : 'border-slate-200 bg-white text-slate-600 hover:border-teal-300 hover:bg-teal-50'
+            }`}
+          >
+            <Icon size={20} strokeWidth={1.5} />
+            <span className="text-[10px] font-semibold leading-tight">{label}</span>
+          </button>
+        )
+      })}
+    </div>
   )
 }
 
@@ -104,8 +172,9 @@ function buildSectionDraft(section = {}) {
     image_url: section.image_url || '',
     image_alt: section.image_alt || '',
     buttons: section.metadata?.cta || [],
+    metrics: section.metadata?.metrics || [],
+    stats: section.metadata?.stats || [],
     blocks: section.blocks || [],
-    color: section.metadata?.color || '#0d9488',
     icon: section.metadata?.icon || '',
   }
 }
@@ -122,6 +191,27 @@ function buildTimelineEvents(events = []) {
   }))
 }
 
+function buildIdentityItems(items = []) {
+  return items.map((item) => ({
+    ...item,
+    label: item.label || '',
+    title: item.title || '',
+    description: item.description || '',
+    icon: item.icon || '',
+    image_url: item.image_url || '',
+    sort_order: item.sort_order || 0,
+    is_active: item.is_active === 0 ? 0 : 1,
+  }))
+}
+
+function readLocalImage(file, onLoad, onError) {
+  if (!file) return
+  const reader = new FileReader()
+  reader.onload = () => onLoad(String(reader.result || ''))
+  reader.onerror = onError
+  reader.readAsDataURL(file)
+}
+
 export default function StoryEditor() {
   const { sectionSlug } = useParams()
   const navigate = useNavigate()
@@ -131,6 +221,8 @@ export default function StoryEditor() {
   const [isSaving, setIsSaving] = useState(false)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
+  const [deletedIdentityIds, setDeletedIdentityIds] = useState([])
+  const [deletedTimelineIds, setDeletedTimelineIds] = useState([])
 
   const selectedSection = useMemo(
     () => STORY_SECTIONS.find((section) => section.slug === sectionSlug) ?? STORY_SECTIONS[0],
@@ -143,17 +235,19 @@ export default function StoryEditor() {
     }
   }, [navigate, sectionSlug])
 
-  // Immediately initialize a draft shape when the section route changes.
-  // This ensures all inputs are controlled from first render and avoids
-  // uncontrolled -> controlled warnings or flashes when the real content
-  // is loaded asynchronously. The effect below (watching `content`)
-  // will overwrite this draft with the real data once available.
   useEffect(() => {
     setMessage('')
     setError('')
+    setDeletedIdentityIds([])
+    setDeletedTimelineIds([])
 
     if (selectedSection.type === 'timeline') {
       setDraft({ events: buildTimelineEvents([]) })
+      return
+    }
+
+    if (selectedSection.type === 'identities') {
+      setDraft({ identities: buildIdentityItems([]) })
       return
     }
 
@@ -164,11 +258,6 @@ export default function StoryEditor() {
 
     setDraft(buildSectionDraft({}))
   }, [sectionSlug, selectedSection])
-
-  // When the route section changes we no longer toggle a loading state or
-  // use a timeout. Draft is built synchronously from `content` in the
-  // effect below (which watches `content` and `selectedSection`). Removing
-  // the artificial loading prevents flicker/blank screens when switching.
 
   useEffect(() => {
     let active = true
@@ -204,6 +293,11 @@ export default function StoryEditor() {
       return
     }
 
+    if (selectedSection.type === 'identities') {
+      setDraft({ identities: buildIdentityItems(content.identityItems || []) })
+      return
+    }
+
     if (selectedSection.backendSlug) {
       setDraft(buildSectionDraft(content.sections[selectedSection.backendSlug] || {}))
       return
@@ -212,7 +306,6 @@ export default function StoryEditor() {
     setDraft(buildSectionDraft({}))
   }, [content, selectedSection])
 
-
   const updateDraft = (patch) => {
     setDraft((current) => ({ ...current, ...patch }))
   }
@@ -220,9 +313,50 @@ export default function StoryEditor() {
   const updateBlock = (index, patch) => {
     if (!draft) return
     setDraft((current) => {
-      const blocks = current.blocks.map((block, blockIndex) => (blockIndex === index ? { ...block, ...patch } : block))
+      const blocks = current.blocks.map((block, blockIndex) =>
+        blockIndex === index ? { ...block, ...patch } : block,
+      )
       return { ...current, blocks }
     })
+  }
+
+  const updateBlockMetadata = (index, patch) => {
+    if (!draft) return
+    setDraft((current) => {
+      const blocks = current.blocks.map((block, blockIndex) =>
+        blockIndex === index
+          ? { ...block, metadata: { ...(block.metadata || {}), ...patch } }
+          : block,
+      )
+      return { ...current, blocks }
+    })
+  }
+
+  const addBlock = () => {
+    setDraft((current) => ({
+      ...current,
+      blocks: [
+        ...(current.blocks || []),
+        {
+          id: `new-${Date.now()}`,
+          block_type: current.blocks?.[0]?.block_type || 'content',
+          eyebrow: '',
+          title: '',
+          body: '',
+          image_url: '',
+          image_alt: '',
+          metadata: { icon: 'sparkles' },
+          sort_order: (current.blocks || []).length + 1,
+        },
+      ],
+    }))
+  }
+
+  const removeBlock = (index) => {
+    setDraft((current) => ({
+      ...current,
+      blocks: current.blocks.filter((_, itemIndex) => itemIndex !== index),
+    }))
   }
 
   const reorderBlocks = (index, direction) => {
@@ -238,19 +372,40 @@ export default function StoryEditor() {
     })
   }
 
-  const addButton = () => {
-    updateDraft({ buttons: [...(draft?.buttons || []), { label: '', path: '', variant: 'primary' }] })
-  }
-
-  const removeButton = (index) => {
-    setDraft((current) => ({ ...current, buttons: current.buttons.filter((_, itemIndex) => itemIndex !== index) }))
-  }
-
-  const updateButton = (index, patch) => {
+  const updateListItem = (key, index, patch) => {
     setDraft((current) => ({
       ...current,
-      buttons: current.buttons.map((button, itemIndex) => (itemIndex === index ? { ...button, ...patch } : button)),
+      [key]: current[key].map((item, itemIndex) =>
+        itemIndex === index ? { ...item, ...patch } : item,
+      ),
     }))
+  }
+
+  const addListItem = (key, emptyItem) => {
+    setDraft((current) => ({ ...current, [key]: [...(current[key] || []), emptyItem] }))
+  }
+
+  const removeListItem = (key, index) => {
+    setDraft((current) => ({
+      ...current,
+      [key]: current[key].filter((_, itemIndex) => itemIndex !== index),
+    }))
+  }
+
+  const updateDraftImage = (file) => {
+    readLocalImage(
+      file,
+      (imageUrl) => updateDraft({ image_url: imageUrl }),
+      () => setError('Could not read the selected image.'),
+    )
+  }
+
+  const updateBlockImage = (index, file) => {
+    readLocalImage(
+      file,
+      (imageUrl) => updateBlock(index, { image_url: imageUrl }),
+      () => setError('Could not read the selected image.'),
+    )
   }
 
   const addTimelineEvent = () => {
@@ -280,120 +435,83 @@ export default function StoryEditor() {
       if (!Array.isArray(current?.events)) return current
       return {
         ...current,
-        events: current.events.map((item, itemIndex) => (itemIndex === index ? { ...item, ...patch } : item)),
+        events: current.events.map((item, itemIndex) =>
+          itemIndex === index ? { ...item, ...patch } : item,
+        ),
       }
     })
   }
 
-  const saveSection = async () => {
-    if (!draft || !selectedSection) return
-
-    setMessage('')
-    setError('')
-    setIsSaving(true)
-
-    try {
-      if (selectedSection.type === 'timeline') {
-        if (!Array.isArray(draft.events)) throw new Error('No timeline events to save')
-        for (const event of draft.events) {
-          if (typeof event.id === 'number') {
-            await api.put(`/cms/timeline-events/${event.id}`, event)
-          } else {
-            const { id, ...payload } = event
-            await api.post('/cms/timeline-events', payload)
-          }
-        }
-        setMessage('Timeline saved.')
-        await refreshContent()
-      } else if (selectedSection.backendSlug) {
-        const sectionPatch = {
-          eyebrow: draft.eyebrow,
-          title: draft.title,
-          subtitle: draft.subtitle,
-          description: draft.description,
-          image_url: draft.image_url,
-          image_alt: draft.image_alt,
-          metadata: { cta: draft.buttons, color: draft.color, icon: draft.icon },
-        }
-        await api.put(`/cms/sections/${selectedSection.backendSlug}`, { section: sectionPatch, blocks: draft.blocks })
-        setMessage('Section saved.')
-        await refreshContent()
-      } else {
-        setMessage('This section is editable in the interface, but backend mapping is not connected yet.')
+  const addIdentity = () => {
+    setDraft((current) => {
+      const identities = Array.isArray(current?.identities) ? current.identities : []
+      return {
+        ...current,
+        identities: [
+          ...identities,
+          {
+            id: `new-${Date.now()}`,
+            label: String(identities.length + 1).padStart(2, '0'),
+            title: '',
+            description: '',
+            icon: '',
+            image_url: '',
+            sort_order: identities.length + 1,
+            is_active: 1,
+          },
+        ],
       }
-    } catch {
-      setError('Could not save this section.')
-    } finally {
-      setIsSaving(false)
-    }
+    })
   }
 
-  const refreshContent = async () => {
-    try {
-      const response = await api.get('/cms/site-content')
-      setContent(response.data)
-    } catch {
-      setError('Could not refresh content after save.')
-    }
+  const updateIdentity = (index, patch) => {
+    setDraft((current) => {
+      if (!Array.isArray(current?.identities)) return current
+      return {
+        ...current,
+        identities: current.identities.map((item, itemIndex) =>
+          itemIndex === index ? { ...item, ...patch } : item,
+        ),
+      }
+    })
   }
 
-  const renderTimelineEditor = () => {
-    if (!draft || !Array.isArray(draft.events)) return null
-
-    return (
-      <div className="space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-rule pb-4">
-          <div>
-            <p className="section-tag">Timeline Editor</p>
-            <h2 className="mt-3 font-serif text-3xl font-light text-ink">Career Timeline</h2>
-            <p className="max-w-2xl text-sm font-light leading-relaxed text-ink-mid">{selectedSection.description}</p>
-          </div>
-          <button type="button" className="inline-flex items-center gap-2 rounded bg-teal px-4 py-2.5 text-xs uppercase tracking-[0.16em] text-white" onClick={addTimelineEvent}>
-            <Plus size={15} /> Add Event
-          </button>
-        </div>
-
-        <div className="space-y-4">
-          {draft.events.map((event, index) => (
-            <div key={event.id || index} className="border border-rule bg-paper-card p-5">
-              <div className="grid gap-4 md:grid-cols-[120px_minmax(0,1fr)]">
-                <Field label="Year">
-                  <input className={baseField} value={event.year} onChange={(e) => updateTimelineEvent(index, { year: e.target.value })} />
-                </Field>
-                <Field label="Title">
-                  <input className={baseField} value={event.title} onChange={(e) => updateTimelineEvent(index, { title: e.target.value })} />
-                </Field>
-                <Field label="Subtitle">
-                  <input className={baseField} value={event.subtitle} onChange={(e) => updateTimelineEvent(index, { subtitle: e.target.value })} />
-                </Field>
-                <Field label="Category">
-                  <input className={baseField} value={event.category} onChange={(e) => updateTimelineEvent(index, { category: e.target.value })} />
-                </Field>
-                <Field label="Icon">
-                  <input className={baseField} value={event.icon} onChange={(e) => updateTimelineEvent(index, { icon: e.target.value })} placeholder="icon name or label" />
-                </Field>
-                <Field label="Description">
-                  <textarea className={baseField} rows={3} value={event.description} onChange={(e) => updateTimelineEvent(index, { description: e.target.value })} />
-                </Field>
-              </div>
-              <div className="mt-4 flex items-center justify-between gap-2">
-                <div className="flex gap-2">
-                  <IconButton label="Move up" disabled={index === 0} onClick={() => reorderTimeline(index, -1)}>
-                    <ArrowUp size={15} />
-                  </IconButton>
-                  <IconButton label="Move down" disabled={index === (draft.events || []).length - 1} onClick={() => reorderTimeline(index, 1)}>
-                    <ArrowDown size={15} />
-                  </IconButton>
-                </div>
-                <IconButton label="Delete" danger onClick={() => removeTimelineEvent(index)}>
-                  <Trash2 size={15} />
-                </IconButton>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+  const updateIdentityImage = (index, file) => {
+    readLocalImage(
+      file,
+      (imageUrl) => updateIdentity(index, { image_url: imageUrl }),
+      () => setError('Could not read the selected image.'),
     )
+  }
+
+  const reorderIdentities = (index, direction) => {
+    setDraft((current) => {
+      if (!Array.isArray(current?.identities)) return current
+      const next = [...current.identities]
+      const target = index + direction
+      if (target < 0 || target >= next.length) return current
+      const item = next[index]
+      next[index] = next[target]
+      next[target] = item
+      return {
+        ...current,
+        identities: next.map((identity, sortIndex) => ({ ...identity, sort_order: sortIndex + 1 })),
+      }
+    })
+  }
+
+  const removeIdentity = (index) => {
+    setDraft((current) => {
+      if (!Array.isArray(current?.identities)) return current
+      const removed = current.identities[index]
+      if (typeof removed?.id === 'number') {
+        setDeletedIdentityIds((ids) => [...ids, removed.id])
+      }
+      return {
+        ...current,
+        identities: current.identities.filter((_, itemIndex) => itemIndex !== index),
+      }
+    })
   }
 
   const reorderTimeline = (index, direction) => {
@@ -412,114 +530,727 @@ export default function StoryEditor() {
   const removeTimelineEvent = (index) => {
     setDraft((current) => {
       if (!Array.isArray(current?.events)) return current
+      const removed = current.events[index]
+      if (typeof removed?.id === 'number') {
+        setDeletedTimelineIds((ids) => [...ids, removed.id])
+      }
       return { ...current, events: current.events.filter((_, itemIndex) => itemIndex !== index) }
     })
+  }
+
+  const saveSection = async () => {
+    if (!draft || !selectedSection) return
+
+    setMessage('')
+    setError('')
+    setIsSaving(true)
+
+    try {
+      if (selectedSection.type === 'timeline') {
+        if (!Array.isArray(draft.events)) throw new Error('No timeline events to save')
+        for (const id of deletedTimelineIds) {
+          await api.delete(`/cms/timeline-events/${id}`)
+        }
+        for (const [index, event] of draft.events.entries()) {
+          const payloadWithOrder = { ...event, sort_order: index + 1 }
+          if (typeof event.id === 'number') {
+            await api.put(`/cms/timeline-events/${event.id}`, payloadWithOrder)
+          } else {
+            const { id, ...payload } = payloadWithOrder
+            await api.post('/cms/timeline-events', payload)
+          }
+        }
+        setMessage('Timeline saved successfully!')
+        setDeletedTimelineIds([])
+        setTimeout(() => setMessage(''), 3000)
+        await refreshContent()
+      } else if (selectedSection.type === 'identities') {
+        if (!Array.isArray(draft.identities)) throw new Error('No identity items to save')
+        for (const id of deletedIdentityIds) {
+          await api.delete(`/cms/identity-items/${id}`)
+        }
+        for (const [index, identity] of draft.identities.entries()) {
+          const payloadWithOrder = { ...identity, sort_order: index + 1 }
+          if (typeof identity.id === 'number') {
+            await api.put(`/cms/identity-items/${identity.id}`, payloadWithOrder)
+          } else {
+            const { id, ...payload } = payloadWithOrder
+            await api.post('/cms/identity-items', payload)
+          }
+        }
+        setMessage('Identity items saved successfully!')
+        setDeletedIdentityIds([])
+        setTimeout(() => setMessage(''), 3000)
+        await refreshContent()
+      } else if (selectedSection.backendSlug) {
+        const sectionPatch = {
+          eyebrow: draft.eyebrow,
+          title: draft.title,
+          subtitle: draft.subtitle,
+          description: draft.description,
+          image_url: draft.image_url,
+          image_alt: draft.image_alt,
+          metadata: {
+            cta: draft.buttons,
+            icon: draft.icon,
+            metrics: draft.metrics,
+            stats: draft.stats,
+          },
+        }
+        await api.put(`/cms/sections/${selectedSection.backendSlug}`, {
+          section: sectionPatch,
+          blocks: draft.blocks,
+        })
+        setMessage('Section saved successfully!')
+        setTimeout(() => setMessage(''), 3000)
+        await refreshContent()
+      }
+    } catch {
+      setError('Could not save this section. Please try again.')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  const refreshContent = async () => {
+    try {
+      const response = await api.get('/cms/site-content')
+      setContent(response.data)
+    } catch {
+      setError('Could not refresh content after save.')
+    }
+  }
+
+  const renderTimelineEditor = () => {
+    if (!draft || !Array.isArray(draft.events)) return null
+
+    return (
+      <div className="space-y-6">
+        <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+          <div>
+            <h2 className="text-2xl font-bold text-slate-900">Career Timeline</h2>
+            <p className="mt-2 text-sm text-slate-600">{selectedSection.description}</p>
+          </div>
+          <button
+            type="button"
+            className="inline-flex items-center gap-2 rounded-lg bg-teal-500 px-5 py-2.5 font-semibold text-white transition-all hover:bg-teal-600"
+            onClick={addTimelineEvent}
+          >
+            <Plus size={18} /> Add Event
+          </button>
+        </div>
+
+        <div className="space-y-4">
+          {draft.events.map((event, index) => (
+            <div
+              key={event.id || index}
+              className="rounded-xl border border-slate-200 bg-white p-6 transition-all duration-200 hover:shadow-lg"
+              style={{
+                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05), 0 2px 8px rgba(0, 0, 0, 0.04)',
+              }}
+            >
+              <div className="mb-4 flex items-center gap-3">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-teal-100 text-teal-600 font-bold">
+                  {index + 1}
+                </div>
+                <h3 className="font-semibold text-slate-900">{event.title || 'Untitled Event'}</h3>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-[120px_minmax(0,1fr)]">
+                <Field label="Year">
+                  <input
+                    className={formInput}
+                    value={event.year}
+                    onChange={(e) => updateTimelineEvent(index, { year: e.target.value })}
+                    placeholder="2024"
+                  />
+                </Field>
+                <Field label="Title">
+                  <input
+                    className={formInput}
+                    value={event.title}
+                    onChange={(e) => updateTimelineEvent(index, { title: e.target.value })}
+                    placeholder="Event title"
+                  />
+                </Field>
+                <Field label="Subtitle">
+                  <input
+                    className={formInput}
+                    value={event.subtitle}
+                    onChange={(e) => updateTimelineEvent(index, { subtitle: e.target.value })}
+                    placeholder="Subtitle"
+                  />
+                </Field>
+                <Field label="Category">
+                  <select
+                    className={formInput}
+                    value={event.category}
+                    onChange={(e) => updateTimelineEvent(index, { category: e.target.value })}
+                  >
+                    <option value="education">Education</option>
+                    <option value="career">Career</option>
+                    <option value="milestone">Milestone</option>
+                    <option value="award">Award</option>
+                  </select>
+                </Field>
+                <div className="md:col-span-2">
+                  <Field label="Icon">
+                    <IconPicker
+                      value={
+                        event.icon ||
+                        (event.category === 'education' ? 'graduation-cap' : 'sparkles')
+                      }
+                      onChange={(value) => updateTimelineEvent(index, { icon: value })}
+                    />
+                  </Field>
+                </div>
+                <div className="md:col-span-2">
+                  <Field label="Description">
+                    <textarea
+                      className={formInput}
+                      rows={3}
+                      value={event.description}
+                      onChange={(e) => updateTimelineEvent(index, { description: e.target.value })}
+                      placeholder="Event description"
+                    />
+                  </Field>
+                </div>
+              </div>
+
+              <div className="mt-6 flex items-center justify-between gap-2">
+                <div className="flex gap-2">
+                  <IconButton
+                    label="Move up"
+                    disabled={index === 0}
+                    onClick={() => reorderTimeline(index, -1)}
+                  >
+                    <ArrowUp size={16} />
+                  </IconButton>
+                  <IconButton
+                    label="Move down"
+                    disabled={index === draft.events.length - 1}
+                    onClick={() => reorderTimeline(index, 1)}
+                  >
+                    <ArrowDown size={16} />
+                  </IconButton>
+                </div>
+                <IconButton label="Delete" danger onClick={() => removeTimelineEvent(index)}>
+                  <Trash2 size={16} />
+                </IconButton>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  const renderIdentityEditor = () => {
+    if (!draft || !Array.isArray(draft.identities)) return null
+
+    return (
+      <div className="space-y-6">
+        <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+          <div>
+            <h2 className="text-2xl font-bold text-slate-900">Identity Items</h2>
+            <p className="mt-2 text-sm text-slate-600">{selectedSection.description}</p>
+          </div>
+          <button
+            type="button"
+            className="inline-flex items-center gap-2 rounded-lg bg-teal-500 px-5 py-2.5 font-semibold text-white transition-all hover:bg-teal-600"
+            onClick={addIdentity}
+          >
+            <Plus size={18} /> Add Identity
+          </button>
+        </div>
+
+        <div className="grid gap-6 lg:grid-cols-2">
+          {draft.identities.map((identity, index) => (
+            <div
+              key={identity.id || index}
+              className="group rounded-xl border border-slate-200 bg-white p-6 transition-all duration-200 hover:shadow-lg"
+              style={{
+                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05), 0 2px 8px rgba(0, 0, 0, 0.04)',
+              }}
+            >
+              <div className="mb-4 flex items-center justify-between">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-teal-500 to-teal-600 font-bold text-white">
+                  {identity.label.padStart(2, '0')}
+                </div>
+                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                  Item {index + 1}
+                </span>
+              </div>
+
+              <div className="space-y-4">
+                <Field label="Label">
+                  <input
+                    className={formInput}
+                    value={identity.label}
+                    onChange={(e) => updateIdentity(index, { label: e.target.value })}
+                    placeholder="01"
+                  />
+                </Field>
+                <Field label="Title">
+                  <input
+                    className={formInput}
+                    value={identity.title}
+                    onChange={(e) => updateIdentity(index, { title: e.target.value })}
+                    placeholder="Identity title"
+                  />
+                </Field>
+                <Field label="Icon Keyword">
+                  <input
+                    className={formInput}
+                    value={identity.icon || ''}
+                    onChange={(e) => updateIdentity(index, { icon: e.target.value })}
+                    placeholder="Optional icon keyword"
+                  />
+                </Field>
+
+                <Field label="Image">
+                  <div className="flex gap-2">
+                    <input
+                      className={formInput}
+                      value={identity.image_url || ''}
+                      onChange={(e) => updateIdentity(index, { image_url: e.target.value })}
+                      placeholder="/image.png"
+                    />
+                    <label className="inline-flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-slate-200 bg-slate-100 text-slate-600 transition-all hover:bg-slate-200">
+                      <Upload size={18} />
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="sr-only"
+                        onChange={(e) => updateIdentityImage(index, e.target.files?.[0])}
+                      />
+                    </label>
+                  </div>
+                </Field>
+
+                {identity.image_url && (
+                  <div className="overflow-hidden rounded-lg border border-slate-200 bg-slate-50">
+                    <img src={identity.image_url} alt="" className="h-40 w-full object-cover" />
+                  </div>
+                )}
+              </div>
+
+              <div className="mt-6 flex items-center justify-between gap-2 border-t border-slate-200 pt-4">
+                <div className="flex gap-2">
+                  <IconButton
+                    label="Move up"
+                    disabled={index === 0}
+                    onClick={() => reorderIdentities(index, -1)}
+                  >
+                    <ArrowUp size={16} />
+                  </IconButton>
+                  <IconButton
+                    label="Move down"
+                    disabled={index === draft.identities.length - 1}
+                    onClick={() => reorderIdentities(index, 1)}
+                  >
+                    <ArrowDown size={16} />
+                  </IconButton>
+                </div>
+                <IconButton label="Delete" danger onClick={() => removeIdentity(index)}>
+                  <Trash2 size={16} />
+                </IconButton>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {draft.identities.length === 0 && (
+          <div className="rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 px-8 py-12 text-center">
+            <p className="text-slate-600">No identity items yet. Add one to get started.</p>
+          </div>
+        )}
+      </div>
+    )
   }
 
   const renderGenericEditor = () => {
     if (!draft) return null
 
-    const buttons = Array.isArray(draft.buttons) ? draft.buttons : []
     const blocks = Array.isArray(draft.blocks) ? draft.blocks : []
 
     return (
-      <div className="space-y-6">
-        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
-          <div className="space-y-4">
-            <div className="rounded-3xl border border-rule bg-paper-card p-6">
-              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                <div>
-                  <p className="section-tag">Section Content</p>
-                  <h2 className="mt-3 font-serif text-3xl font-light text-ink">{selectedSection.title}</h2>
-                  <p className="mt-2 text-sm text-ink-mid">{selectedSection.description}</p>
-                </div>
-                <span className="rounded-full border border-rule bg-paper px-3 py-1 text-[10px] uppercase tracking-[0.24em] text-ink-muted">
-                  Visual hero & cards
-                </span>
+      <div className="space-y-8">
+        {/* Main Content Editor */}
+        <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
+          {/* Left Column - Editor */}
+          <div className="space-y-6">
+            {/* Basic Section */}
+            <div
+              className="rounded-xl border border-slate-200 bg-white p-6 transition-all duration-200 sm:p-8"
+              style={{
+                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05), 0 2px 8px rgba(0, 0, 0, 0.04)',
+              }}
+            >
+              <div className="mb-6 border-b border-slate-200 pb-6">
+                <h2 className="text-2xl font-bold text-slate-900">{selectedSection.title}</h2>
+                <p className="mt-2 text-sm text-slate-600">{selectedSection.description}</p>
               </div>
 
-              <div className="mt-6 grid gap-4 md:grid-cols-2">
+              <div className="grid gap-6 md:grid-cols-2">
                 <Field label="Eyebrow">
-                  <input className={baseField} value={draft.eyebrow ?? ''} onChange={(e) => updateDraft({ eyebrow: e.target.value })} />
+                  <input
+                    className={formInput}
+                    value={draft.eyebrow ?? ''}
+                    onChange={(e) => updateDraft({ eyebrow: e.target.value })}
+                    placeholder="e.g., Primary copy"
+                  />
                 </Field>
                 <Field label="Subtitle">
-                  <input className={baseField} value={draft.subtitle ?? ''} onChange={(e) => updateDraft({ subtitle: e.target.value })} />
+                  <input
+                    className={formInput}
+                    value={draft.subtitle ?? ''}
+                    onChange={(e) => updateDraft({ subtitle: e.target.value })}
+                    placeholder="Supporting subtitle"
+                  />
                 </Field>
-                <Field label="Title">
-                  <textarea className={baseField} rows={3} value={draft.title ?? ''} onChange={(e) => updateDraft({ title: e.target.value })} />
+                {selectedSection.slug === 'vision-agenda' ? (
+                  <>
+                    <div className="md:col-span-2">
+                      <Field label="Title - Main Text">
+                        <input
+                          className={formInput}
+                          value={draft.title ?? ''}
+                          onChange={(e) => updateDraft({ title: e.target.value })}
+                          placeholder="e.g., One doctor's blueprint for a"
+                        />
+                      </Field>
+                      <p className="mt-1 text-xs text-slate-500">This appears on the first line</p>
+                    </div>
+                    <div className="md:col-span-2">
+                      <Field label="Title - Highlighted Text">
+                        <input
+                          className={formInput}
+                          value={draft.subtitle ?? ''}
+                          onChange={(e) => updateDraft({ subtitle: e.target.value })}
+                          placeholder="e.g., self-sufficient healthcare Africa"
+                        />
+                      </Field>
+                      <p className="mt-1 text-xs text-slate-500">
+                        This appears emphasized on the second line
+                      </p>
+                    </div>
+                  </>
+                ) : (
+                  <div className="md:col-span-2">
+                    <Field label="Title">
+                      <textarea
+                        className={formInput}
+                        rows={3}
+                        value={draft.title ?? ''}
+                        onChange={(e) => updateDraft({ title: e.target.value })}
+                        placeholder="Enter the main title"
+                      />
+                    </Field>
+                  </div>
+                )}
+              </div>
+
+              <div className="mt-6 border-t border-slate-200 pt-6">
+                <Field label="Hero Image">
+                  <div className="flex gap-2">
+                    <input
+                      className={formInput}
+                      value={draft.image_url ?? ''}
+                      onChange={(e) => updateDraft({ image_url: e.target.value })}
+                      placeholder="https://..."
+                    />
+                    <label className="inline-flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-slate-200 bg-slate-100 text-slate-600 transition-all hover:bg-slate-200">
+                      <Upload size={18} />
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="sr-only"
+                        onChange={(e) => updateDraftImage(e.target.files?.[0])}
+                      />
+                    </label>
+                  </div>
                 </Field>
-                <Field label="Description">
-                  <textarea className={baseField} rows={4} value={draft.description ?? ''} onChange={(e) => updateDraft({ description: e.target.value })} />
-                </Field>
-                <Field label="Image URL">
-                  <input className={baseField} value={draft.image_url ?? ''} onChange={(e) => updateDraft({ image_url: e.target.value })} />
-                </Field>
-                <Field label="Image Alt">
-                  <input className={baseField} value={draft.image_alt ?? ''} onChange={(e) => updateDraft({ image_alt: e.target.value })} />
-                </Field>
-                <Field label="Brand Color">
-                  <input type="color" className="h-11 w-full rounded border border-rule bg-paper p-1" value={draft.color ?? ''} onChange={(e) => updateDraft({ color: e.target.value })} />
-                </Field>
-                <Field label="Icon">
-                  <input className={baseField} value={draft.icon ?? ''} onChange={(e) => updateDraft({ icon: e.target.value })} placeholder="Icon name or keyword" />
-                </Field>
+                <div className="mt-4">
+                  <Field label="Image Alt Text">
+                    <input
+                      className={formInput}
+                      value={draft.image_alt ?? ''}
+                      onChange={(e) => updateDraft({ image_alt: e.target.value })}
+                      placeholder="Describe the image"
+                    />
+                  </Field>
+                </div>
               </div>
             </div>
 
-            <div className="rounded-3xl border border-rule bg-paper-card p-6">
-              <div className="mb-5 flex items-center justify-between gap-4">
-                <div>
-                  <h3 className="font-serif text-2xl font-light text-ink">Buttons</h3>
-                  <p className="text-sm text-ink-mid">Manage CTA labels and destinations.</p>
+            {/* Foundation Stats */}
+            {selectedSection.slug === 'foundation' && (
+              <div
+                className="rounded-xl border border-slate-200 bg-white p-6 sm:p-8"
+                style={{
+                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05), 0 2px 8px rgba(0, 0, 0, 0.04)',
+                }}
+              >
+                <div className="mb-6 flex items-center justify-between border-b border-slate-200 pb-6">
+                  <div>
+                    <h3 className="text-xl font-bold text-slate-900">Foundation Stats</h3>
+                    <p className="mt-1 text-sm text-slate-600">Display cards with key statistics</p>
+                  </div>
+                  <button
+                    type="button"
+                    className="inline-flex items-center gap-2 rounded-lg bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-900 transition-all hover:bg-slate-200"
+                    onClick={() => addListItem('stats', { value: '', label: '' })}
+                  >
+                    <Plus size={16} /> Add
+                  </button>
                 </div>
-                <button type="button" className="inline-flex items-center gap-2 rounded bg-paper border border-rule px-3 py-2 text-xs uppercase tracking-[0.16em] text-ink" onClick={addButton}>
-                  <Plus size={14} /> Add Button
+
+                <div className="grid gap-4 md:grid-cols-4">
+                  {(draft.stats || []).map((stat, index) => (
+                    <div
+                      key={index}
+                      className="rounded-lg border border-slate-200 bg-slate-50 p-5 transition-all hover:border-slate-300"
+                    >
+                      <Field label="Value">
+                        <input
+                          className={formInput}
+                          value={stat.value || ''}
+                          onChange={(e) =>
+                            updateListItem('stats', index, { value: e.target.value })
+                          }
+                          placeholder="e.g., $10M"
+                        />
+                      </Field>
+                      <div className="mt-3">
+                        <Field label="Label">
+                          <input
+                            className={formInput}
+                            value={stat.label || ''}
+                            onChange={(e) =>
+                              updateListItem('stats', index, { label: e.target.value })
+                            }
+                            placeholder="e.g., Raised"
+                          />
+                        </Field>
+                      </div>
+                      <div className="mt-4 flex justify-end">
+                        <IconButton
+                          label="Delete"
+                          danger
+                          onClick={() => removeListItem('stats', index)}
+                        >
+                          <Trash2 size={16} />
+                        </IconButton>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Blocks Editor */}
+            <div
+              className="rounded-xl border border-slate-200 bg-white p-6 sm:p-8"
+              style={{
+                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05), 0 2px 8px rgba(0, 0, 0, 0.04)',
+              }}
+            >
+              <div className="mb-6 flex items-center justify-between border-b border-slate-200 pb-6">
+                <div>
+                  <h3 className="text-xl font-bold text-slate-900">
+                    {selectedSection.blockLabel || 'Cards & Blocks'}
+                  </h3>
+                  <p className="mt-1 text-sm text-slate-600">
+                    Manage every visible card in this section
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-2 rounded-lg bg-teal-500 px-4 py-2 font-semibold text-white transition-all hover:bg-teal-600"
+                  onClick={addBlock}
+                >
+                  <Plus size={16} /> Add Card
                 </button>
               </div>
-              <div className="space-y-4">
-                {buttons.map((button, index) => (
-                  <div key={index} className="grid gap-3 rounded-2xl border border-rule bg-paper p-4 md:grid-cols-[1fr_1fr_120px]">
-                    <Field label="Label">
-                      <input className={baseField} value={button.label} onChange={(e) => updateButton(index, { label: e.target.value })} />
-                    </Field>
-                    <Field label="Path">
-                      <input className={baseField} value={button.path} onChange={(e) => updateButton(index, { path: e.target.value })} />
-                    </Field>
-                    <div className="flex items-end justify-end">
-                      <IconButton label="Delete button" danger onClick={() => removeButton(index)}>
-                        <Trash2 size={15} />
-                      </IconButton>
-                    </div>
+
+              <div className="space-y-5">
+                {blocks.length === 0 ? (
+                  <div className="rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 px-6 py-12 text-center">
+                    <p className="text-slate-600">No cards yet. Add one to get started.</p>
                   </div>
-                ))}
-                {buttons.length === 0 && <p className="text-sm text-ink-mid">No buttons added yet.</p>}
+                ) : (
+                  blocks.map((block, index) => (
+                    <div
+                      key={block.id || index}
+                      className="rounded-lg border border-slate-200 bg-slate-50 p-5 transition-all hover:border-slate-300"
+                    >
+                      <div className="mb-4 flex items-center justify-between">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white font-bold text-slate-600">
+                          {index + 1}
+                        </div>
+                        <span className="text-xs font-semibold text-slate-500 uppercase">Card</span>
+                      </div>
+
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <Field label="Label">
+                          <input
+                            className={formInput}
+                            value={block.eyebrow || ''}
+                            onChange={(e) => updateBlock(index, { eyebrow: e.target.value })}
+                            placeholder="Card label"
+                          />
+                        </Field>
+                        <Field label="Title">
+                          <input
+                            className={formInput}
+                            value={block.title || ''}
+                            onChange={(e) => updateBlock(index, { title: e.target.value })}
+                            placeholder="Card title"
+                          />
+                        </Field>
+                        <Field label="Image">
+                          <div className="flex gap-2">
+                            <input
+                              className={formInput}
+                              value={block.image_url || ''}
+                              onChange={(e) => updateBlock(index, { image_url: e.target.value })}
+                              placeholder="https://..."
+                            />
+                            <label className="inline-flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-slate-200 bg-slate-100 text-slate-600 transition-all hover:bg-slate-200">
+                              <Upload size={18} />
+                              <input
+                                type="file"
+                                accept="image/*"
+                                className="sr-only"
+                                onChange={(e) => updateBlockImage(index, e.target.files?.[0])}
+                              />
+                            </label>
+                          </div>
+                        </Field>
+
+                        {selectedSection.slug !== 'vision-agenda' && (
+                          <>
+                            <div className="md:col-span-2">
+                              <Field label="Icon">
+                                <IconPicker
+                                  value={block.metadata?.icon || 'sparkles'}
+                                  onChange={(value) => updateBlockMetadata(index, { icon: value })}
+                                />
+                              </Field>
+                            </div>
+
+                            {selectedSection.slug === 'recognition-awards' && (
+                              <div className="grid gap-4 md:col-span-2 md:grid-cols-3">
+                                <Field label="Organization">
+                                  <input
+                                    className={formInput}
+                                    value={block.metadata?.organization || ''}
+                                    onChange={(e) =>
+                                      updateBlockMetadata(index, { organization: e.target.value })
+                                    }
+                                    placeholder="Org name"
+                                  />
+                                </Field>
+                                <Field label="Year">
+                                  <input
+                                    className={formInput}
+                                    value={block.metadata?.year || ''}
+                                    onChange={(e) =>
+                                      updateBlockMetadata(index, { year: e.target.value })
+                                    }
+                                    placeholder="2024"
+                                  />
+                                </Field>
+                                <Field label="Category">
+                                  <input
+                                    className={formInput}
+                                    value={block.metadata?.category || ''}
+                                    onChange={(e) =>
+                                      updateBlockMetadata(index, { category: e.target.value })
+                                    }
+                                    placeholder="Category"
+                                  />
+                                </Field>
+                              </div>
+                            )}
+                          </>
+                        )}
+                      </div>
+
+                      <div className="mt-4 flex items-center justify-between gap-2 border-t border-slate-200 pt-4">
+                        <div className="flex gap-2">
+                          <IconButton
+                            label="Move up"
+                            disabled={index === 0}
+                            onClick={() => reorderBlocks(index, -1)}
+                          >
+                            <ArrowUp size={16} />
+                          </IconButton>
+                          <IconButton
+                            label="Move down"
+                            disabled={index === blocks.length - 1}
+                            onClick={() => reorderBlocks(index, 1)}
+                          >
+                            <ArrowDown size={16} />
+                          </IconButton>
+                        </div>
+                        <IconButton label="Delete" danger onClick={() => removeBlock(index)}>
+                          <Trash2 size={16} />
+                        </IconButton>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           </div>
 
-          <aside className="space-y-4">
-            <div className="rounded-3xl border border-rule bg-paper-card p-6">
-              <p className="section-tag">Preview</p>
-              <div className="mt-5 rounded-3xl border border-dashed border-rule bg-paper px-5 py-6 text-ink">
-                <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-muted">{draft.eyebrow || 'Section label'}</p>
-                {/* Use mapping to preserve simple CMS classes (e.g. text-teal-mid, italic) */}
-                <h3 className="mt-3 text-2xl font-light text-ink" dangerouslySetInnerHTML={{ __html: mapCmsHtml(draft.title || selectedSection.title) }} />
-                <p className="mt-3 text-sm leading-relaxed text-ink-mid" dangerouslySetInnerHTML={{ __html: mapCmsHtml(draft.description || selectedSection.description) }} />
-                {draft.image_url ? (
-                  <div className="mt-5 overflow-hidden rounded-3xl border border-rule bg-paper">
-                    <img src={draft.image_url} alt={draft.image_alt || ''} className="h-48 w-full object-cover" />
-                  </div>
+          {/* Right Column - Preview & Help */}
+          <aside className="space-y-6">
+            {/* Preview */}
+            <div
+              className="sticky top-8 rounded-xl border border-slate-200 bg-white p-6 sm:p-8"
+              style={{
+                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05), 0 2px 8px rgba(0, 0, 0, 0.04)',
+              }}
+            >
+              <h3 className="mb-4 text-sm font-bold uppercase tracking-wider text-slate-600">
+                Live Preview
+              </h3>
+              <div className="rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-slate-900">
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                  {draft.eyebrow || 'Section label'}
+                </p>
+                {selectedSection.slug === 'vision-agenda' ? (
+                  <h4 className="mt-3 text-lg font-bold text-slate-900">
+                    {draft.title || selectedSection.title}
+                    {draft.subtitle && (
+                      <>
+                        <br />
+                        <em className="text-teal-600 italic font-normal">{draft.subtitle}</em>
+                      </>
+                    )}
+                  </h4>
                 ) : (
-                  <div className="mt-5 flex h-48 items-center justify-center rounded-3xl border border-dashed border-rule bg-paper text-ink-muted">
-                    <Image size={28} />
+                  <h4 className="mt-3 text-lg font-bold text-slate-900">
+                    {draft.title || selectedSection.title}
+                  </h4>
+                )}
+                {draft.image_url && (
+                  <div className="mt-4 overflow-hidden rounded-lg border border-slate-200">
+                    <img src={draft.image_url} alt="" className="h-32 w-full object-cover" />
                   </div>
                 )}
               </div>
             </div>
 
-            <div className="rounded-3xl border border-rule bg-paper-card p-6">
-              <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-muted">Section Notes</p>
-              <p className="mt-3 text-sm leading-relaxed text-ink-mid">{selectedSection.hint}</p>
+            {/* Help */}
+            <div className="rounded-xl border border-slate-200 bg-gradient-to-br from-teal-50 to-cyan-50 p-6 sm:p-8">
+              <h3 className="mb-3 flex items-center gap-2 text-sm font-bold text-teal-900">
+                <Sparkles size={18} /> Editing Guide
+              </h3>
+              <p className="text-sm leading-relaxed text-teal-800">{selectedSection.hint}</p>
             </div>
           </aside>
         </div>
@@ -529,42 +1260,46 @@ export default function StoryEditor() {
 
   if (isLoading || !draft) {
     return (
-      <div className="flex min-h-[28rem] items-center justify-center border border-rule bg-paper-card">
-        <Loader2 size={26} className="animate-spin text-teal" />
+      <div className="flex min-h-96 items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 size={32} className="animate-spin text-teal-500" />
+          <p className="text-sm text-slate-600">Loading story content...</p>
+        </div>
       </div>
     )
   }
 
   return (
-    <section className="mx-auto max-w-7xl space-y-8">
-      <div className="flex flex-col justify-between gap-4 border-b border-rule pb-7 lg:flex-row lg:items-end">
+    <section className="mx-auto max-w-7xl">
+      {/* Page Header */}
+      <div className="mb-10 flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
         <div>
-          <p className="section-tag">Story Editor</p>
-          <h1 className="mt-3 font-serif text-4xl font-light text-ink sm:text-5xl">{selectedSection.title}</h1>
-          <p className="mt-3 max-w-3xl text-sm font-light leading-relaxed text-ink-mid">{selectedSection.description}</p>
+          <p className="text-xs font-bold uppercase tracking-widest text-teal-600">Story Editor</p>
+          <h1 className="mt-3 text-4xl font-bold text-slate-900 sm:text-5xl">
+            {selectedSection.title}
+          </h1>
+          <p className="mt-3 max-w-3xl text-slate-600">{selectedSection.description}</p>
         </div>
-        <div className="flex items-center gap-4">
-          <div className="text-sm font-light text-ink-mid">
-            {message && <p className="text-teal">{message}</p>}
-            {error && <p className="text-red-700">{error}</p>}
-          </div>
-          <div>
-            <button
-              type="button"
-              onClick={saveSection}
-              disabled={isSaving}
-              className="inline-flex items-center gap-2 rounded bg-teal px-4 py-2.5 font-sans text-xs font-medium uppercase tracking-[0.18em] text-white transition-colors hover:bg-teal-mid disabled:cursor-not-allowed disabled:opacity-70"
-            >
-              {isSaving ? <Loader2 size={16} className="animate-spin" /> : <Save size={14} />}
-              <span>{isSaving ? 'Saving' : 'Save Section'}</span>
-            </button>
-          </div>
-        </div>
+        <button
+          type="button"
+          onClick={saveSection}
+          disabled={isSaving}
+          className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-teal-500 to-teal-600 px-6 py-3 font-semibold text-white transition-all hover:shadow-lg hover:shadow-teal-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isSaving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
+          <span>{isSaving ? 'Saving...' : 'Save Changes'}</span>
+        </button>
       </div>
 
-      {selectedSection.type === 'timeline' ? renderTimelineEditor() : renderGenericEditor()}
+      {/* Content */}
+      {selectedSection.type === 'timeline'
+        ? renderTimelineEditor()
+        : selectedSection.type === 'identities'
+          ? renderIdentityEditor()
+          : renderGenericEditor()}
 
-      
+      {/* Toast */}
+      <Toast message={message} error={error} />
     </section>
   )
 }

@@ -56,17 +56,28 @@ export default function Dashboard() {
               className="group flex min-h-64 flex-col justify-between border border-rule bg-paper-card p-5 transition-colors hover:bg-paper-warm"
             >
               <div>
-                <div className={`mb-7 flex h-12 w-12 items-center justify-center ${section.accent}`}>
+                <div
+                  className={`mb-7 flex h-12 w-12 items-center justify-center ${section.accent}`}
+                >
                   <Icon size={20} />
                 </div>
-                <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-muted">Editor</p>
+                <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-muted">
+                  Editor
+                </p>
                 <h2 className="mt-3 font-serif text-3xl font-light text-ink">{section.title}</h2>
-                <p className="mt-4 text-sm font-light leading-relaxed text-ink-mid">{section.description}</p>
+                <p className="mt-4 text-sm font-light leading-relaxed text-ink-mid">
+                  {section.description}
+                </p>
               </div>
 
               <div className="mt-8 flex items-center justify-between border-t border-rule pt-4">
-                <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-teal">Open</span>
-                <ArrowUpRight size={18} className="text-ink-muted transition-colors group-hover:text-teal" />
+                <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-teal">
+                  Open
+                </span>
+                <ArrowUpRight
+                  size={18}
+                  className="text-ink-muted transition-colors group-hover:text-teal"
+                />
               </div>
             </Link>
           )

@@ -3,6 +3,7 @@ import { animate, motion, useInView } from 'framer-motion'
 import { impactMetrics } from '@/data/metrics'
 import { Container } from '@/components/shared'
 import { cn } from '@/lib/utils'
+import { useSiteContent } from '@/hooks/useSiteContent'
 
 function CountUp({ value }: { value: string }) {
   const ref = useRef<HTMLSpanElement>(null)
@@ -35,6 +36,10 @@ function CountUp({ value }: { value: string }) {
 }
 
 export default function HomeImpactBar() {
+  const { content } = useSiteContent()
+  const cmsMetrics = content?.sections.vision_agenda?.metadata?.metrics
+  const metrics = Array.isArray(cmsMetrics) && cmsMetrics.length > 0 ? cmsMetrics : impactMetrics
+
   return (
     <section className="bg-ink py-10 sm:py-16 border-t border-b border-white/5 relative overflow-hidden">
       {/* Subtle ambient light gradient inside the dark bar */}
@@ -42,9 +47,9 @@ export default function HomeImpactBar() {
 
       <Container>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-y-10 gap-x-6 relative z-10">
-          {impactMetrics.map((metric, i) => (
+          {metrics.map((metric, i) => (
             <motion.div
-              key={metric.id}
+              key={metric.id || `${metric.value}-${metric.label}`}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: '-50px' }}
@@ -69,4 +74,3 @@ export default function HomeImpactBar() {
     </section>
   )
 }
-

@@ -81,6 +81,8 @@ export function AppRouter() {
           <Route path="profile/education" element={<SectionPlaceholder title="Education" />} />
           <Route path="profile/gallery" element={<SectionPlaceholder title="Gallery" />} />
           <Route path="ecosystem" element={<SectionPlaceholder title="Ecosystem" />} />
+          <Route path="ecosystem/vision" element={<SectionPlaceholder title="Ecosystem Vision" />} />
+          <Route path="ecosystem/breakdown" element={<SectionPlaceholder title="Ecosystem Breakdown" />} />
           <Route path="impact" element={<SectionPlaceholder title="Impact" />} />
           <Route path="impact/public-service" element={<SectionPlaceholder title="Public Service" />} />
           <Route path="impact/leadership" element={<SectionPlaceholder title="Leadership" />} />
@@ -89,6 +91,7 @@ export function AppRouter() {
           <Route path="achievements/awards" element={<SectionPlaceholder title="Awards & Recognition" />} />
           <Route path="achievements/media" element={<SectionPlaceholder title="Media & Speaking" />} />
           <Route path="contact" element={<SectionPlaceholder title="Contact" />} />
+          <Route path="contact/inquiry-types" element={<SectionPlaceholder title="Inquiry Types" />} />
         </Route>
         <Route path="*" element={<NotFoundPage />} />
       </Routes>

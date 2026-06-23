@@ -1,6 +1,6 @@
 import { useRef } from 'react'
 import { motion, useInView } from 'framer-motion'
-import { FaGraduationCap, FaBriefcase, FaStar } from 'react-icons/fa'
+import { FaGraduationCap, FaBriefcase, FaStar, FaTrophy, FaHospital, FaMicroscope } from 'react-icons/fa'
 import type { IconType } from 'react-icons'
 import { Container } from '@/components/shared'
 import { useSiteContent } from '@/hooks/useSiteContent'
@@ -11,6 +11,13 @@ const categoryIcon: Record<string, IconType> = {
   education: FaGraduationCap,
   career:    FaBriefcase,
   milestone: FaStar,
+  award: FaTrophy,
+  'graduation-cap': FaGraduationCap,
+  briefcase: FaBriefcase,
+  sparkles: FaStar,
+  trophy: FaTrophy,
+  hospital: FaHospital,
+  microscope: FaMicroscope,
 }
 
 const categoryLabel: Record<string, string> = {
@@ -48,7 +55,7 @@ function BubbleCard({
   const inView = useInView(ref, { once: true, margin: '-60px' })
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const palette  = PALETTES[index % PALETTES.length]!
-  const IconComp = categoryIcon[item.category] ?? FaStar
+  const IconComp = categoryIcon[item.icon || item.category] ?? FaStar
   const delay    = index * 0.12
 
   return (

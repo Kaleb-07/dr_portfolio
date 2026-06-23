@@ -9,6 +9,8 @@ import {
 } from 'react-icons/fa'
 import { Container } from '@/components/shared'
 import { foundationOverview } from '@/data/foundation'
+import { useSiteContent } from '@/hooks/useSiteContent'
+import { mapCmsHtml } from '@/lib/html'
 
 /* ── Data ──────────────────────────────────────────────────────────────── */
 const stats = [
@@ -24,6 +26,13 @@ const pillars = [
   { label: 'Healthcare Infrastructure',   icon: FaHospital },
   { label: 'Professional Mentorship',     icon: FaHandshake },
 ]
+
+const iconMap = {
+  'heart-pulse': FaHeartbeat,
+  'graduation-cap': FaGraduationCap,
+  hospital: FaHospital,
+  handshake: FaHandshake,
+}
 
 /* ── Stat card ─────────────────────────────────────────────────────────── */
 function StatCard({ stat, index }: { stat: (typeof stats)[0]; index: number }) {
@@ -81,6 +90,16 @@ export default function HomeFoundation() {
 
   const leftRef    = useRef<HTMLDivElement>(null)
   const leftInView = useInView(leftRef, { once: true, margin: '-60px' })
+  const { content } = useSiteContent()
+  const section = content?.sections.foundation_story
+  const cmsStats = section?.metadata?.stats
+  const displayedStats = Array.isArray(cmsStats) && cmsStats.length > 0 ? cmsStats : stats
+  const displayedPillars = section?.blocks?.length
+    ? section.blocks.map((block) => ({
+        label: block.title || '',
+        icon: iconMap[String(block.metadata?.icon || '') as keyof typeof iconMap] || FaHandshake,
+      }))
+    : pillars
 
   return (
     <section className="section-padding bg-paper-warm overflow-hidden">
@@ -94,7 +113,7 @@ export default function HomeFoundation() {
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] as [number,number,number,number] }}
           className="section-header mb-12"
         >
-          <span className="section-tag">Foundation</span>
+          <span className="section-tag">{section?.eyebrow || 'Foundation'}</span>
           <span className="section-rule" />
         </motion.div>
 
@@ -118,8 +137,7 @@ export default function HomeFoundation() {
               transition={{ duration: 0.65, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
               className="relative z-10 font-serif text-4xl md:text-5xl font-light text-ink mb-6"
             >
-              The{' '}
-              <em className="text-teal-mid not-italic">LUCS Foundation</em>
+              <span dangerouslySetInnerHTML={{ __html: mapCmsHtml(section?.title || 'The <em class="text-teal-mid not-italic">LUCS Foundation</em>') }} />
             </motion.h2>
 
             {/* Description */}
@@ -129,12 +147,12 @@ export default function HomeFoundation() {
               transition={{ duration: 0.6, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
               className="relative z-10 text-sm font-light text-ink-mid leading-relaxed mb-10"
             >
-              {foundationOverview.description}
+              {section?.description || foundationOverview.description}
             </motion.p>
 
             {/* Pillar list */}
             <div className="relative z-10 space-y-4">
-              {pillars.map(({ label, icon: Icon }, i) => (
+              {displayedPillars.map(({ label, icon: Icon }, i) => (
                 <motion.div
                   key={label}
                   initial={{ opacity: 0, x: -24 }}
@@ -185,7 +203,7 @@ export default function HomeFoundation() {
 
           {/* ── Right: 2×2 stat grid ── */}
           <div className="grid grid-cols-2 gap-4 content-start">
-            {stats.map((stat, i) => (
+            {displayedStats.map((stat, i) => (
               <StatCard key={stat.label} stat={stat} index={i} />
             ))}
           </div>
