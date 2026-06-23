@@ -3,7 +3,15 @@ const router = express.Router()
 const db = require('../db/db')
 const verifyToken = require('../middleware/auth.middleware')
 
-const SECTION_SLUGS = ['vision_agenda', 'identity_overview', 'about_vision']
+const SECTION_SLUGS = [
+  'vision_agenda',
+  'identity_overview',
+  'about_vision',
+  'liyana_framework',
+  'foundation_story',
+  'recognition_awards',
+  'leadership_philosophy',
+]
 
 const sectionSeeds = [
   {
@@ -15,7 +23,14 @@ const sectionSeeds = [
     description: '',
     image_url: '/image.png',
     image_alt: 'Dr. Girma Ababi',
-    metadata: { cta: [] },
+    metadata: {
+      cta: [],
+      metrics: [
+        { value: '20+', label: 'Years as Medical Doctor', description: 'Over two decades of clinical practice and medical expertise.' },
+        { value: '15+', label: 'Years as Anatomical Pathologist', description: 'Specialist in anatomical pathology with advanced diagnostic experience.' },
+        { value: '14+', label: 'Years Healthcare Investment & Leadership', description: 'Building and leading healthcare enterprises across the value chain.' },
+      ],
+    },
     blocks: [
       { block_type: 'identity_teaser', title: 'Physician', eyebrow: 'Identity I', sort_order: 1 },
       { block_type: 'identity_teaser', title: 'Entrepreneur', eyebrow: 'Identity II', sort_order: 2 },
@@ -44,6 +59,68 @@ const sectionSeeds = [
     title: 'A healthier Africa',
     description:
       'An integrated, self-sustaining healthcare ecosystem in Ethiopia that delivers quality care to millions, empowers thousands of professionals, and serves as a model for health system transformation across Africa.',
+    metadata: {},
+    blocks: [],
+  },
+  {
+    slug: 'liyana_framework',
+    section_type: 'framework_grid',
+    eyebrow: 'The Liyana Healthcare Framework',
+    title: 'A vertically integrated ecosystem <em class="not-italic text-teal-mid">for sovereignty and scale.</em>',
+    description: '',
+    metadata: { cta: [{ label: 'Explore Ecosystem', path: '/ecosystem', variant: 'ghost' }] },
+    blocks: [
+      { block_type: 'framework_node', title: 'Healthcare Delivery', body: 'The Yanet Chain of Hospitals provides tertiary diagnostic services, therapeutic care centers, and outpatient clinics across Ethiopia, forming the clinical backbone of Liyana Healthcare.', metadata: { icon: 'hospital', category: 'hospital' }, sort_order: 1 },
+      { block_type: 'framework_node', title: 'Education & Training', body: 'YLC Health Sciences College delivers medical professional training, research programs, and academic pathways for the next generation of healthcare professionals.', metadata: { icon: 'graduation-cap', category: 'education' }, sort_order: 2 },
+      { block_type: 'framework_node', title: 'Manufacturing', body: 'Pharmaceutical production and local drug manufacturing facilities ensure reliable supply chains, retail distribution, and affordable access to essential medicines.', metadata: { icon: 'flask', category: 'manufacturing' }, sort_order: 3 },
+      { block_type: 'framework_node', title: 'Research', body: 'Medical research programs, anatomical pathology research, academic publications, and innovation think-tanks drive evidence-based advancement in healthcare.', metadata: { icon: 'microscope', category: 'research' }, sort_order: 4 },
+      { block_type: 'framework_node', title: 'Digital Health', body: 'Healthcare technology platforms, digital health innovation, patient data systems, and telemedicine solutions bridge the gap between patients and providers.', metadata: { icon: 'mobile', category: 'digital-health' }, sort_order: 5 },
+      { block_type: 'framework_node', title: 'Healthcare Financing', body: 'Health insurance products, life insurance offerings, and innovative healthcare financing models make quality care accessible and affordable.', metadata: { icon: 'wallet', category: 'insurance' }, sort_order: 6 },
+    ],
+  },
+  {
+    slug: 'foundation_story',
+    section_type: 'foundation_preview',
+    eyebrow: 'Foundation',
+    title: 'The <em class="text-teal-mid not-italic">LUCS Foundation</em>',
+    description: 'Founded and patroned by Dr. Girma Ababi, the LUCS Foundation is dedicated to transforming lives through community health outreach, education access, healthcare access in underserved regions, professional empowerment & mentorship, and future healthcare infrastructure development.',
+    metadata: {
+      cta: [{ label: 'Explore Foundation', path: '/foundation', variant: 'ghost' }],
+      stats: [
+        { value: '5+', label: 'Community Impact Pillars' },
+        { value: '4', label: 'Board Chairmanships' },
+        { value: '1', label: 'CSO Board Chairmanship' },
+        { value: '1000+', label: 'Lives Impacted' },
+      ],
+    },
+    blocks: [
+      { block_type: 'pillar', title: 'Community Health', metadata: { icon: 'heart-pulse' }, sort_order: 1 },
+      { block_type: 'pillar', title: 'Education Access', metadata: { icon: 'graduation-cap' }, sort_order: 2 },
+      { block_type: 'pillar', title: 'Healthcare Infrastructure', metadata: { icon: 'hospital' }, sort_order: 3 },
+      { block_type: 'pillar', title: 'Professional Mentorship', metadata: { icon: 'handshake' }, sort_order: 4 },
+    ],
+  },
+  {
+    slug: 'recognition_awards',
+    section_type: 'awards_carousel',
+    eyebrow: 'Recognition',
+    title: 'Awards &amp; <em class="text-teal not-italic">honours</em>',
+    description: 'Distinctions that reflect a career of transformative leadership in healthcare.',
+    metadata: { cta: [{ label: 'View All', path: '/awards-recognition', variant: 'ghost' }] },
+    blocks: [
+      { block_type: 'award', title: 'Special Alumni Award for Extraordinary Achievement', body: 'Recognized by the University of Gondar with the Special Alumni Award for extraordinary achievement and distinguished contributions to healthcare and national development.', image_url: '/image.png', image_alt: 'Special Alumni Award for Extraordinary Achievement', metadata: { organization: 'University of Gondar', year: 2024, category: 'alumni' }, sort_order: 1 },
+      { block_type: 'award', title: 'Vice Presidential Appointment – National Leadership', body: 'Appointed Vice President of the Ethiopian Healthcare Federation, recognizing national leadership in healthcare policy, strategy, and sector development.', image_url: '/image.png', image_alt: 'Vice Presidential Appointment – National Leadership', metadata: { organization: 'Ethiopian Healthcare Federation', year: 2023, category: 'leadership' }, sort_order: 2 },
+      { block_type: 'award', title: 'Seed Program Graduate – Emerging Economies Leadership', body: 'Graduated from the Stanford GSB Seed Transformation Program, recognized for leadership in building transformative enterprises in emerging economies.', image_url: '/image.png', image_alt: 'Seed Program Graduate – Emerging Economies Leadership', metadata: { organization: 'Stanford University Graduate School of Business', year: 2021, category: 'industry' }, sort_order: 3 },
+      { block_type: 'award', title: 'Rotarian – Community Leadership Member', body: 'Honored as a Rotarian and Community Leadership Member for dedicated service to community health and development initiatives.', image_url: '/image.png', image_alt: 'Rotarian – Community Leadership Member', metadata: { organization: 'Rotary International', year: 2023, category: 'professional' }, sort_order: 4 },
+    ],
+  },
+  {
+    slug: 'leadership_philosophy',
+    section_type: 'quote',
+    eyebrow: 'Leadership Philosophy',
+    title: '',
+    description: '"Building institutions, empowering professionals, and transforming healthcare for future generations — that is the only legacy worth pursuing."',
+    subtitle: '— Dr. Girma Ababi, Founder & CEO, Liyana Healthcare',
     metadata: {},
     blocks: [],
   },
@@ -291,9 +368,9 @@ async function initCmsSchema() {
 }
 
 async function seedCms() {
-  const [[sectionCount]] = await db.query('SELECT COUNT(*) AS count FROM cms_sections')
-  if (sectionCount.count === 0) {
-    for (const section of sectionSeeds) {
+  for (const section of sectionSeeds) {
+    const [[existingSection]] = await db.query('SELECT id FROM cms_sections WHERE slug = ?', [section.slug])
+    if (!existingSection) {
       const [result] = await db.query(
         `INSERT INTO cms_sections
           (slug, section_type, eyebrow, title, subtitle, description, image_url, image_alt, metadata, sort_order)
