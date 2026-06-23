@@ -1448,6 +1448,40 @@ export default function StoryEditor() {
                       />
                     </Field>
                   </div>
+
+                  <div className="md:col-span-2 border-t border-slate-200 pt-6">
+                    <Field label="Hero Image">
+                      <div className="flex gap-2">
+                        <input
+                          className={formInput}
+                          value={draft.image_url ?? ''}
+                          onChange={(e) => updateDraft({ image_url: e.target.value })}
+                          placeholder="https://..."
+                        />
+
+                        <label className="inline-flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-slate-200 bg-slate-100 text-slate-600 transition-all hover:bg-slate-200">
+                          <Upload size={18} />
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="sr-only"
+                            onChange={(e) => updateDraftImage(e.target.files?.[0])}
+                          />
+                        </label>
+                      </div>
+                    </Field>
+
+                    <div className="mt-4">
+                      <Field label="Image Alt Text">
+                        <input
+                          className={formInput}
+                          value={draft.image_alt ?? ''}
+                          onChange={(e) => updateDraft({ image_alt: e.target.value })}
+                          placeholder="Describe the image"
+                        />
+                      </Field>
+                    </div>
+                  </div>
                 </div>
               )}
 

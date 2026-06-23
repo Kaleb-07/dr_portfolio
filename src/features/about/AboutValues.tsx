@@ -1,5 +1,6 @@
 import { AnimatedSection, Container } from '@/components/shared'
-import { coreValues } from '@/data/about'
+import { coreValues as fallbackValues } from '@/data/about'
+import { useSiteContent } from '@/hooks/useSiteContent'
 import { FaBuilding, FaUsers, FaNetworkWired, FaHeart } from 'react-icons/fa'
 
 const valueIcons: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -10,6 +11,10 @@ const valueIcons: Record<string, React.ComponentType<{ className?: string }>> = 
 }
 
 export default function AboutValues() {
+  const { content } = useSiteContent()
+  const section = content?.sections?.about_values
+  const values = (section && section.blocks && section.blocks.length ? section.blocks : fallbackValues)
+
   return (
     <section className="section-padding bg-paper">
       <Container>
@@ -24,7 +29,7 @@ export default function AboutValues() {
         </AnimatedSection>
 
         <div className="max-w-4xl mx-auto border-t border-rule divide-y divide-rule">
-          {coreValues.map((value, i) => {
+          {values.map((value, i) => {
             const Icon = valueIcons[value.title] || FaHeart
             return (
               <AnimatedSection key={value.title} delay={i * 0.1}>
@@ -46,7 +51,7 @@ export default function AboutValues() {
                   {/* Right Column: Description */}
                   <div className="md:col-span-7">
                     <p className="text-sm font-light text-ink-mid leading-relaxed">
-                      {value.description}
+                      {value.description || value.body}
                     </p>
                   </div>
                 </div>

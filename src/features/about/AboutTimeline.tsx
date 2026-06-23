@@ -1,7 +1,14 @@
 import { AnimatedSection, Container } from '@/components/shared'
-import { journey } from '@/data/about'
+import { journey as localJourney } from '@/data/about'
+import { useSiteContent } from '@/hooks/useSiteContent'
 
 export default function AboutTimeline() {
+  const { content } = useSiteContent()
+
+  const events = content?.timelineEvents && content.timelineEvents.length > 0
+    ? content.timelineEvents.map((e) => ({ year: e.year, milestone: e.title || e.subtitle || e.description }))
+    : localJourney
+
   return (
     <section className="section-padding bg-paper-warm relative overflow-hidden">
       {/* Soft background glows */}
@@ -30,7 +37,7 @@ export default function AboutTimeline() {
           />
 
           <div className="space-y-12 relative">
-            {journey.map((item, i) => {
+            {events.map((item, i) => {
               const isEven = i % 2 === 0
               return (
                 <AnimatedSection key={i} delay={i * 0.05}>
