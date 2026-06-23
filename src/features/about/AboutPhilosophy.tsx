@@ -1,7 +1,16 @@
 import { AnimatedSection, Container } from '@/components/shared'
-import { leadershipPhilosophy } from '@/data/about'
+import { useSiteContent } from '@/hooks/useSiteContent'
+import { siteConfig } from '@/constants/site'
 
 export default function AboutPhilosophy() {
+  const { content } = useSiteContent()
+  const section = content?.sections?.leadership_philosophy
+  const eyebrow = section?.eyebrow || siteConfig.philosophy.label || 'Philosophy'
+  const title = section?.title || siteConfig.philosophy.title || 'Leadership philosophy'
+  const primaryQuote = section?.description || siteConfig.philosophy.quote
+  const attribution = section?.subtitle || siteConfig.philosophy.attribution
+  const quotes = Array.isArray(section?.blocks) && section.blocks.length > 0 ? section.blocks : [{ body: primaryQuote, title: attribution }]
+
   return (
     <section className="section-padding bg-paper-warm relative overflow-hidden">
       {/* Decorative ambient elements */}
@@ -17,9 +26,7 @@ export default function AboutPhilosophy() {
             <span className="section-rule" />
           </div>
           
-          <h2 className="font-serif text-3xl lg:text-4xl font-light text-ink mb-10">
-            Leadership philosophy
-          </h2>
+          <h2 className="font-serif text-3xl lg:text-4xl font-light text-ink mb-10">{title}</h2>
 
           <div className="glass-quote p-10 md:p-14 relative overflow-hidden text-center max-w-3xl mx-auto shadow-sm">
             {/* Background Quotes */}
@@ -30,9 +37,14 @@ export default function AboutPhilosophy() {
               &rdquo;
             </span>
 
-            <blockquote className="relative z-10 font-serif text-xl lg:text-2xl italic font-light text-ink-mid leading-relaxed">
-              &ldquo;{leadershipPhilosophy}&rdquo;
-            </blockquote>
+            <div className="relative z-10 space-y-6">
+              {quotes.map((q, i) => (
+                <blockquote key={i} className="font-serif text-xl lg:text-2xl italic font-light text-ink-mid leading-relaxed">
+                  &ldquo;{q.body || q.description || ''}&rdquo;
+                  {q.title && <div className="mt-3 text-sm font-semibold text-ink-mid">{q.title}</div>}
+                </blockquote>
+              ))}
+            </div>
           </div>
         </AnimatedSection>
       </Container>

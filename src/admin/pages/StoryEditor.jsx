@@ -67,14 +67,8 @@ const STORY_SECTIONS = [
     blockLabel: 'Award Card',
     hint: 'Edit award title, organization, year, category, description, image, and order.',
   },
-  {
-    slug: 'leadership-philosophy',
-    title: 'Leadership Philosophy',
-    description: 'Manage the full-width quote section and attribution.',
-    backendSlug: 'leadership_philosophy',
-    hint: 'Edit the label, quote, and attribution exactly as shown on the screen.',
-  },
 ]
+ 
 
 const ICON_OPTIONS = [
   { value: 'hospital', label: 'Hospital', Icon: Hospital },
@@ -949,6 +943,7 @@ export default function StoryEditor() {
                     </Field>
                   </div>
                 )}
+                
               </div>
 
               <div className="mt-6 border-t border-slate-200 pt-6">

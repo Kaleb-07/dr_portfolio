@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import PageBanner from '@/components/layout/PageBanner'
+import { useSiteContent } from '@/hooks/useSiteContent'
 import { seoPages } from '@/lib/seo'
 import {
   AboutStory,
@@ -14,11 +15,14 @@ export default function AboutPage() {
     document.title = seoPages.about.title
   }, [])
 
+  const { content } = useSiteContent()
+  const banner = content?.sections?.about_banner
+
   return (
     <>
       <PageBanner
-        title="The Story"
-        description="A life dedicated to healthcare leadership and transformation."
+        title={banner?.title || 'The Story'}
+        description={banner?.description || 'A life dedicated to healthcare leadership and transformation.'}
       />
       <AboutStory />
       <AboutPhilosophy />

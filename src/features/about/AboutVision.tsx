@@ -29,7 +29,7 @@ export default function AboutVision() {
             {section.title}
           </h2>
           <blockquote className="font-serif text-xl lg:text-2xl italic font-light text-white/90 leading-relaxed max-w-2xl mx-auto text-center">
-            &ldquo;{section.description}&rdquo;
+            &ldquo;{section.description || (section.blocks && section.blocks.length ? section.blocks.map(b => b.body || b.description).join('\n\n') : '')}&rdquo;
           </blockquote>
         </AnimatedSection>
       </Container>

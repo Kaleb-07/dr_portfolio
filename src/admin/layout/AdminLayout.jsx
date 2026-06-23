@@ -25,7 +25,6 @@ const navItems = [
       { label: 'The Liyana Healthcare Framework', path: '/admin/story/liyana-framework' },
       { label: 'Foundation', path: '/admin/story/foundation' },
       { label: 'Recognition & Awards', path: '/admin/story/recognition-awards' },
-      { label: 'Leadership Philosophy', path: '/admin/story/leadership-philosophy' },
     ],
   },
   {

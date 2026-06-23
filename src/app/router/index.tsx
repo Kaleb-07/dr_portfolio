@@ -20,6 +20,7 @@ const Dashboard = lazy(() => import('@/admin/pages/Dashboard.jsx'))
 const HeroEditor = lazy(() => import('@/admin/pages/HeroEditor.jsx'))
 const CmsEditor = lazy(() => import('@/admin/pages/CmsEditor.jsx'))
 const StoryEditor = lazy(() => import('@/admin/pages/StoryEditor.jsx'))
+const JourneyEditor = lazy(() => import('@/admin/pages/JourneyEditor.jsx'))
 const AdminLayout = lazy(() => import('@/admin/layout/AdminLayout.jsx'))
 
 function RequireAdmin({ children }: { children: ReactNode }) {
@@ -77,7 +78,7 @@ export function AppRouter() {
           <Route path="leadership" element={<SectionPlaceholder title="Leadership" />} />
           <Route path="timeline" element={<SectionPlaceholder title="Timeline" />} />
           <Route path="profile" element={<SectionPlaceholder title="Profile" />} />
-          <Route path="profile/journey" element={<SectionPlaceholder title="Journey" />} />
+          <Route path="profile/journey" element={<JourneyEditor />} />
           <Route path="profile/education" element={<SectionPlaceholder title="Education" />} />
           <Route path="profile/gallery" element={<SectionPlaceholder title="Gallery" />} />
           <Route path="ecosystem" element={<SectionPlaceholder title="Ecosystem" />} />

@@ -242,6 +242,46 @@ export default function CmsEditor() {
 
   const vision = content.sections.vision_agenda
   const aboutVision = content.sections.about_vision
+  const aboutBanner = content.sections.about_banner
+  const aboutStory = content.sections.about_story
+
+  const addSectionBlock = (slug, emptyBlock) => {
+    setContent((current) => ({
+      ...current,
+      sections: {
+        ...current.sections,
+        [slug]: {
+          ...current.sections[slug],
+          blocks: [...(current.sections[slug].blocks || []), { ...emptyBlock, id: `new-${Date.now()}`, sort_order: (current.sections[slug].blocks || []).length + 1 }],
+        },
+      },
+    }))
+  }
+
+  const removeSectionBlock = (slug, index) => {
+    setContent((current) => ({
+      ...current,
+      sections: {
+        ...current.sections,
+        [slug]: { ...current.sections[slug], blocks: current.sections[slug].blocks.filter((_, i) => i !== index) },
+      },
+    }))
+  }
+
+  const reorderSectionBlocks = (slug, index, direction) => {
+    setContent((current) => {
+      const next = [...(current.sections[slug].blocks || [])]
+      const target = index + direction
+      if (target < 0 || target >= next.length) return current
+      const item = next[index]
+      next[index] = next[target]
+      next[target] = item
+      return {
+        ...current,
+        sections: { ...current.sections, [slug]: { ...current.sections[slug], blocks: next.map((b, i) => ({ ...b, sort_order: i + 1 })) } },
+      }
+    })
+  }
 
   return (
     <section className="mx-auto max-w-7xl space-y-8">
@@ -281,6 +321,33 @@ export default function CmsEditor() {
           ))}
         </div>
       </div>
+
+      {aboutBanner && (
+        <div className="border border-rule bg-paper-card p-5 sm:p-6">
+          <div className="mb-5 flex items-center justify-between border-b border-rule pb-4">
+            <h2 className="font-serif text-3xl font-light text-ink">About Page Banner</h2>
+            <button className="inline-flex items-center gap-2 bg-teal px-4 py-2.5 text-xs uppercase tracking-[0.16em] text-white" onClick={() => saveSection('about_banner')} disabled={isSaving}>
+              <Save size={15} /> Save
+            </button>
+          </div>
+          <div className="grid gap-4 md:grid-cols-2">
+            <Field label="Title"><input className={formInput} value={aboutBanner.title || ''} onChange={(e) => updateSection('about_banner', { title: e.target.value })} /></Field>
+            <div className="md:col-span-2">
+              <Field label="Description"><textarea className={formInput} rows={3} value={aboutBanner.description || ''} onChange={(e) => updateSection('about_banner', { description: e.target.value })} /></Field>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {aboutStory && (
+        <div className="border border-rule bg-paper-card p-5 sm:p-6">
+          <div className="mb-5 flex items-center justify-between border-b border-rule pb-4">
+            <h2 className="font-serif text-3xl font-light text-ink">About Story</h2>
+          </div>
+          <p className="text-sm text-ink-mid">The About Story editor has moved to the Profile → Journey editor to avoid duplication.</p>
+          <p className="text-sm text-ink-mid mt-2">Edit it here: <code>/admin/profile/journey</code></p>
+        </div>
+      )}
 
       <CollectionEditor
         title="Identity Items"
