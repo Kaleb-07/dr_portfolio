@@ -20,10 +20,16 @@ import {
   Wallet,
   AlertCircle,
   CheckCircle2,
+  ChevronDown,
+  Zap,
 } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import api from '../api'
+
+// ------------------------------------------------------------------
+// CONSTANTS & HELPERS
+// ------------------------------------------------------------------
 
 const STORY_SECTIONS = [
   {
@@ -31,7 +37,7 @@ const STORY_SECTIONS = [
     title: 'The Visionary Agenda',
     description: 'Hero story opener with identity cards and bold positioning.',
     backendSlug: 'vision_agenda',
-    hint: 'Fill in each headline field separately using plain text only — no HTML or code. The "Teal Highlighted" word(s) will appear in color on the website automatically.',
+    hint: 'Fill in each headline field separately using plain text only — no HTML or code. The "Highlighted" word(s) will appear in a custom colour automatically.',
   },
   {
     slug: 'career-timeline',
@@ -74,10 +80,10 @@ const STORY_SECTIONS = [
   {
     slug: 'testimonials',
     title: 'Testimonials',
-    description: 'Manage the heading, CTA, and all testimonial cards.',
+    description: 'Edit the section heading and call‑to‑action.',
     backendSlug: 'testimonials_section',
     type: 'testimonials',
-    hint: 'Edit the section tag, headline, body text, and the "Share Your Story" button. Then manage each testimonial\'s quote, author, role, organisation, and avatar.',
+    hint: 'Edit the tag, headline, body, and the "Share Your Story" button. The testimonials themselves will be managed later from user submissions.',
   },
 ]
 
@@ -106,76 +112,18 @@ const FOUNDATION_ICONS = [
   'sparkles',
 ]
 
-const FALLBACK_TESTIMONIALS = [
-  {
-    id: 'testimonial-health-minister',
-    quote:
-      "Dr. Girma Ababi is a visionary leader who has demonstrated that private sector innovation and public health goals can work hand in hand. His contributions to healthcare policy and his leadership at the Ethiopian Healthcare Federation have been invaluable to our nation's health transformation agenda.",
-    author: 'H.E. Dr. Mekdes Daba',
-    title: 'Minister of Health',
-    organization: 'Federal Ministry of Health, Ethiopia',
-    avatar_url: '/avatar_mekdes.png',
-    sort_order: 0,
-  },
-  {
-    id: 'testimonial-colleague-pathologist',
-    quote:
-      'I have known Dr. Girma Ababi since his days as Chief Resident in anatomical pathology. His clinical acumen was exceptional, and his transition from pathology to building an entire healthcare ecosystem is a testament to his extraordinary vision and determination. He is a true nation builder.',
-    author: 'Prof. Yonas Desta',
-    title: 'Professor of Anatomical Pathology',
-    organization: 'Addis Ababa University',
-    avatar_url: '/avatar_yonas.png',
-    sort_order: 1,
-  },
-  {
-    id: 'testimonial-board-colleague',
-    quote:
-      'Serving on a board chaired by Dr. Girma Ababi is an education in strategic governance. He brings clarity, integrity, and an unwavering focus on impact. His leadership style is both collaborative and decisive, and he has a rare ability to see around corners.',
-    author: 'W/ro Tirunesh Ayele',
-    title: 'Board Member',
-    organization: 'Liyana Healthcare',
-    avatar_url: '/avatar_tirunesh.png',
-    sort_order: 2,
-  },
-  {
-    id: 'testimonial-stanford-peer',
-    quote:
-      'Dr. Girma Ababi was a standout participant in the Stanford GSB Seed Transformation Program. His vision for an integrated healthcare system in Ethiopia was compelling, and his execution has been remarkable. He represents the very best of entrepreneurial leadership in emerging economies.',
-    author: 'Prof. Hau Lee',
-    title: 'Faculty Director, Seed Transformation Program',
-    organization: 'Stanford Graduate School of Business',
-    avatar_url: '',
-    sort_order: 3,
-  },
-  {
-    id: 'testimonial-foundation-partner',
-    quote:
-      "The LUCS Foundation under Dr. Girma Ababi's patronage has set a new standard for strategic philanthropy in Ethiopia. Their approach to community health, education access, and infrastructure development is thoughtful, sustainable, and deeply impactful.",
-    author: 'Ato Solomon Assefa',
-    title: 'Director of Programs',
-    organization: 'LUCS Foundation',
-    avatar_url: '',
-    sort_order: 4,
-  },
-  {
-    id: 'testimonial-international-rotarian',
-    quote:
-      "As a fellow Rotarian, I have witnessed Dr. Girma Ababi's commitment to service above self. His dedication to community health and his ability to mobilize resources for those who need them most exemplify the very best of Rotary's values.",
-    author: 'PDG Dr. Tewodros Mamo',
-    title: 'Past District Governor',
-    organization: 'Rotary International District 9212',
-    avatar_url: '',
-    sort_order: 5,
-  },
-]
-
 const getIconComponent = (iconValue) => {
   const found = ICON_OPTIONS.find((opt) => opt.value === iconValue)
   return found ? found.Icon : Sparkles
 }
 
+// ------------------------------------------------------------------
+// STYLES
+// ------------------------------------------------------------------
+
 const formInput =
-  'w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/10'
+  'w-full rounded-xl border border-slate-200 bg-white/70 backdrop-blur px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all focus:border-teal-400 focus:ring-4 focus:ring-teal-500/10 focus:bg-white shadow-sm hover:border-teal-300 hover:shadow-md'
+
 const labelClass = 'mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-600'
 
 function Field({ label, children, hint }) {
@@ -198,8 +146,8 @@ function IconButton({ label, onClick, children, disabled, danger = false }) {
       onClick={onClick}
       className={`inline-flex h-9 w-9 items-center justify-center rounded-lg transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-40 ${
         danger
-          ? 'bg-red-50 text-red-600 hover:bg-red-100'
-          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+          ? 'bg-red-50 text-red-600 hover:bg-red-100 hover:scale-110 active:scale-95'
+          : 'bg-slate-100 text-slate-600 hover:bg-slate-200 hover:scale-110 active:scale-95'
       }`}
     >
       {children}
@@ -211,7 +159,7 @@ function Toast({ message, error }) {
   if (!message && !error) return null
   return (
     <div
-      className={`fixed bottom-6 right-6 flex items-center gap-3 rounded-lg px-5 py-3.5 text-sm font-medium shadow-lg transition-all duration-300 ${
+      className={`fixed bottom-6 right-6 flex items-center gap-3 rounded-lg px-5 py-3.5 text-sm font-medium shadow-lg transition-all duration-300 animate-in slide-in-from-right ${
         error ? 'bg-red-50 text-red-700' : 'bg-emerald-50 text-emerald-700'
       }`}
     >
@@ -235,9 +183,9 @@ function IconPicker({ value, onChange, allowedValues }) {
             key={optionValue}
             type="button"
             onClick={() => onChange(optionValue)}
-            className={`flex flex-col items-center justify-center gap-2 rounded-lg border-2 px-3 py-4 text-center transition-all duration-200 ${
+            className={`flex flex-col items-center justify-center gap-2 rounded-lg border-2 px-3 py-4 text-center transition-all duration-200 transform hover:scale-105 ${
               isSelected
-                ? 'border-teal-500 bg-gradient-to-br from-teal-50 to-teal-100 text-teal-700 shadow-lg'
+                ? 'border-teal-500 bg-gradient-to-br from-teal-50 to-teal-100 text-teal-700 shadow-lg scale-105'
                 : 'border-slate-200 bg-white text-slate-600 hover:border-teal-300 hover:bg-teal-50'
             }`}
           >
@@ -250,36 +198,13 @@ function IconPicker({ value, onChange, allowedValues }) {
   )
 }
 
-function NewItemCard({ id, isNew, newItemRef, children }) {
-  return (
-    <div
-      ref={isNew ? newItemRef : null}
-      tabIndex={isNew ? -1 : undefined}
-      className={`rounded-xl border bg-white p-6 transition-all duration-500 ${
-        isNew
-          ? 'border-teal-400 ring-2 ring-teal-400/30 shadow-xl shadow-teal-100'
-          : 'border-slate-200 hover:shadow-lg'
-      }`}
-      style={{
-        boxShadow: isNew
-          ? '0 0 0 3px rgba(20,184,166,0.15), 0 6px 24px rgba(20,184,166,0.14)'
-          : '0 1px 3px rgba(0,0,0,0.05), 0 2px 8px rgba(0,0,0,0.04)',
-      }}
-    >
-      {isNew && (
-        <div className="mb-4 flex items-center gap-2 rounded-lg bg-teal-50 px-3 py-2 text-xs font-semibold text-teal-700 border border-teal-200">
-          <Sparkles size={13} />
-          New item added — fill in the fields below
-        </div>
-      )}
-      {children}
-    </div>
-  )
-}
-
 function stripHtml(html = '') {
   return html.replace(/<[^>]*>/g, '').trim()
 }
+
+// ------------------------------------------------------------------
+// DRAFT BUILDERS
+// ------------------------------------------------------------------
 
 function buildSectionDraft(section = {}) {
   return {
@@ -323,18 +248,6 @@ function buildIdentityItems(items = []) {
   }))
 }
 
-function buildTestimonials(list = []) {
-  return list.map((item, i) => ({
-    ...item,
-    quote: item.quote || '',
-    author: item.author || '',
-    title: item.title || '',
-    organization: item.organization || '',
-    avatar_url: item.avatar_url || item.avatar || '',
-    sort_order: item.sort_order ?? i,
-  }))
-}
-
 function buildTestimonialSectionDraft(section = {}) {
   return {
     eyebrow: section.eyebrow || '',
@@ -353,6 +266,10 @@ function readLocalImage(file, onLoad, onError) {
   reader.readAsDataURL(file)
 }
 
+// ------------------------------------------------------------------
+// STORY EDITOR COMPONENT
+// ------------------------------------------------------------------
+
 export default function StoryEditor() {
   const { sectionSlug } = useParams()
   const navigate = useNavigate()
@@ -364,9 +281,13 @@ export default function StoryEditor() {
   const [error, setError] = useState('')
   const [deletedIdentityIds, setDeletedIdentityIds] = useState([])
   const [deletedTimelineIds, setDeletedTimelineIds] = useState([])
-  const [deletedTestimonialIds, setDeletedTestimonialIds] = useState([])
   const [newItemId, setNewItemId] = useState(null)
   const newItemRef = useRef(null)
+
+  // Accordion states
+  const [expandedTimeline, setExpandedTimeline] = useState([])
+  const [expandedIdentity, setExpandedIdentity] = useState([])
+  const [expandedBlock, setExpandedBlock] = useState([])
 
   const selectedSection = useMemo(
     () => STORY_SECTIONS.find((s) => s.slug === sectionSlug) ?? STORY_SECTIONS[0],
@@ -382,7 +303,6 @@ export default function StoryEditor() {
     setError('')
     setDeletedIdentityIds([])
     setDeletedTimelineIds([])
-    setDeletedTestimonialIds([])
     setNewItemId(null)
 
     if (selectedSection.type === 'timeline') {
@@ -394,10 +314,7 @@ export default function StoryEditor() {
       return
     }
     if (selectedSection.type === 'testimonials') {
-      setDraft({
-        ...buildTestimonialSectionDraft({}),
-        testimonials: buildTestimonials(FALLBACK_TESTIMONIALS),
-      })
+      setDraft(buildTestimonialSectionDraft({}))
       return
     }
     setDraft(buildSectionDraft({}))
@@ -438,12 +355,7 @@ export default function StoryEditor() {
     }
     if (selectedSection.type === 'testimonials') {
       const sectionData = content.sections?.[selectedSection.backendSlug] || {}
-      setDraft({
-        ...buildTestimonialSectionDraft(sectionData),
-        testimonials: buildTestimonials(
-          content.testimonials?.length ? content.testimonials : FALLBACK_TESTIMONIALS,
-        ),
-      })
+      setDraft(buildTestimonialSectionDraft(sectionData))
       return
     }
     if (selectedSection.backendSlug) {
@@ -453,102 +365,49 @@ export default function StoryEditor() {
     setDraft(buildSectionDraft({}))
   }, [content, selectedSection])
 
+  // Scroll & focus new item
   useEffect(() => {
     if (newItemId && newItemRef.current) {
       newItemRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' })
-      newItemRef.current.focus?.()
-      const t = setTimeout(() => setNewItemId(null), 2500)
-      return () => clearTimeout(t)
+      const timer = setTimeout(() => {
+        const firstInput = newItemRef.current?.querySelector('input, textarea')
+        firstInput?.focus()
+      }, 350)
+      const reset = setTimeout(() => setNewItemId(null), 2500)
+      return () => {
+        clearTimeout(timer)
+        clearTimeout(reset)
+      }
     }
   }, [newItemId])
 
-  const updateDraft = (patch) => setDraft((c) => ({ ...c, ...patch }))
-
-  const updateBlock = (index, patch) => {
-    if (!draft) return
-    setDraft((c) => ({
-      ...c,
-      blocks: c.blocks.map((b, i) => (i === index ? { ...b, ...patch } : b)),
-    }))
-  }
-
-  const updateBlockMetadata = (index, patch) => {
-    if (!draft) return
-    setDraft((c) => ({
-      ...c,
-      blocks: c.blocks.map((b, i) =>
-        i === index ? { ...b, metadata: { ...(b.metadata || {}), ...patch } } : b,
-      ),
-    }))
-  }
-
-  const addBlock = () => {
-    const id = `new-${Date.now()}`
-    setDraft((c) => ({
-      ...c,
-      blocks: [
-        ...(c.blocks || []),
-        {
-          id,
-          block_type: c.blocks?.[0]?.block_type || 'content',
-          eyebrow: '',
-          title: '',
-          body: '',
-          image_url: '',
-          image_alt: '',
-          metadata: { icon: 'sparkles' },
-          sort_order: (c.blocks || []).length + 1,
-        },
-      ],
-    }))
-    setNewItemId(id)
-  }
-
-  const removeBlock = (index) =>
-    setDraft((c) => ({ ...c, blocks: c.blocks.filter((_, i) => i !== index) }))
-
-  const reorderBlocks = (index, direction) => {
-    if (!draft) return
-    setDraft((c) => {
-      const next = [...c.blocks]
-      const target = index + direction
-      if (target < 0 || target >= next.length) return c
-      ;[next[index], next[target]] = [next[target], next[index]]
-      return { ...c, blocks: next }
-    })
-  }
-
-  const updateListItem = (key, index, patch) =>
-    setDraft((c) => ({
-      ...c,
-      [key]: c[key].map((item, i) => (i === index ? { ...item, ...patch } : item)),
-    }))
-
-  const addListItem = (key, emptyItem) =>
-    setDraft((c) => ({ ...c, [key]: [...(c[key] || []), emptyItem] }))
-
-  const removeListItem = (key, index) =>
-    setDraft((c) => ({ ...c, [key]: c[key].filter((_, i) => i !== index) }))
-
-  const updateDraftImage = (file) =>
-    readLocalImage(
-      file,
-      (url) => updateDraft({ image_url: url }),
-      () => setError('Could not read image.'),
+  // Toggle helpers
+  const toggleTimeline = (index) => {
+    setExpandedTimeline((prev) =>
+      prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index],
     )
-
-  const updateBlockImage = (index, file) =>
-    readLocalImage(
-      file,
-      (url) => updateBlock(index, { image_url: url }),
-      () => setError('Could not read image.'),
+  }
+  const toggleIdentity = (index) => {
+    setExpandedIdentity((prev) =>
+      prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index],
     )
+  }
+  const toggleBlock = (index) => {
+    setExpandedBlock((prev) =>
+      prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index],
+    )
+  }
 
-  // Timeline handlers
+  // ---------------------- Timeline handlers ----------------------
   const addTimelineEvent = () => {
     const id = `new-${Date.now()}`
     setDraft((c) => {
       const events = Array.isArray(c?.events) ? c.events : []
+      const idx = events.length
+      setTimeout(() => {
+        setExpandedTimeline((prev) => [...prev, idx])
+        setNewItemId(id)
+      }, 0)
       return {
         ...c,
         events: [
@@ -561,12 +420,11 @@ export default function StoryEditor() {
             description: '',
             category: 'milestone',
             icon: '',
-            sort_order: events.length + 1,
+            sort_order: idx + 1,
           },
         ],
       }
     })
-    setNewItemId(id)
   }
 
   const updateTimelineEvent = (index, patch) =>
@@ -598,22 +456,28 @@ export default function StoryEditor() {
     })
   }
 
-  // Identity handlers
+  // ---------------------- Identity handlers ----------------------
   const addIdentity = () => {
+    const newId = `new-${Date.now()}`
     setDraft((c) => {
       const identities = Array.isArray(c?.identities) ? c.identities : []
+      const idx = identities.length
+      setTimeout(() => {
+        setExpandedIdentity((prev) => [...prev, idx])
+        setNewItemId(newId)
+      }, 0)
       return {
         ...c,
         identities: [
           ...identities,
           {
-            id: `new-${Date.now()}`,
-            label: String(identities.length + 1).padStart(2, '0'),
+            id: newId,
+            label: String(idx + 1).padStart(2, '0'),
             title: '',
             description: '',
             icon: '',
             image_url: '',
-            sort_order: identities.length + 1,
+            sort_order: idx + 1,
             is_active: 1,
           },
         ],
@@ -657,69 +521,71 @@ export default function StoryEditor() {
     })
   }
 
-  // Testimonial handlers
-  const addTestimonial = () => {
+  // ---------------------- Generic blocks (pillars, framework, awards, vision cards) ----------------------
+  const addBlock = () => {
     const id = `new-${Date.now()}`
     setDraft((c) => {
-      const testimonials = Array.isArray(c?.testimonials) ? c.testimonials : []
+      const blocks = Array.isArray(c.blocks) ? c.blocks : []
+      const idx = blocks.length
+      setTimeout(() => {
+        setExpandedBlock((prev) => [...prev, idx])
+        setNewItemId(id)
+      }, 0)
       return {
         ...c,
-        testimonials: [
-          ...testimonials,
+        blocks: [
+          ...blocks,
           {
             id,
-            quote: '',
-            author: '',
+            block_type: c.blocks?.[0]?.block_type || 'content',
+            eyebrow: '',
             title: '',
-            organization: '',
-            avatar_url: '',
-            sort_order: testimonials.length + 1,
+            body: '',
+            image_url: '',
+            image_alt: '',
+            metadata: { icon: 'sparkles' },
+            sort_order: idx + 1,
           },
         ],
       }
     })
-    setNewItemId(id)
   }
 
-  const updateTestimonial = (index, patch) =>
-    setDraft((c) => {
-      if (!Array.isArray(c?.testimonials)) return c
-      return {
-        ...c,
-        testimonials: c.testimonials.map((item, i) => (i === index ? { ...item, ...patch } : item)),
-      }
-    })
+  const updateBlock = (index, patch) =>
+    setDraft((c) => ({
+      ...c,
+      blocks: c.blocks.map((b, i) => (i === index ? { ...b, ...patch } : b)),
+    }))
 
-  const updateTestimonialAvatar = (index, file) =>
-    readLocalImage(
-      file,
-      (url) => updateTestimonial(index, { avatar_url: url }),
-      () => setError('Could not read avatar image.'),
-    )
+  const updateBlockMetadata = (index, patch) =>
+    setDraft((c) => ({
+      ...c,
+      blocks: c.blocks.map((b, i) =>
+        i === index ? { ...b, metadata: { ...(b.metadata || {}), ...patch } } : b,
+      ),
+    }))
 
-  const reorderTestimonials = (index, direction) => {
+  const removeBlock = (index) =>
+    setDraft((c) => ({ ...c, blocks: c.blocks.filter((_, i) => i !== index) }))
+
+  const reorderBlocks = (index, direction) => {
     setDraft((c) => {
-      if (!Array.isArray(c?.testimonials)) return c
-      const next = [...c.testimonials]
+      const next = [...c.blocks]
       const target = index + direction
       if (target < 0 || target >= next.length) return c
       ;[next[index], next[target]] = [next[target], next[index]]
-      return {
-        ...c,
-        testimonials: next.map((item, i) => ({ ...item, sort_order: i + 1 })),
-      }
+      return { ...c, blocks: next }
     })
   }
 
-  const removeTestimonial = (index) => {
-    setDraft((c) => {
-      if (!Array.isArray(c?.testimonials)) return c
-      const removed = c.testimonials[index]
-      if (typeof removed?.id === 'number') setDeletedTestimonialIds((ids) => [...ids, removed.id])
-      return { ...c, testimonials: c.testimonials.filter((_, i) => i !== index) }
-    })
-  }
+  const updateBlockImage = (index, file) =>
+    readLocalImage(
+      file,
+      (url) => updateBlock(index, { image_url: url }),
+      () => setError('Could not read image.'),
+    )
 
+  // ---------------------- Save section ----------------------
   const saveSection = async () => {
     if (!draft || !selectedSection) return
     setMessage('')
@@ -738,7 +604,7 @@ export default function StoryEditor() {
             await api.post('/cms/timeline-events', p)
           }
         }
-        setMessage('Timeline saved!')
+        setMessage('✨ Timeline saved beautifully!')
         setDeletedTimelineIds([])
         setTimeout(() => setMessage(''), 3000)
         await refreshContent()
@@ -754,12 +620,12 @@ export default function StoryEditor() {
             await api.post('/cms/identity-items', p)
           }
         }
-        setMessage('Identity items saved!')
+        setMessage('✨ Identity items saved beautifully!')
         setDeletedIdentityIds([])
         setTimeout(() => setMessage(''), 3000)
         await refreshContent()
       } else if (selectedSection.type === 'testimonials') {
-        // Save section heading
+        // Fixed: Save section with all required fields
         const sectionPatch = {
           eyebrow: draft.eyebrow,
           title: draft.title,
@@ -772,21 +638,7 @@ export default function StoryEditor() {
         await api.put(`/cms/sections/${selectedSection.backendSlug}`, {
           section: sectionPatch,
         })
-
-        // Save testimonials list
-        if (!Array.isArray(draft.testimonials)) throw new Error('No testimonials')
-        for (const id of deletedTestimonialIds) await api.delete(`/cms/testimonials/${id}`)
-        for (const [i, testimonial] of draft.testimonials.entries()) {
-          const payload = { ...testimonial, sort_order: i + 1 }
-          if (typeof testimonial.id === 'number')
-            await api.put(`/cms/testimonials/${testimonial.id}`, payload)
-          else {
-            const { id, ...p } = payload
-            await api.post('/cms/testimonials', p)
-          }
-        }
-        setMessage('Testimonials section saved!')
-        setDeletedTestimonialIds([])
+        setMessage('✨ Testimonials heading saved beautifully!')
         setTimeout(() => setMessage(''), 3000)
         await refreshContent()
       } else if (selectedSection.backendSlug) {
@@ -809,7 +661,7 @@ export default function StoryEditor() {
           section: sectionPatch,
           blocks: draft.blocks,
         })
-        setMessage('Section saved!')
+        setMessage('✨ Section saved beautifully!')
         setTimeout(() => setMessage(''), 3000)
         await refreshContent()
       }
@@ -829,16 +681,9 @@ export default function StoryEditor() {
     }
   }
 
-  if (isLoading || !draft) {
-    return (
-      <div className="flex min-h-96 items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 size={32} className="animate-spin text-teal-500" />
-          <p className="text-sm text-slate-600">Loading story content...</p>
-        </div>
-      </div>
-    )
-  }
+  // ------------------------------------------------------------------
+  // RENDERERS
+  // ------------------------------------------------------------------
 
   const renderTimelineEditor = () => {
     if (!draft || !Array.isArray(draft.events)) return null
@@ -851,114 +696,150 @@ export default function StoryEditor() {
           </div>
           <button
             type="button"
-            className="inline-flex items-center gap-2 rounded-lg bg-teal-500 px-5 py-2.5 font-semibold text-white transition-all hover:bg-teal-600"
+            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-teal-500 to-teal-600 px-5 py-2.5 font-semibold text-white transition-all hover:shadow-xl hover:shadow-teal-500/30 hover:scale-105 active:scale-95"
             onClick={addTimelineEvent}
           >
             <Plus size={18} /> Add Event
           </button>
         </div>
-        <div className="space-y-4">
-          {draft.events.map((event, index) => (
-            <NewItemCard
-              key={event.id || index}
-              id={event.id}
-              isNew={event.id === newItemId}
-              newItemRef={newItemRef}
-            >
-              <div className="mb-4 flex items-center gap-3">
+
+        <div className="space-y-3">
+          {draft.events.map((event, index) => {
+            const isOpen = expandedTimeline.includes(index)
+            return (
+              <div
+                key={event.id || index}
+                ref={event.id === newItemId ? newItemRef : null}
+                className={`rounded-2xl border bg-white/80 backdrop-blur-sm shadow-sm transition-all duration-300 hover:shadow-lg hover:border-teal-300 hover:scale-[1.01] cursor-pointer ${
+                  event.id === newItemId
+                    ? 'border-teal-400 ring-2 ring-teal-400/30 shadow-xl shadow-teal-100/50'
+                    : 'border-slate-200'
+                }`}
+              >
+                <button
+                  type="button"
+                  onClick={() => toggleTimeline(index)}
+                  className="flex w-full items-center justify-between p-5 text-left"
+                >
+                  <div className="flex items-center gap-4">
+                    <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-teal-400 to-teal-600 text-sm font-bold text-white shadow-md">
+                      {String(index + 1).padStart(2, '0')}
+                    </span>
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-wider text-teal-500">
+                        {event.year || 'Year'}
+                      </p>
+                      <h3 className="text-base font-semibold text-slate-900 line-clamp-1">
+                        {event.title || 'Untitled Event'}
+                      </h3>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-500">
+                      {event.category}
+                    </span>
+                    <ChevronDown
+                      size={18}
+                      className={`text-slate-400 transition-transform duration-300 ${
+                        isOpen ? 'rotate-180' : ''
+                      }`}
+                    />
+                  </div>
+                </button>
                 <div
-                  className={`flex h-8 w-8 items-center justify-center rounded-lg font-bold text-sm ${
-                    event.id === newItemId ? 'bg-teal-500 text-white' : 'bg-teal-100 text-teal-600'
+                  className={`overflow-hidden transition-all duration-500 ease-in-out ${
+                    isOpen ? 'max-h-[800px] opacity-100' : 'max-h-0 opacity-0'
                   }`}
                 >
-                  {index + 1}
+                  <div className="border-t border-slate-100 bg-slate-50/50 p-5">
+                    <div className="grid gap-5 md:grid-cols-[120px_minmax(0,1fr)]">
+                      <Field label="Year">
+                        <input
+                          className={formInput}
+                          value={event.year}
+                          onChange={(e) => updateTimelineEvent(index, { year: e.target.value })}
+                          placeholder="2024"
+                        />
+                      </Field>
+                      <Field label="Title">
+                        <input
+                          className={formInput}
+                          value={event.title}
+                          onChange={(e) => updateTimelineEvent(index, { title: e.target.value })}
+                          placeholder="Event title"
+                        />
+                      </Field>
+                      <Field label="Subtitle">
+                        <input
+                          className={formInput}
+                          value={event.subtitle}
+                          onChange={(e) => updateTimelineEvent(index, { subtitle: e.target.value })}
+                          placeholder="Subtitle"
+                        />
+                      </Field>
+                      <Field label="Category">
+                        <select
+                          className={formInput}
+                          value={event.category}
+                          onChange={(e) => updateTimelineEvent(index, { category: e.target.value })}
+                        >
+                          <option value="education">Education</option>
+                          <option value="career">Career</option>
+                          <option value="milestone">Milestone</option>
+                          <option value="award">Award</option>
+                        </select>
+                      </Field>
+                      <div className="md:col-span-2">
+                        <Field label="Icon">
+                          <IconPicker
+                            value={
+                              event.icon ||
+                              (event.category === 'education' ? 'graduation-cap' : 'sparkles')
+                            }
+                            onChange={(v) => updateTimelineEvent(index, { icon: v })}
+                          />
+                        </Field>
+                      </div>
+                      <div className="md:col-span-2">
+                        <Field label="Description">
+                          <textarea
+                            className={formInput}
+                            rows={3}
+                            value={event.description}
+                            onChange={(e) =>
+                              updateTimelineEvent(index, { description: e.target.value })
+                            }
+                            placeholder="Event description"
+                          />
+                        </Field>
+                      </div>
+                    </div>
+                    <div className="mt-5 flex items-center justify-between gap-2 border-t border-slate-200 pt-4">
+                      <div className="flex gap-2">
+                        <IconButton
+                          label="Move up"
+                          disabled={index === 0}
+                          onClick={() => reorderTimeline(index, -1)}
+                        >
+                          <ArrowUp size={16} />
+                        </IconButton>
+                        <IconButton
+                          label="Move down"
+                          disabled={index === draft.events.length - 1}
+                          onClick={() => reorderTimeline(index, 1)}
+                        >
+                          <ArrowDown size={16} />
+                        </IconButton>
+                      </div>
+                      <IconButton label="Delete" danger onClick={() => removeTimelineEvent(index)}>
+                        <Trash2 size={16} />
+                      </IconButton>
+                    </div>
+                  </div>
                 </div>
-                <h3 className="font-semibold text-slate-900">{event.title || 'Untitled Event'}</h3>
               </div>
-              <div className="grid gap-4 md:grid-cols-[120px_minmax(0,1fr)]">
-                <Field label="Year">
-                  <input
-                    className={formInput}
-                    value={event.year}
-                    onChange={(e) => updateTimelineEvent(index, { year: e.target.value })}
-                    placeholder="2024"
-                    autoFocus={event.id === newItemId}
-                  />
-                </Field>
-                <Field label="Title">
-                  <input
-                    className={formInput}
-                    value={event.title}
-                    onChange={(e) => updateTimelineEvent(index, { title: e.target.value })}
-                    placeholder="Event title"
-                  />
-                </Field>
-                <Field label="Subtitle">
-                  <input
-                    className={formInput}
-                    value={event.subtitle}
-                    onChange={(e) => updateTimelineEvent(index, { subtitle: e.target.value })}
-                    placeholder="Subtitle"
-                  />
-                </Field>
-                <Field label="Category">
-                  <select
-                    className={formInput}
-                    value={event.category}
-                    onChange={(e) => updateTimelineEvent(index, { category: e.target.value })}
-                  >
-                    <option value="education">Education</option>
-                    <option value="career">Career</option>
-                    <option value="milestone">Milestone</option>
-                    <option value="award">Award</option>
-                  </select>
-                </Field>
-                <div className="md:col-span-2">
-                  <Field label="Icon">
-                    <IconPicker
-                      value={
-                        event.icon ||
-                        (event.category === 'education' ? 'graduation-cap' : 'sparkles')
-                      }
-                      onChange={(v) => updateTimelineEvent(index, { icon: v })}
-                    />
-                  </Field>
-                </div>
-                <div className="md:col-span-2">
-                  <Field label="Description">
-                    <textarea
-                      className={formInput}
-                      rows={3}
-                      value={event.description}
-                      onChange={(e) => updateTimelineEvent(index, { description: e.target.value })}
-                      placeholder="Event description"
-                    />
-                  </Field>
-                </div>
-              </div>
-              <div className="mt-6 flex items-center justify-between gap-2">
-                <div className="flex gap-2">
-                  <IconButton
-                    label="Move up"
-                    disabled={index === 0}
-                    onClick={() => reorderTimeline(index, -1)}
-                  >
-                    <ArrowUp size={16} />
-                  </IconButton>
-                  <IconButton
-                    label="Move down"
-                    disabled={index === draft.events.length - 1}
-                    onClick={() => reorderTimeline(index, 1)}
-                  >
-                    <ArrowDown size={16} />
-                  </IconButton>
-                </div>
-                <IconButton label="Delete" danger onClick={() => removeTimelineEvent(index)}>
-                  <Trash2 size={16} />
-                </IconButton>
-              </div>
-            </NewItemCard>
-          ))}
+            )
+          })}
         </div>
       </div>
     )
@@ -975,95 +856,126 @@ export default function StoryEditor() {
           </div>
           <button
             type="button"
-            className="inline-flex items-center gap-2 rounded-lg bg-teal-500 px-5 py-2.5 font-semibold text-white transition-all hover:bg-teal-600"
+            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-teal-500 to-teal-600 px-5 py-2.5 font-semibold text-white transition-all hover:shadow-xl hover:shadow-teal-500/30 hover:scale-105 active:scale-95"
             onClick={addIdentity}
           >
             <Plus size={18} /> Add Identity
           </button>
         </div>
-        <div className="grid gap-6 lg:grid-cols-2">
-          {draft.identities.map((identity, index) => (
-            <div
-              key={identity.id || index}
-              className="rounded-xl border border-slate-200 bg-white p-6 transition-all duration-200 hover:shadow-lg"
-              style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.05), 0 2px 8px rgba(0,0,0,0.04)' }}
-            >
-              <div className="mb-4 flex items-center justify-between">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-teal-500 to-teal-600 font-bold text-white">
-                  {identity.label.padStart(2, '0')}
-                </div>
-                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                  Item {index + 1}
-                </span>
-              </div>
-              <div className="space-y-4">
-                <Field label="Label">
-                  <input
-                    className={formInput}
-                    value={identity.label}
-                    onChange={(e) => updateIdentity(index, { label: e.target.value })}
-                    placeholder="01"
+
+        <div className="space-y-3">
+          {draft.identities.map((identity, index) => {
+            const isOpen = expandedIdentity.includes(index)
+            return (
+              <div
+                key={identity.id || index}
+                ref={identity.id === newItemId ? newItemRef : null}
+                className={`rounded-2xl border bg-white/80 backdrop-blur-sm shadow-sm transition-all duration-300 hover:shadow-lg hover:border-teal-300 hover:scale-[1.01] cursor-pointer ${
+                  identity.id === newItemId
+                    ? 'border-teal-400 ring-2 ring-teal-400/30 shadow-xl shadow-teal-100/50'
+                    : 'border-slate-200'
+                }`}
+              >
+                <button
+                  type="button"
+                  onClick={() => toggleIdentity(index)}
+                  className="flex w-full items-center justify-between p-5 text-left"
+                >
+                  <div className="flex items-center gap-4">
+                    <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-teal-400 to-teal-600 text-sm font-bold text-white shadow-md">
+                      {identity.label.padStart(2, '0')}
+                    </span>
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-wider text-teal-500">
+                        Identity {index + 1}
+                      </p>
+                      <h3 className="text-base font-semibold text-slate-900 line-clamp-1">
+                        {identity.title || 'Untitled'}
+                      </h3>
+                    </div>
+                  </div>
+                  <ChevronDown
+                    size={18}
+                    className={`text-slate-400 transition-transform duration-300 ${
+                      isOpen ? 'rotate-180' : ''
+                    }`}
                   />
-                </Field>
-                <Field label="Title">
-                  <input
-                    className={formInput}
-                    value={identity.title}
-                    onChange={(e) => updateIdentity(index, { title: e.target.value })}
-                    placeholder="Identity title"
-                  />
-                </Field>
-                <Field label="Image">
-                  <div className="flex gap-2">
-                    <input
-                      className={formInput}
-                      value={identity.image_url || ''}
-                      onChange={(e) => updateIdentity(index, { image_url: e.target.value })}
-                      placeholder="/image.png"
-                    />
-                    <label className="inline-flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-slate-200 bg-slate-100 text-slate-600 transition-all hover:bg-slate-200">
-                      <Upload size={18} />
+                </button>
+                <div
+                  className={`overflow-hidden transition-all duration-500 ease-in-out ${
+                    isOpen ? 'max-h-[600px] opacity-100' : 'max-h-0 opacity-0'
+                  }`}
+                >
+                  <div className="border-t border-slate-100 bg-slate-50/50 p-5 space-y-4">
+                    <Field label="Label">
                       <input
-                        type="file"
-                        accept="image/*"
-                        className="sr-only"
-                        onChange={(e) => updateIdentityImage(index, e.target.files?.[0])}
+                        className={formInput}
+                        value={identity.label}
+                        onChange={(e) => updateIdentity(index, { label: e.target.value })}
+                        placeholder="01"
                       />
-                    </label>
+                    </Field>
+                    <Field label="Title">
+                      <input
+                        className={formInput}
+                        value={identity.title}
+                        onChange={(e) => updateIdentity(index, { title: e.target.value })}
+                        placeholder="Identity title"
+                      />
+                    </Field>
+                    <Field label="Image">
+                      <div className="flex gap-2">
+                        <input
+                          className={formInput}
+                          value={identity.image_url || ''}
+                          onChange={(e) => updateIdentity(index, { image_url: e.target.value })}
+                          placeholder="/image.png"
+                        />
+                        <label className="inline-flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-slate-200 bg-slate-100 text-slate-600 transition-all hover:bg-slate-200 hover:scale-110">
+                          <Upload size={18} />
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="sr-only"
+                            onChange={(e) => updateIdentityImage(index, e.target.files?.[0])}
+                          />
+                        </label>
+                      </div>
+                    </Field>
+                    {identity.image_url && (
+                      <div className="overflow-hidden rounded-lg border border-slate-200 bg-slate-50 hover:shadow-md transition-all">
+                        <img src={identity.image_url} alt="" className="h-40 w-full object-cover" />
+                      </div>
+                    )}
+                    <div className="mt-4 flex items-center justify-between gap-2 border-t border-slate-200 pt-4">
+                      <div className="flex gap-2">
+                        <IconButton
+                          label="Move up"
+                          disabled={index === 0}
+                          onClick={() => reorderIdentities(index, -1)}
+                        >
+                          <ArrowUp size={16} />
+                        </IconButton>
+                        <IconButton
+                          label="Move down"
+                          disabled={index === draft.identities.length - 1}
+                          onClick={() => reorderIdentities(index, 1)}
+                        >
+                          <ArrowDown size={16} />
+                        </IconButton>
+                      </div>
+                      <IconButton label="Delete" danger onClick={() => removeIdentity(index)}>
+                        <Trash2 size={16} />
+                      </IconButton>
+                    </div>
                   </div>
-                </Field>
-                {identity.image_url && (
-                  <div className="overflow-hidden rounded-lg border border-slate-200 bg-slate-50">
-                    <img src={identity.image_url} alt="" className="h-40 w-full object-cover" />
-                  </div>
-                )}
-              </div>
-              <div className="mt-6 flex items-center justify-between gap-2 border-t border-slate-200 pt-4">
-                <div className="flex gap-2">
-                  <IconButton
-                    label="Move up"
-                    disabled={index === 0}
-                    onClick={() => reorderIdentities(index, -1)}
-                  >
-                    <ArrowUp size={16} />
-                  </IconButton>
-                  <IconButton
-                    label="Move down"
-                    disabled={index === draft.identities.length - 1}
-                    onClick={() => reorderIdentities(index, 1)}
-                  >
-                    <ArrowDown size={16} />
-                  </IconButton>
                 </div>
-                <IconButton label="Delete" danger onClick={() => removeIdentity(index)}>
-                  <Trash2 size={16} />
-                </IconButton>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
         {draft.identities.length === 0 && (
-          <div className="rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 px-8 py-12 text-center">
+          <div className="rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 px-8 py-12 text-center hover:border-teal-300 hover:bg-teal-50 transition-all">
             <p className="text-slate-600">No identity items yet. Add one to get started.</p>
           </div>
         )}
@@ -1073,17 +985,18 @@ export default function StoryEditor() {
 
   const renderTestimonialsEditor = () => {
     if (!draft) return null
+    // Only the section heading is editable – no testimonial cards
     return (
       <div className="space-y-8">
-        {/* ─── SECTION HEADING ─── */}
-        <div
-          className="rounded-xl border border-slate-200 bg-white p-6 sm:p-8"
-          style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.05), 0 2px 8px rgba(0,0,0,0.04)' }}
-        >
+        <div className="group rounded-2xl border border-slate-200 bg-white/80 backdrop-blur-sm p-6 sm:p-8 shadow-sm transition-all duration-300 hover:shadow-lg hover:border-teal-300">
           <div className="mb-6 border-b border-slate-200 pb-6">
-            <h2 className="text-2xl font-bold text-slate-900">Section Heading</h2>
+            <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+              <Sparkles className="text-teal-500" size={28} />
+              Testimonials Section Heading
+            </h2>
             <p className="mt-2 text-sm text-slate-600">
-              Edit the tag, headline, body, and the call‑to‑action button.
+              Edit the tag, headline, description, and the call‑to‑action button. The actual
+              testimonials will be managed later from user submissions.
             </p>
           </div>
           <div className="grid gap-6 md:grid-cols-2">
@@ -1091,18 +1004,15 @@ export default function StoryEditor() {
               <input
                 className={formInput}
                 value={draft.eyebrow || ''}
-                onChange={(e) => updateDraft({ eyebrow: e.target.value })}
+                onChange={(e) => setDraft((c) => ({ ...c, eyebrow: e.target.value }))}
                 placeholder="Testimonials"
               />
             </Field>
-            <Field
-              label="Headline"
-              hint="The big headline. The word(s) inside <span class='text-teal'>…</span> will be highlighted on the front‑end."
-            >
+            <Field label="Headline" hint="The big headline. Plain text only.">
               <input
                 className={formInput}
                 value={draft.title || ''}
-                onChange={(e) => updateDraft({ title: e.target.value })}
+                onChange={(e) => setDraft((c) => ({ ...c, title: e.target.value }))}
                 placeholder="Trusted by Leaders Across Africa"
               />
             </Field>
@@ -1112,7 +1022,7 @@ export default function StoryEditor() {
                   className={formInput}
                   rows={4}
                   value={draft.description || ''}
-                  onChange={(e) => updateDraft({ description: e.target.value })}
+                  onChange={(e) => setDraft((c) => ({ ...c, description: e.target.value }))}
                   placeholder="From government ministers to academic pioneers..."
                 />
               </Field>
@@ -1121,7 +1031,7 @@ export default function StoryEditor() {
               <input
                 className={formInput}
                 value={draft.cta_text || ''}
-                onChange={(e) => updateDraft({ cta_text: e.target.value })}
+                onChange={(e) => setDraft((c) => ({ ...c, cta_text: e.target.value }))}
                 placeholder="Share Your Story"
               />
             </Field>
@@ -1129,154 +1039,36 @@ export default function StoryEditor() {
               <input
                 className={formInput}
                 value={draft.cta_link || ''}
-                onChange={(e) => updateDraft({ cta_link: e.target.value })}
+                onChange={(e) => setDraft((c) => ({ ...c, cta_link: e.target.value }))}
                 placeholder="/contact"
               />
             </Field>
           </div>
         </div>
 
-        {/* ─── TESTIMONIAL CARDS ─── */}
-        <div className="space-y-4">
-          <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-            <div>
-              <h3 className="text-2xl font-bold text-slate-900">Testimonial Cards</h3>
-              <p className="mt-1 text-sm text-slate-600">
-                Add, edit, reorder, or remove testimonials. The public site shows the first 3.
-              </p>
-            </div>
-            <button
-              type="button"
-              className="inline-flex items-center gap-2 rounded-lg bg-teal-500 px-5 py-2.5 font-semibold text-white transition-all hover:bg-teal-600"
-              onClick={addTestimonial}
-            >
-              <Plus size={18} /> Add Testimonial
-            </button>
-          </div>
-
-          {draft.testimonials?.length > 0 ? (
-            draft.testimonials.map((testimonial, index) => (
-              <NewItemCard
-                key={testimonial.id || index}
-                id={testimonial.id}
-                isNew={testimonial.id === newItemId}
-                newItemRef={newItemRef}
-              >
-                <div className="mb-4 flex items-center gap-3">
-                  <div
-                    className={`flex h-8 w-8 items-center justify-center rounded-lg font-bold text-sm ${
-                      testimonial.id === newItemId
-                        ? 'bg-teal-500 text-white'
-                        : 'bg-teal-100 text-teal-600'
-                    }`}
-                  >
-                    {index + 1}
-                  </div>
-                  <h3 className="font-semibold text-slate-900">
-                    {testimonial.author || 'Untitled Testimonial'}
-                  </h3>
-                </div>
-                <div className="grid gap-4 md:grid-cols-2">
-                  <Field label="Author Name">
-                    <input
-                      className={formInput}
-                      value={testimonial.author}
-                      onChange={(e) => updateTestimonial(index, { author: e.target.value })}
-                      placeholder="e.g., H.E. Dr. Mekdes Daba"
-                      autoFocus={testimonial.id === newItemId}
-                    />
-                  </Field>
-                  <Field label="Role / Title">
-                    <input
-                      className={formInput}
-                      value={testimonial.title}
-                      onChange={(e) => updateTestimonial(index, { title: e.target.value })}
-                      placeholder="Minister of Health"
-                    />
-                  </Field>
-                  <Field label="Organization">
-                    <input
-                      className={formInput}
-                      value={testimonial.organization}
-                      onChange={(e) => updateTestimonial(index, { organization: e.target.value })}
-                      placeholder="Federal Ministry of Health, Ethiopia"
-                    />
-                  </Field>
-                  <Field label="Avatar">
-                    <div className="flex gap-2">
-                      <input
-                        className={formInput}
-                        value={testimonial.avatar_url || ''}
-                        onChange={(e) => updateTestimonial(index, { avatar_url: e.target.value })}
-                        placeholder="URL or upload"
-                      />
-                      <label className="inline-flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-slate-200 bg-slate-100 text-slate-600 transition-all hover:bg-slate-200">
-                        <Upload size={18} />
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="sr-only"
-                          onChange={(e) => updateTestimonialAvatar(index, e.target.files?.[0])}
-                        />
-                      </label>
-                    </div>
-                    {testimonial.avatar_url && (
-                      <div className="mt-2 overflow-hidden rounded-full border border-slate-200 w-14 h-14">
-                        <img
-                          src={testimonial.avatar_url}
-                          alt="Avatar preview"
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    )}
-                  </Field>
-                  <div className="md:col-span-2">
-                    <Field label="Quote">
-                      <textarea
-                        className={formInput}
-                        rows={4}
-                        value={testimonial.quote}
-                        onChange={(e) => updateTestimonial(index, { quote: e.target.value })}
-                        placeholder="The testimonial quote..."
-                      />
-                    </Field>
-                  </div>
-                </div>
-                <div className="mt-6 flex items-center justify-between gap-2 border-t border-slate-200 pt-4">
-                  <div className="flex gap-2">
-                    <IconButton
-                      label="Move up"
-                      disabled={index === 0}
-                      onClick={() => reorderTestimonials(index, -1)}
-                    >
-                      <ArrowUp size={16} />
-                    </IconButton>
-                    <IconButton
-                      label="Move down"
-                      disabled={index === draft.testimonials.length - 1}
-                      onClick={() => reorderTestimonials(index, 1)}
-                    >
-                      <ArrowDown size={16} />
-                    </IconButton>
-                  </div>
-                  <IconButton label="Delete" danger onClick={() => removeTestimonial(index)}>
-                    <Trash2 size={16} />
-                  </IconButton>
-                </div>
-              </NewItemCard>
-            ))
-          ) : (
-            <div className="rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 px-8 py-12 text-center">
-              <p className="text-slate-600">
-                No testimonials yet. Click “Add Testimonial” to begin.
-              </p>
-            </div>
-          )}
+        {/* Live Preview */}
+        <div className="rounded-2xl border border-teal-200 bg-gradient-to-br from-teal-50 to-cyan-50 p-8">
+          <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-teal-600 mb-4">
+            Preview
+          </p>
+          <p className="text-xs font-semibold uppercase tracking-widest text-teal-700 mb-2">
+            {draft.eyebrow || 'Testimonials'}
+          </p>
+          <h3 className="text-2xl font-bold text-slate-900 mb-3">
+            {draft.title || 'Trusted by Leaders Across Africa'}
+          </h3>
+          <p className="text-slate-600 text-sm mb-6">
+            {draft.description || 'From government ministers to academic pioneers...'}
+          </p>
+          <button className="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-4 py-2 text-white font-semibold text-sm hover:bg-teal-700 transition-all">
+            {draft.cta_text || 'Share Your Story'} →
+          </button>
         </div>
       </div>
     )
   }
 
+  // Generic editor for Vision, Framework, Leadership, Foundation, Awards
   const renderGenericEditor = () => {
     if (!draft) return null
 
@@ -1291,10 +1083,8 @@ export default function StoryEditor() {
       <div className="space-y-8">
         <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
           <div className="space-y-6">
-            <div
-              className="rounded-xl border border-slate-200 bg-white p-6 sm:p-8"
-              style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.05), 0 2px 8px rgba(0,0,0,0.04)' }}
-            >
+            {/* Section Heading */}
+            <div className="rounded-2xl border border-slate-200 bg-white/80 backdrop-blur-sm p-6 sm:p-8 shadow-sm transition-all duration-300 hover:shadow-lg hover:border-teal-300">
               <div className="mb-6 border-b border-slate-200 pb-6">
                 <h2 className="text-2xl font-bold text-slate-900">{selectedSection.title}</h2>
                 <p className="mt-2 text-sm text-slate-600">{selectedSection.description}</p>
@@ -1302,76 +1092,75 @@ export default function StoryEditor() {
 
               {isVision && (
                 <div className="grid gap-6">
-                  <Field
-                    label="Eyebrow / Section Label"
-                    hint="Short label shown above the headline, e.g. 'My Story'"
-                  >
+                  <Field label="Eyebrow / Section Label" hint="Short label above headline">
                     <input
                       className={formInput}
                       value={draft.eyebrow ?? ''}
-                      onChange={(e) => updateDraft({ eyebrow: e.target.value })}
+                      onChange={(e) => setDraft((c) => ({ ...c, eyebrow: e.target.value }))}
                       placeholder="e.g., My Story"
                     />
                   </Field>
-                  <Field
-                    label="Headline — Line 1 (Normal text)"
-                    hint="First line of the big headline. Plain text only."
-                  >
+                  <Field label="Headline — Line 1 (Normal text)">
                     <input
                       className={formInput}
                       value={draft.title ?? ''}
-                      onChange={(e) => updateDraft({ title: e.target.value })}
+                      onChange={(e) => setDraft((c) => ({ ...c, title: e.target.value }))}
                       placeholder="e.g., One doctor's blueprint for a"
                     />
                   </Field>
                   <Field
-                    label="Headline — Line 2, Part A (Teal highlighted)"
-                    hint="These word(s) appear in teal color on the website. Plain text only — no HTML."
+                    label="Headline — Line 2, Part A (Highlighted)"
+                    hint="This text will appear in the custom colour #0f6e56 on the site."
                   >
                     <input
                       className={formInput}
                       value={draft.title_highlight ?? ''}
-                      onChange={(e) => updateDraft({ title_highlight: e.target.value })}
-                      placeholder="e.g., self-sufficient healthcare"
+                      onChange={(e) => setDraft((c) => ({ ...c, title_highlight: e.target.value }))}
+                      placeholder="e.g., self-sufficient healthcare Africa"
                     />
                   </Field>
-                  <Field
-                    label="Headline — Line 2, Part B (Normal text)"
-                    hint="The remaining words on the second line after the teal text."
-                  >
+                  <Field label="Headline — Line 2, Part B (Normal text)">
                     <input
                       className={formInput}
                       value={draft.subtitle ?? ''}
-                      onChange={(e) => updateDraft({ subtitle: e.target.value })}
-                      placeholder="e.g., Africa"
+                      onChange={(e) => setDraft((c) => ({ ...c, subtitle: e.target.value }))}
+                      placeholder="e.g., Africa (if needed after highlight)"
                     />
                   </Field>
                   <div className="border-t border-slate-200 pt-6">
-                    <Field label="Hero Image" hint="Paste a direct image link or upload a file">
+                    <Field label="Hero Image">
                       <div className="flex gap-2">
                         <input
                           className={formInput}
                           value={draft.image_url ?? ''}
-                          onChange={(e) => updateDraft({ image_url: e.target.value })}
+                          onChange={(e) => setDraft((c) => ({ ...c, image_url: e.target.value }))}
                           placeholder="https://..."
                         />
-                        <label className="inline-flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-slate-200 bg-slate-100 text-slate-600 transition-all hover:bg-slate-200">
+                        <label className="inline-flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-slate-200 bg-slate-100 text-slate-600 transition-all hover:bg-slate-200 hover:scale-110">
                           <Upload size={18} />
                           <input
                             type="file"
                             accept="image/*"
                             className="sr-only"
-                            onChange={(e) => updateDraftImage(e.target.files?.[0])}
+                            onChange={(e) => {
+                              if (e.target.files?.[0]) {
+                                readLocalImage(
+                                  e.target.files[0],
+                                  (url) => setDraft((c) => ({ ...c, image_url: url })),
+                                  () => setError('Could not read image.'),
+                                )
+                              }
+                            }}
                           />
                         </label>
                       </div>
                     </Field>
                     <div className="mt-4">
-                      <Field label="Image Alt Text" hint="Describe the image for accessibility">
+                      <Field label="Image Alt Text">
                         <input
                           className={formInput}
                           value={draft.image_alt ?? ''}
-                          onChange={(e) => updateDraft({ image_alt: e.target.value })}
+                          onChange={(e) => setDraft((c) => ({ ...c, image_alt: e.target.value }))}
                           placeholder="Describe the image"
                         />
                       </Field>
@@ -1382,34 +1171,28 @@ export default function StoryEditor() {
 
               {isLeadership && (
                 <div className="grid gap-6">
-                  <Field
-                    label="Section Label"
-                    hint="Small label shown above the quote, e.g. 'Leadership Philosophy'"
-                  >
+                  <Field label="Section Label">
                     <input
                       className={formInput}
                       value={draft.eyebrow ?? ''}
-                      onChange={(e) => updateDraft({ eyebrow: e.target.value })}
+                      onChange={(e) => setDraft((c) => ({ ...c, eyebrow: e.target.value }))}
                       placeholder="e.g., Leadership Philosophy"
                     />
                   </Field>
-                  <Field
-                    label="Quote Text"
-                    hint="Write the complete quote as plain text. Quotation marks are added automatically on the website."
-                  >
+                  <Field label="Quote Text">
                     <textarea
                       className={formInput}
                       rows={5}
                       value={draft.description ?? ''}
-                      onChange={(e) => updateDraft({ description: e.target.value })}
-                      placeholder="e.g., Healthcare is not a privilege — it is the foundation upon which every nation builds its future."
+                      onChange={(e) => setDraft((c) => ({ ...c, description: e.target.value }))}
+                      placeholder="e.g., Healthcare is not a privilege..."
                     />
                   </Field>
-                  <Field label="Attribution" hint="Who said this? e.g. 'Dr. Liyana, Founder & CEO'">
+                  <Field label="Attribution">
                     <input
                       className={formInput}
                       value={draft.subtitle ?? ''}
-                      onChange={(e) => updateDraft({ subtitle: e.target.value })}
+                      onChange={(e) => setDraft((c) => ({ ...c, subtitle: e.target.value }))}
                       placeholder="e.g., Dr. Liyana, Founder & CEO"
                     />
                   </Field>
@@ -1422,66 +1205,28 @@ export default function StoryEditor() {
                     <input
                       className={formInput}
                       value={draft.eyebrow ?? ''}
-                      onChange={(e) => updateDraft({ eyebrow: e.target.value })}
+                      onChange={(e) => setDraft((c) => ({ ...c, eyebrow: e.target.value }))}
                       placeholder="e.g., The Foundation"
                     />
                   </Field>
-                  <div className="md:col-span-2">
-                    <Field label="Section Title" hint="Plain text only">
-                      <textarea
-                        className={formInput}
-                        rows={2}
-                        value={draft.title ?? ''}
-                        onChange={(e) => updateDraft({ title: e.target.value })}
-                        placeholder="Enter the main title"
-                      />
-                    </Field>
-                  </div>
-                  <div className="md:col-span-2">
-                    <Field label="Intro Paragraph" hint="The supporting text shown below the title">
-                      <textarea
-                        className={formInput}
-                        rows={4}
-                        value={draft.description ?? ''}
-                        onChange={(e) => updateDraft({ description: e.target.value })}
-                        placeholder="Write an introductory paragraph..."
-                      />
-                    </Field>
-                  </div>
-
-                  <div className="md:col-span-2 border-t border-slate-200 pt-6">
-                    <Field label="Hero Image">
-                      <div className="flex gap-2">
-                        <input
-                          className={formInput}
-                          value={draft.image_url ?? ''}
-                          onChange={(e) => updateDraft({ image_url: e.target.value })}
-                          placeholder="https://..."
-                        />
-
-                        <label className="inline-flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-slate-200 bg-slate-100 text-slate-600 transition-all hover:bg-slate-200">
-                          <Upload size={18} />
-                          <input
-                            type="file"
-                            accept="image/*"
-                            className="sr-only"
-                            onChange={(e) => updateDraftImage(e.target.files?.[0])}
-                          />
-                        </label>
-                      </div>
-                    </Field>
-
-                    <div className="mt-4">
-                      <Field label="Image Alt Text">
-                        <input
-                          className={formInput}
-                          value={draft.image_alt ?? ''}
-                          onChange={(e) => updateDraft({ image_alt: e.target.value })}
-                          placeholder="Describe the image"
-                        />
-                      </Field>
-                    </div>
-                  </div>
+                  <Field label="Section Title">
+                    <textarea
+                      className={formInput}
+                      rows={2}
+                      value={draft.title ?? ''}
+                      onChange={(e) => setDraft((c) => ({ ...c, title: e.target.value }))}
+                      placeholder="Enter the main title"
+                    />
+                  </Field>
+                  <Field label="Intro Paragraph">
+                    <textarea
+                      className={formInput}
+                      rows={4}
+                      value={draft.description ?? ''}
+                      onChange={(e) => setDraft((c) => ({ ...c, description: e.target.value }))}
+                      placeholder="Write an introductory paragraph..."
+                    />
+                  </Field>
                 </div>
               )}
 
@@ -1491,17 +1236,17 @@ export default function StoryEditor() {
                     <input
                       className={formInput}
                       value={draft.eyebrow ?? ''}
-                      onChange={(e) => updateDraft({ eyebrow: e.target.value })}
+                      onChange={(e) => setDraft((c) => ({ ...c, eyebrow: e.target.value }))}
                       placeholder="e.g., The Framework"
                     />
                   </Field>
                   <div className="md:col-span-2">
-                    <Field label="Title" hint="Plain text only — no HTML needed">
+                    <Field label="Title">
                       <textarea
                         className={formInput}
                         rows={2}
                         value={draft.title ?? ''}
-                        onChange={(e) => updateDraft({ title: e.target.value })}
+                        onChange={(e) => setDraft((c) => ({ ...c, title: e.target.value }))}
                         placeholder="Enter the main title"
                       />
                     </Field>
@@ -1511,7 +1256,7 @@ export default function StoryEditor() {
                       <input
                         className={formInput}
                         value={draft.subtitle ?? ''}
-                        onChange={(e) => updateDraft({ subtitle: e.target.value })}
+                        onChange={(e) => setDraft((c) => ({ ...c, subtitle: e.target.value }))}
                         placeholder="Supporting subtitle"
                       />
                     </Field>
@@ -1522,16 +1267,24 @@ export default function StoryEditor() {
                         <input
                           className={formInput}
                           value={draft.image_url ?? ''}
-                          onChange={(e) => updateDraft({ image_url: e.target.value })}
+                          onChange={(e) => setDraft((c) => ({ ...c, image_url: e.target.value }))}
                           placeholder="https://..."
                         />
-                        <label className="inline-flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-slate-200 bg-slate-100 text-slate-600 transition-all hover:bg-slate-200">
+                        <label className="inline-flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-slate-200 bg-slate-100 text-slate-600 transition-all hover:bg-slate-200 hover:scale-110">
                           <Upload size={18} />
                           <input
                             type="file"
                             accept="image/*"
                             className="sr-only"
-                            onChange={(e) => updateDraftImage(e.target.files?.[0])}
+                            onChange={(e) => {
+                              if (e.target.files?.[0]) {
+                                readLocalImage(
+                                  e.target.files[0],
+                                  (url) => setDraft((c) => ({ ...c, image_url: url })),
+                                  () => setError('Could not read image.'),
+                                )
+                              }
+                            }}
                           />
                         </label>
                       </div>
@@ -1541,7 +1294,7 @@ export default function StoryEditor() {
                         <input
                           className={formInput}
                           value={draft.image_alt ?? ''}
-                          onChange={(e) => updateDraft({ image_alt: e.target.value })}
+                          onChange={(e) => setDraft((c) => ({ ...c, image_alt: e.target.value }))}
                           placeholder="Describe the image"
                         />
                       </Field>
@@ -1551,12 +1304,11 @@ export default function StoryEditor() {
               )}
             </div>
 
+            {/* Foundation Stats & Pillars */}
             {isFoundation && (
               <>
-                <div
-                  className="rounded-xl border border-slate-200 bg-white p-6 sm:p-8"
-                  style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.05), 0 2px 8px rgba(0,0,0,0.04)' }}
-                >
+                {/* Stats */}
+                <div className="rounded-2xl border border-slate-200 bg-white/80 backdrop-blur-sm p-6 sm:p-8 shadow-sm transition-all duration-300 hover:shadow-lg hover:border-teal-300">
                   <div className="mb-6 flex items-center justify-between border-b border-slate-200 pb-6">
                     <div>
                       <h3 className="text-xl font-bold text-slate-900">Foundation Stats</h3>
@@ -1566,8 +1318,13 @@ export default function StoryEditor() {
                     </div>
                     <button
                       type="button"
-                      className="inline-flex items-center gap-2 rounded-lg bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-900 transition-all hover:bg-slate-200"
-                      onClick={() => addListItem('stats', { value: '', label: '' })}
+                      className="inline-flex items-center gap-2 rounded-xl bg-teal-500 px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-teal-600 hover:shadow-lg hover:scale-105"
+                      onClick={() =>
+                        setDraft((c) => ({
+                          ...c,
+                          stats: [...(c.stats || []), { value: '', label: '' }],
+                        }))
+                      }
                     >
                       <Plus size={16} /> Add Stat
                     </button>
@@ -1576,15 +1333,17 @@ export default function StoryEditor() {
                     {(draft.stats || []).map((stat, index) => (
                       <div
                         key={index}
-                        className="rounded-lg border border-slate-200 bg-slate-50 p-5"
+                        className="rounded-xl border border-slate-200 bg-slate-50 p-5 hover:shadow-md hover:border-teal-300 transition-all"
                       >
                         <Field label="Number / Value">
                           <input
                             className={formInput}
                             value={stat.value || ''}
-                            onChange={(e) =>
-                              updateListItem('stats', index, { value: e.target.value })
-                            }
+                            onChange={(e) => {
+                              const stats = [...(draft.stats || [])]
+                              stats[index] = { ...stats[index], value: e.target.value }
+                              setDraft((c) => ({ ...c, stats }))
+                            }}
                             placeholder="e.g., $10M"
                           />
                         </Field>
@@ -1593,9 +1352,11 @@ export default function StoryEditor() {
                             <input
                               className={formInput}
                               value={stat.label || ''}
-                              onChange={(e) =>
-                                updateListItem('stats', index, { label: e.target.value })
-                              }
+                              onChange={(e) => {
+                                const stats = [...(draft.stats || [])]
+                                stats[index] = { ...stats[index], label: e.target.value }
+                                setDraft((c) => ({ ...c, stats }))
+                              }}
                               placeholder="e.g., Raised"
                             />
                           </Field>
@@ -1604,7 +1365,12 @@ export default function StoryEditor() {
                           <IconButton
                             label="Delete"
                             danger
-                            onClick={() => removeListItem('stats', index)}
+                            onClick={() =>
+                              setDraft((c) => ({
+                                ...c,
+                                stats: (c.stats || []).filter((_, i) => i !== index),
+                              }))
+                            }
                           >
                             <Trash2 size={16} />
                           </IconButton>
@@ -1614,99 +1380,121 @@ export default function StoryEditor() {
                   </div>
                 </div>
 
-                <div
-                  className="rounded-xl border border-slate-200 bg-white p-6 sm:p-8"
-                  style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.05), 0 2px 8px rgba(0,0,0,0.04)' }}
-                >
+                {/* Pillars – Accordion */}
+                <div className="rounded-2xl border border-slate-200 bg-white/80 backdrop-blur-sm p-6 sm:p-8 shadow-sm transition-all duration-300 hover:shadow-lg hover:border-teal-300">
                   <div className="mb-6 flex items-center justify-between border-b border-slate-200 pb-6">
                     <div>
                       <h3 className="text-xl font-bold text-slate-900">Pillars</h3>
-                      <p className="mt-1 text-sm text-slate-600">
-                        Manage the foundation pillars displayed on the page
-                      </p>
+                      <p className="mt-1 text-sm text-slate-600">Manage foundation pillars</p>
                     </div>
                     <button
                       type="button"
-                      className="inline-flex items-center gap-2 rounded-lg bg-teal-500 px-4 py-2 font-semibold text-white transition-all hover:bg-teal-600"
+                      className="inline-flex items-center gap-2 rounded-xl bg-teal-500 px-4 py-2 font-semibold text-white transition-all hover:bg-teal-600 hover:shadow-lg hover:shadow-teal-500/20 hover:scale-105"
                       onClick={addBlock}
                     >
                       <Plus size={16} /> Add Pillar
                     </button>
                   </div>
-                  <div className="space-y-5">
+                  <div className="space-y-3">
                     {blocks.length === 0 ? (
-                      <div className="rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 px-6 py-12 text-center">
+                      <div className="rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 px-6 py-12 text-center hover:border-teal-300 hover:bg-teal-50 transition-all">
                         <p className="text-slate-600">
                           No pillars yet. Click "Add Pillar" to get started.
                         </p>
                       </div>
                     ) : (
                       blocks.map((block, index) => {
+                        const isOpen = expandedBlock.includes(index)
                         const IconComp = getIconComponent(block.metadata?.icon || 'sparkles')
                         return (
-                          <NewItemCard
+                          <div
                             key={block.id || index}
-                            id={block.id}
-                            isNew={block.id === newItemId}
-                            newItemRef={newItemRef}
+                            ref={block.id === newItemId ? newItemRef : null}
+                            className={`rounded-2xl border bg-white/80 backdrop-blur-sm shadow-sm transition-all duration-300 hover:shadow-lg hover:border-teal-300 hover:scale-[1.01] cursor-pointer ${
+                              block.id === newItemId
+                                ? 'border-teal-400 ring-2 ring-teal-400/30 shadow-xl shadow-teal-100/50'
+                                : 'border-slate-200'
+                            }`}
                           >
-                            <div className="mb-4 flex items-center justify-between">
-                              <div className="flex items-center gap-3">
-                                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-teal-100 font-bold text-teal-700 text-sm">
-                                  {index + 1}
-                                </div>
+                            <button
+                              type="button"
+                              onClick={() => toggleBlock(index)}
+                              className="flex w-full items-center justify-between p-5 text-left"
+                            >
+                              <div className="flex items-center gap-4">
+                                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-teal-400 to-teal-600 text-sm font-bold text-white shadow-md">
+                                  {String(index + 1).padStart(2, '0')}
+                                </span>
                                 <div className="flex items-center gap-2">
                                   <IconComp size={16} className="text-teal-600" />
-                                  <h3 className="font-semibold text-slate-900">
-                                    {block.title || 'Untitled Pillar'}
-                                  </h3>
+                                  <div>
+                                    <p className="text-xs font-semibold uppercase tracking-wider text-teal-500">
+                                      Pillar {index + 1}
+                                    </p>
+                                    <h3 className="text-base font-semibold text-slate-900 line-clamp-1">
+                                      {block.title || 'Untitled Pillar'}
+                                    </h3>
+                                  </div>
                                 </div>
                               </div>
-                              <span className="text-xs font-semibold text-slate-500 uppercase">
-                                Pillar {index + 1}
-                              </span>
-                            </div>
-                            <div className="grid gap-4 md:grid-cols-1">
-                              <Field label="Pillar Title">
-                                <input
-                                  className={formInput}
-                                  value={block.title || ''}
-                                  onChange={(e) => updateBlock(index, { title: e.target.value })}
-                                  placeholder="e.g., Community Health"
-                                />
-                              </Field>
-                              <div className="md:col-span-1">
-                                <Field label="Icon">
-                                  <IconPicker
-                                    value={block.metadata?.icon || 'sparkles'}
-                                    onChange={(v) => updateBlockMetadata(index, { icon: v })}
-                                    allowedValues={FOUNDATION_ICONS}
+                              <ChevronDown
+                                size={18}
+                                className={`text-slate-400 transition-transform duration-300 ${
+                                  isOpen ? 'rotate-180' : ''
+                                }`}
+                              />
+                            </button>
+                            <div
+                              className={`overflow-hidden transition-all duration-500 ease-in-out ${
+                                isOpen ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'
+                              }`}
+                            >
+                              <div className="border-t border-slate-100 bg-slate-50/50 p-5 space-y-4">
+                                <Field label="Pillar Title">
+                                  <input
+                                    className={formInput}
+                                    value={block.title || ''}
+                                    onChange={(e) => updateBlock(index, { title: e.target.value })}
+                                    placeholder="e.g., Community Health"
                                   />
                                 </Field>
+                                <div>
+                                  <Field label="Icon">
+                                    <IconPicker
+                                      value={block.metadata?.icon || 'sparkles'}
+                                      onChange={(v) => updateBlockMetadata(index, { icon: v })}
+                                      allowedValues={FOUNDATION_ICONS}
+                                    />
+                                  </Field>
+                                </div>
+                                <div className="flex items-center justify-between gap-2 border-t border-slate-200 pt-4">
+                                  <div className="flex gap-2">
+                                    <IconButton
+                                      label="Move up"
+                                      disabled={index === 0}
+                                      onClick={() => reorderBlocks(index, -1)}
+                                    >
+                                      <ArrowUp size={16} />
+                                    </IconButton>
+                                    <IconButton
+                                      label="Move down"
+                                      disabled={index === blocks.length - 1}
+                                      onClick={() => reorderBlocks(index, 1)}
+                                    >
+                                      <ArrowDown size={16} />
+                                    </IconButton>
+                                  </div>
+                                  <IconButton
+                                    label="Delete"
+                                    danger
+                                    onClick={() => removeBlock(index)}
+                                  >
+                                    <Trash2 size={16} />
+                                  </IconButton>
+                                </div>
                               </div>
                             </div>
-                            <div className="mt-4 flex items-center justify-between gap-2 border-t border-slate-200 pt-4">
-                              <div className="flex gap-2">
-                                <IconButton
-                                  label="Move up"
-                                  disabled={index === 0}
-                                  onClick={() => reorderBlocks(index, -1)}
-                                >
-                                  <ArrowUp size={16} />
-                                </IconButton>
-                                <IconButton
-                                  label="Move down"
-                                  disabled={index === blocks.length - 1}
-                                  onClick={() => reorderBlocks(index, 1)}
-                                >
-                                  <ArrowDown size={16} />
-                                </IconButton>
-                              </div>
-                              <IconButton label="Delete" danger onClick={() => removeBlock(index)}>
-                                <Trash2 size={16} />
-                              </IconButton>
-                            </div>
-                          </NewItemCard>
+                          </div>
                         )
                       })
                     )}
@@ -1715,11 +1503,9 @@ export default function StoryEditor() {
               </>
             )}
 
+            {/* Generic blocks (Framework, Awards, Vision cards) – Accordion */}
             {!isLeadership && !isFoundation && (
-              <div
-                className="rounded-xl border border-slate-200 bg-white p-6 sm:p-8"
-                style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.05), 0 2px 8px rgba(0,0,0,0.04)' }}
-              >
+              <div className="rounded-2xl border border-slate-200 bg-white/80 backdrop-blur-sm p-6 sm:p-8 shadow-sm transition-all duration-300 hover:shadow-lg hover:border-teal-300">
                 <div className="mb-6 flex items-center justify-between border-b border-slate-200 pb-6">
                   <div>
                     <h3 className="text-xl font-bold text-slate-900">
@@ -1731,243 +1517,286 @@ export default function StoryEditor() {
                   </div>
                   <button
                     type="button"
-                    className="inline-flex items-center gap-2 rounded-lg bg-teal-500 px-4 py-2 font-semibold text-white transition-all hover:bg-teal-600"
+                    className="inline-flex items-center gap-2 rounded-xl bg-teal-500 px-4 py-2 font-semibold text-white transition-all hover:bg-teal-600 hover:shadow-lg hover:shadow-teal-500/20 hover:scale-105"
                     onClick={addBlock}
                   >
                     <Plus size={16} /> Add {selectedSection.blockLabel || 'Card'}
                   </button>
                 </div>
 
-                <div className="space-y-5">
+                <div className="space-y-3">
                   {blocks.length === 0 ? (
-                    <div className="rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 px-6 py-12 text-center">
+                    <div className="rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 px-6 py-12 text-center hover:border-teal-300 hover:bg-teal-50 transition-all">
                       <p className="text-slate-600">
                         No cards yet. Click "Add {selectedSection.blockLabel || 'Card'}" to get
                         started.
                       </p>
                     </div>
                   ) : (
-                    blocks.map((block, index) => (
-                      <NewItemCard
-                        key={block.id || index}
-                        id={block.id}
-                        isNew={block.id === newItemId}
-                        newItemRef={newItemRef}
-                      >
-                        <div className="mb-4 flex items-center justify-between">
-                          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-teal-100 font-bold text-teal-700 text-sm">
-                            {index + 1}
-                          </div>
-                          <span className="text-xs font-semibold text-slate-500 uppercase">
-                            {selectedSection.blockLabel || 'Card'} {index + 1}
-                          </span>
-                        </div>
+                    blocks.map((block, index) => {
+                      const isOpen = expandedBlock.includes(index)
+                      const cardLabel = block.eyebrow || block.metadata?.organization || ''
+                      const cardTitle = block.title || 'Untitled'
+                      const iconValue = block.metadata?.icon || 'sparkles'
+                      const IconComp = getIconComponent(iconValue)
 
-                        <div className="grid gap-4 md:grid-cols-2">
-                          {isVision && (
-                            <>
-                              <Field label="Label">
-                                <input
-                                  className={formInput}
-                                  value={block.eyebrow || ''}
-                                  onChange={(e) => updateBlock(index, { eyebrow: e.target.value })}
-                                  placeholder="Card label"
-                                />
-                              </Field>
-                              <Field label="Title">
-                                <input
-                                  className={formInput}
-                                  value={block.title || ''}
-                                  onChange={(e) => updateBlock(index, { title: e.target.value })}
-                                  placeholder="Card title"
-                                />
-                              </Field>
-                            </>
-                          )}
-
-                          {isLiyana && (
-                            <>
-                              <Field label="Label">
-                                <input
-                                  className={formInput}
-                                  value={block.eyebrow || ''}
-                                  onChange={(e) => updateBlock(index, { eyebrow: e.target.value })}
-                                  placeholder="e.g., 01"
-                                />
-                              </Field>
-                              <Field label="Title">
-                                <input
-                                  className={formInput}
-                                  value={block.title || ''}
-                                  onChange={(e) => updateBlock(index, { title: e.target.value })}
-                                  placeholder="Framework item title"
-                                />
-                              </Field>
-                              <div className="md:col-span-2">
-                                <Field
-                                  label="Description"
-                                  hint="Describe what this framework item covers"
-                                >
-                                  <textarea
-                                    className={formInput}
-                                    rows={3}
-                                    value={stripHtml(
-                                      block.body || block.metadata?.description || '',
-                                    )}
-                                    onChange={(e) => updateBlock(index, { body: e.target.value })}
-                                    placeholder="Write a short description..."
-                                  />
-                                </Field>
+                      return (
+                        <div
+                          key={block.id || index}
+                          ref={block.id === newItemId ? newItemRef : null}
+                          className={`rounded-2xl border bg-white/80 backdrop-blur-sm shadow-sm transition-all duration-300 hover:shadow-lg hover:border-teal-300 hover:scale-[1.01] cursor-pointer ${
+                            block.id === newItemId
+                              ? 'border-teal-400 ring-2 ring-teal-400/30 shadow-xl shadow-teal-100/50'
+                              : 'border-slate-200'
+                          }`}
+                        >
+                          <button
+                            type="button"
+                            onClick={() => toggleBlock(index)}
+                            className="flex w-full items-center justify-between p-5 text-left"
+                          >
+                            <div className="flex items-center gap-4">
+                              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-teal-400 to-teal-600 text-sm font-bold text-white shadow-md">
+                                {String(index + 1).padStart(2, '0')}
+                              </span>
+                              <div>
+                                {cardLabel && (
+                                  <p className="text-xs font-semibold uppercase tracking-wider text-teal-500">
+                                    {cardLabel}
+                                  </p>
+                                )}
+                                <div className="flex items-center gap-2">
+                                  <IconComp size={16} className="text-teal-600" />
+                                  <h3 className="text-base font-semibold text-slate-900 line-clamp-1">
+                                    {cardTitle}
+                                  </h3>
+                                </div>
                               </div>
-                              <div className="md:col-span-2">
-                                <Field
-                                  label="Icon"
-                                  hint="Choose an icon that best represents this item"
-                                >
-                                  <IconPicker
-                                    value={block.metadata?.icon || 'sparkles'}
-                                    onChange={(v) => updateBlockMetadata(index, { icon: v })}
-                                  />
-                                </Field>
-                              </div>
-                            </>
-                          )}
-
-                          {isRecognition && (
-                            <>
-                              <div className="md:col-span-2">
-                                <Field label="Award Title">
-                                  <input
-                                    className={formInput}
-                                    value={block.title || ''}
-                                    onChange={(e) => updateBlock(index, { title: e.target.value })}
-                                    placeholder="e.g., Healthcare Leader of the Year"
-                                  />
-                                </Field>
-                              </div>
-                              <div className="md:col-span-2">
-                                <Field
-                                  label="Description"
-                                  hint="Describe what this award is for and why it was received"
-                                >
-                                  <textarea
-                                    className={formInput}
-                                    rows={3}
-                                    value={stripHtml(
-                                      block.body || block.metadata?.description || '',
-                                    )}
-                                    onChange={(e) => updateBlock(index, { body: e.target.value })}
-                                    placeholder="Write a short description..."
-                                  />
-                                </Field>
-                              </div>
-                              <Field label="Awarding Organization" hint="e.g., WHO, African Union">
-                                <input
-                                  className={formInput}
-                                  value={block.metadata?.organization || ''}
-                                  onChange={(e) =>
-                                    updateBlockMetadata(index, { organization: e.target.value })
-                                  }
-                                  placeholder="Organization name"
-                                />
-                              </Field>
-                              <Field label="Year Received">
-                                <input
-                                  className={formInput}
-                                  value={block.metadata?.year || ''}
-                                  onChange={(e) =>
-                                    updateBlockMetadata(index, { year: e.target.value })
-                                  }
-                                  placeholder="e.g., 2023"
-                                />
-                              </Field>
-                              <div className="md:col-span-2">
-                                <Field
-                                  label="Category"
-                                  hint="e.g., Innovation, Leadership, Community Impact"
-                                >
-                                  <input
-                                    className={formInput}
-                                    value={block.metadata?.category || ''}
-                                    onChange={(e) =>
-                                      updateBlockMetadata(index, { category: e.target.value })
-                                    }
-                                    placeholder="Award category"
-                                  />
-                                </Field>
-                              </div>
-                              <div className="md:col-span-2">
-                                <Field
-                                  label="Award Image / Badge"
-                                  hint="Upload a logo or badge image for this award"
-                                >
-                                  <div className="flex gap-2">
-                                    <input
-                                      className={formInput}
-                                      value={block.image_url || ''}
-                                      onChange={(e) =>
-                                        updateBlock(index, { image_url: e.target.value })
-                                      }
-                                      placeholder="https://..."
-                                    />
-                                    <label className="inline-flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-slate-200 bg-slate-100 text-slate-600 transition-all hover:bg-slate-200">
-                                      <Upload size={18} />
+                            </div>
+                            <ChevronDown
+                              size={18}
+                              className={`text-slate-400 transition-transform duration-300 ${
+                                isOpen ? 'rotate-180' : ''
+                              }`}
+                            />
+                          </button>
+                          <div
+                            className={`overflow-hidden transition-all duration-500 ease-in-out ${
+                              isOpen ? 'max-h-[800px] opacity-100' : 'max-h-0 opacity-0'
+                            }`}
+                          >
+                            <div className="border-t border-slate-100 bg-slate-50/50 p-5">
+                              <div className="grid gap-4 md:grid-cols-2">
+                                {isVision && (
+                                  <>
+                                    <Field label="Label">
                                       <input
-                                        type="file"
-                                        accept="image/*"
-                                        className="sr-only"
+                                        className={formInput}
+                                        value={block.eyebrow || ''}
                                         onChange={(e) =>
-                                          updateBlockImage(index, e.target.files?.[0])
+                                          updateBlock(index, { eyebrow: e.target.value })
                                         }
+                                        placeholder="Card label"
                                       />
-                                    </label>
-                                  </div>
-                                </Field>
-                              </div>
-                            </>
-                          )}
-                        </div>
+                                    </Field>
+                                    <Field label="Title">
+                                      <input
+                                        className={formInput}
+                                        value={block.title || ''}
+                                        onChange={(e) =>
+                                          updateBlock(index, { title: e.target.value })
+                                        }
+                                        placeholder="Card title"
+                                      />
+                                    </Field>
+                                  </>
+                                )}
 
-                        <div className="mt-4 flex items-center justify-between gap-2 border-t border-slate-200 pt-4">
-                          <div className="flex gap-2">
-                            <IconButton
-                              label="Move up"
-                              disabled={index === 0}
-                              onClick={() => reorderBlocks(index, -1)}
-                            >
-                              <ArrowUp size={16} />
-                            </IconButton>
-                            <IconButton
-                              label="Move down"
-                              disabled={index === blocks.length - 1}
-                              onClick={() => reorderBlocks(index, 1)}
-                            >
-                              <ArrowDown size={16} />
-                            </IconButton>
+                                {isLiyana && (
+                                  <>
+                                    <Field label="Label">
+                                      <input
+                                        className={formInput}
+                                        value={block.eyebrow || ''}
+                                        onChange={(e) =>
+                                          updateBlock(index, { eyebrow: e.target.value })
+                                        }
+                                        placeholder="e.g., 01"
+                                      />
+                                    </Field>
+                                    <Field label="Title">
+                                      <input
+                                        className={formInput}
+                                        value={block.title || ''}
+                                        onChange={(e) =>
+                                          updateBlock(index, { title: e.target.value })
+                                        }
+                                        placeholder="Framework item title"
+                                      />
+                                    </Field>
+                                    <div className="md:col-span-2">
+                                      <Field label="Description">
+                                        <textarea
+                                          className={formInput}
+                                          rows={3}
+                                          value={stripHtml(
+                                            block.body || block.metadata?.description || '',
+                                          )}
+                                          onChange={(e) =>
+                                            updateBlock(index, { body: e.target.value })
+                                          }
+                                          placeholder="Write a short description..."
+                                        />
+                                      </Field>
+                                    </div>
+                                    <div className="md:col-span-2">
+                                      <Field label="Icon">
+                                        <IconPicker
+                                          value={block.metadata?.icon || 'sparkles'}
+                                          onChange={(v) => updateBlockMetadata(index, { icon: v })}
+                                        />
+                                      </Field>
+                                    </div>
+                                  </>
+                                )}
+
+                                {isRecognition && (
+                                  <>
+                                    <div className="md:col-span-2">
+                                      <Field label="Award Title">
+                                        <input
+                                          className={formInput}
+                                          value={block.title || ''}
+                                          onChange={(e) =>
+                                            updateBlock(index, { title: e.target.value })
+                                          }
+                                          placeholder="e.g., Healthcare Leader of the Year"
+                                        />
+                                      </Field>
+                                    </div>
+                                    <div className="md:col-span-2">
+                                      <Field label="Description">
+                                        <textarea
+                                          className={formInput}
+                                          rows={3}
+                                          value={stripHtml(
+                                            block.body || block.metadata?.description || '',
+                                          )}
+                                          onChange={(e) =>
+                                            updateBlock(index, { body: e.target.value })
+                                          }
+                                          placeholder="Write a short description..."
+                                        />
+                                      </Field>
+                                    </div>
+                                    <Field label="Awarding Organization">
+                                      <input
+                                        className={formInput}
+                                        value={block.metadata?.organization || ''}
+                                        onChange={(e) =>
+                                          updateBlockMetadata(index, {
+                                            organization: e.target.value,
+                                          })
+                                        }
+                                        placeholder="Organization name"
+                                      />
+                                    </Field>
+                                    <Field label="Year Received">
+                                      <input
+                                        className={formInput}
+                                        value={block.metadata?.year || ''}
+                                        onChange={(e) =>
+                                          updateBlockMetadata(index, { year: e.target.value })
+                                        }
+                                        placeholder="e.g., 2023"
+                                      />
+                                    </Field>
+                                    <div className="md:col-span-2">
+                                      <Field label="Category">
+                                        <input
+                                          className={formInput}
+                                          value={block.metadata?.category || ''}
+                                          onChange={(e) =>
+                                            updateBlockMetadata(index, { category: e.target.value })
+                                          }
+                                          placeholder="Award category"
+                                        />
+                                      </Field>
+                                    </div>
+                                    <div className="md:col-span-2">
+                                      <Field label="Award Image / Badge">
+                                        <div className="flex gap-2">
+                                          <input
+                                            className={formInput}
+                                            value={block.image_url || ''}
+                                            onChange={(e) =>
+                                              updateBlock(index, { image_url: e.target.value })
+                                            }
+                                            placeholder="https://..."
+                                          />
+                                          <label className="inline-flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-slate-200 bg-slate-100 text-slate-600 transition-all hover:bg-slate-200 hover:scale-110">
+                                            <Upload size={18} />
+                                            <input
+                                              type="file"
+                                              accept="image/*"
+                                              className="sr-only"
+                                              onChange={(e) =>
+                                                updateBlockImage(index, e.target.files?.[0])
+                                              }
+                                            />
+                                          </label>
+                                        </div>
+                                      </Field>
+                                    </div>
+                                  </>
+                                )}
+                              </div>
+
+                              <div className="mt-4 flex items-center justify-between gap-2 border-t border-slate-200 pt-4">
+                                <div className="flex gap-2">
+                                  <IconButton
+                                    label="Move up"
+                                    disabled={index === 0}
+                                    onClick={() => reorderBlocks(index, -1)}
+                                  >
+                                    <ArrowUp size={16} />
+                                  </IconButton>
+                                  <IconButton
+                                    label="Move down"
+                                    disabled={index === blocks.length - 1}
+                                    onClick={() => reorderBlocks(index, 1)}
+                                  >
+                                    <ArrowDown size={16} />
+                                  </IconButton>
+                                </div>
+                                <IconButton
+                                  label="Delete"
+                                  danger
+                                  onClick={() => removeBlock(index)}
+                                >
+                                  <Trash2 size={16} />
+                                </IconButton>
+                              </div>
+                            </div>
                           </div>
-                          <IconButton label="Delete" danger onClick={() => removeBlock(index)}>
-                            <Trash2 size={16} />
-                          </IconButton>
                         </div>
-                      </NewItemCard>
-                    ))
+                      )
+                    })
                   )}
                 </div>
               </div>
             )}
           </div>
 
+          {/* Live Preview Sidebar */}
           <aside className="space-y-6">
             <div className="sticky top-8 space-y-6">
-              <div
-                className="rounded-xl border border-slate-200 bg-white p-6"
-                style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.05), 0 2px 8px rgba(0,0,0,0.04)' }}
-              >
-                <h3 className="mb-4 text-xs font-bold uppercase tracking-wider text-slate-500">
-                  Live Preview
+              <div className="rounded-2xl border border-slate-200 bg-white/80 backdrop-blur-md p-6 shadow-sm hover:shadow-lg transition-all">
+                <h3 className="mb-4 text-xs font-bold uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2">
+                  <Zap size={14} className="text-amber-500" /> Live Preview
                 </h3>
                 {isVision && (
-                  <div className="rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 px-4 py-6">
+                  <div className="rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 px-4 py-6 hover:bg-teal-50 hover:border-teal-300 transition-all">
                     <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
                       {draft.eyebrow || 'Section label'}
                     </p>
@@ -1975,21 +1804,23 @@ export default function StoryEditor() {
                       {draft.title || 'Headline line 1'}
                       <br />
                       {draft.title_highlight ? (
-                        <span className="text-teal-600 not-italic">{draft.title_highlight}</span>
+                        <span style={{ color: '#0f6e56' }} className="font-black">
+                          {draft.title_highlight}
+                        </span>
                       ) : (
-                        <span className="text-slate-300">Teal highlighted text</span>
+                        <span className="text-slate-300">Highlighted text</span>
                       )}{' '}
                       <span>{draft.subtitle || ''}</span>
                     </h4>
                     {draft.image_url && (
-                      <div className="mt-4 overflow-hidden rounded-lg border border-slate-200">
+                      <div className="mt-4 overflow-hidden rounded-lg border border-slate-200 hover:shadow-md transition-all">
                         <img src={draft.image_url} alt="" className="h-32 w-full object-cover" />
                       </div>
                     )}
                   </div>
                 )}
                 {isLeadership && (
-                  <div className="rounded-lg border border-slate-200 bg-gradient-to-br from-teal-900 to-teal-700 px-6 py-8 text-white">
+                  <div className="rounded-xl border border-slate-200 bg-gradient-to-br from-teal-900 to-teal-700 px-6 py-8 text-white hover:shadow-lg transition-all">
                     <p className="mb-4 font-mono text-[9px] tracking-[0.3em] uppercase text-white/50">
                       {draft.eyebrow || 'Future Vision'}
                     </p>
@@ -2006,7 +1837,7 @@ export default function StoryEditor() {
                   </div>
                 )}
                 {isFoundation && (
-                  <div className="rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 px-4 py-5">
+                  <div className="rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 px-4 py-5 hover:bg-teal-50 hover:border-teal-300 transition-all">
                     <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
                       {draft.eyebrow || 'Section label'}
                     </p>
@@ -2021,7 +1852,7 @@ export default function StoryEditor() {
                   </div>
                 )}
                 {!isVision && !isLeadership && !isFoundation && (
-                  <div className="rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 px-4 py-6">
+                  <div className="rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 px-4 py-6 hover:bg-teal-50 hover:border-teal-300 transition-all">
                     <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
                       {draft.eyebrow || 'Section label'}
                     </p>
@@ -2032,16 +1863,16 @@ export default function StoryEditor() {
                       <p className="mt-1 text-sm text-slate-500">{draft.subtitle}</p>
                     )}
                     {draft.image_url && (
-                      <div className="mt-4 overflow-hidden rounded-lg border border-slate-200">
+                      <div className="mt-4 overflow-hidden rounded-lg border border-slate-200 hover:shadow-md transition-all">
                         <img src={draft.image_url} alt="" className="h-28 w-full object-cover" />
                       </div>
                     )}
                   </div>
                 )}
               </div>
-              <div className="rounded-xl border border-teal-100 bg-gradient-to-br from-teal-50 to-cyan-50 p-6">
+              <div className="rounded-2xl border border-teal-100 bg-gradient-to-br from-teal-50 to-cyan-50 p-6 hover:shadow-lg hover:border-teal-300 transition-all">
                 <h3 className="mb-3 flex items-center gap-2 text-sm font-bold text-teal-900">
-                  <Sparkles size={16} /> Editing Guide
+                  <Sparkles size={16} className="text-teal-600" /> Editing Guide
                 </h3>
                 <p className="text-sm leading-relaxed text-teal-800">{selectedSection.hint}</p>
               </div>
@@ -2052,36 +1883,57 @@ export default function StoryEditor() {
     )
   }
 
-  return (
-    <section className="mx-auto max-w-7xl">
-      <div className="mb-10 flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-widest text-teal-600">Story Editor</p>
-          <h1 className="mt-3 text-4xl font-bold text-slate-900 sm:text-5xl">
-            {selectedSection.title}
-          </h1>
-          <p className="mt-3 max-w-3xl text-slate-600">{selectedSection.description}</p>
+  // ------------------------------------------------------------------
+  // MAIN RENDER
+  // ------------------------------------------------------------------
+  if (isLoading || !draft) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100/60">
+        <div className="flex flex-col items-center gap-4">
+          <div className="relative w-16 h-16">
+            <div className="absolute inset-0 bg-gradient-to-r from-teal-400 to-cyan-400 rounded-full animate-spin opacity-20" />
+            <Loader2 size={32} className="animate-spin text-teal-500 absolute inset-0 m-auto" />
+          </div>
+          <p className="text-sm text-slate-600 animate-pulse">Loading story content...</p>
         </div>
-        <button
-          type="button"
-          onClick={saveSection}
-          disabled={isSaving}
-          className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-teal-500 to-teal-600 px-6 py-3 font-semibold text-white transition-all hover:shadow-lg hover:shadow-teal-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {isSaving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
-          <span>{isSaving ? 'Saving...' : 'Save Changes'}</span>
-        </button>
       </div>
+    )
+  }
 
-      {selectedSection.type === 'timeline'
-        ? renderTimelineEditor()
-        : selectedSection.type === 'identities'
-          ? renderIdentityEditor()
-          : selectedSection.type === 'testimonials'
-            ? renderTestimonialsEditor()
-            : renderGenericEditor()}
+  return (
+    <section className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100/60">
+      <div className="mx-auto max-w-7xl px-6 py-10">
+        <div className="mb-10 flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-widest text-teal-600 flex items-center gap-2">
+              <Zap size={14} /> Story Editor
+            </p>
+            <h1 className="mt-3 text-4xl font-bold text-slate-900 sm:text-5xl">
+              {selectedSection.title}
+            </h1>
+            <p className="mt-3 max-w-3xl text-slate-600">{selectedSection.description}</p>
+          </div>
+          <button
+            type="button"
+            onClick={saveSection}
+            disabled={isSaving}
+            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-teal-500 to-teal-600 px-6 py-3 font-semibold text-white transition-all hover:shadow-xl hover:shadow-teal-500/30 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 duration-200"
+          >
+            {isSaving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
+            <span>{isSaving ? 'Saving...' : 'Save Changes'}</span>
+          </button>
+        </div>
 
-      <Toast message={message} error={error} />
+        {selectedSection.type === 'timeline'
+          ? renderTimelineEditor()
+          : selectedSection.type === 'identities'
+            ? renderIdentityEditor()
+            : selectedSection.type === 'testimonials'
+              ? renderTestimonialsEditor()
+              : renderGenericEditor()}
+
+        <Toast message={message} error={error} />
+      </div>
     </section>
   )
 }

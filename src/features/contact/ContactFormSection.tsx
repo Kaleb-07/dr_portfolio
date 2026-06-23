@@ -66,7 +66,9 @@ export default function ContactFormSection() {
             <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-teal to-teal-mid" />
 
             <p className="font-mono text-[9px] tracking-[0.2em] uppercase text-teal mb-4">Sent</p>
-            <h2 className="font-serif text-4xl md:text-5xl font-light text-ink mb-4">Message sent</h2>
+            <h2 className="font-serif text-4xl md:text-5xl font-light text-ink mb-4">
+              Message sent
+            </h2>
             <p className="text-sm font-light text-ink-mid max-w-md mx-auto leading-relaxed mb-6">
               Thank you for reaching out. I will review your inquiry and get back to you promptly.
             </p>
@@ -163,7 +165,9 @@ export default function ContactFormSection() {
                 <img
                   src="/image.png"
                   alt="Contact Profile"
-                  onError={(e) => { (e.target as HTMLImageElement).src = '/lab-connect.png' }}
+                  onError={(e) => {
+                    ;(e.target as HTMLImageElement).src = '/lab-connect.png'
+                  }}
                   className="w-full object-cover aspect-[4/5] hover:grayscale transition-all duration-700"
                 />
               </div>
@@ -203,7 +207,10 @@ export default function ContactFormSection() {
               </motion.h2>
             </div>
 
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 bg-white p-8 border border-rule shadow-sm">
+            <form
+              onSubmit={handleSubmit(onSubmit)}
+              className="space-y-6 bg-white p-8 border border-rule shadow-sm"
+            >
               {/* Row 1 */}
               <motion.div
                 variants={formItemVariants}
@@ -253,7 +260,9 @@ export default function ContactFormSection() {
                     className="w-full border border-rule bg-paper-warm px-4 py-3 text-sm text-ink outline-none transition-all duration-300 focus:border-teal focus:ring-1 focus:ring-teal/30 focus:bg-white"
                     placeholder="Organization name"
                   />
-                  {errors.organization && <p className="mt-1 text-xs text-teal">{errors.organization.message}</p>}
+                  {errors.organization && (
+                    <p className="mt-1 text-xs text-teal">{errors.organization.message}</p>
+                  )}
                 </div>
                 <div>
                   <label className="block font-mono text-[9px] tracking-[0.2em] uppercase text-ink-mid mb-2">
@@ -282,10 +291,14 @@ export default function ContactFormSection() {
                   className="w-full border border-rule bg-paper-warm px-4 py-3 text-sm text-ink outline-none transition-all duration-300 focus:border-teal focus:ring-1 focus:ring-teal/30 focus:bg-white"
                 >
                   {inquiryTypes.map((type) => (
-                    <option key={type.value} value={type.value}>{type.label}</option>
+                    <option key={type.value} value={type.value}>
+                      {type.label}
+                    </option>
                   ))}
                 </select>
-                {errors.inquiryType && <p className="mt-1 text-xs text-teal">{errors.inquiryType.message}</p>}
+                {errors.inquiryType && (
+                  <p className="mt-1 text-xs text-teal">{errors.inquiryType.message}</p>
+                )}
               </motion.div>
 
               {/* Subject */}
@@ -303,7 +316,9 @@ export default function ContactFormSection() {
                   className="w-full border border-rule bg-paper-warm px-4 py-3 text-sm text-ink outline-none transition-all duration-300 focus:border-teal focus:ring-1 focus:ring-teal/30 focus:bg-white"
                   placeholder="Subject of your message"
                 />
-                {errors.subject && <p className="mt-1 text-xs text-teal">{errors.subject.message}</p>}
+                {errors.subject && (
+                  <p className="mt-1 text-xs text-teal">{errors.subject.message}</p>
+                )}
               </motion.div>
 
               {/* Message */}
@@ -322,7 +337,9 @@ export default function ContactFormSection() {
                   className="w-full border border-rule bg-paper-warm px-4 py-3 text-sm text-ink outline-none transition-all duration-300 focus:border-teal focus:ring-1 focus:ring-teal/30 focus:bg-white resize-y"
                   placeholder="Your message (minimum 10 characters)"
                 />
-                {errors.message && <p className="mt-1 text-xs text-teal">{errors.message.message}</p>}
+                {errors.message && (
+                  <p className="mt-1 text-xs text-teal">{errors.message.message}</p>
+                )}
               </motion.div>
 
               {/* Submit Button */}
@@ -333,7 +350,12 @@ export default function ContactFormSection() {
                 transition={{ delay: 0.3 }}
                 className="pt-2"
               >
-                <Button type="submit" variant="primary" size="lg" className="w-full bg-teal text-white shadow-sm hover:shadow-md transition-all duration-300">
+                <Button
+                  type="submit"
+                  variant="primary"
+                  size="lg"
+                  className="w-full bg-teal text-white shadow-sm hover:shadow-md transition-all duration-300"
+                >
                   {isSubmitting ? 'Sending...' : 'Send Message'}
                 </Button>
               </motion.div>
