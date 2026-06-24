@@ -21,6 +21,7 @@ const HeroEditor = lazy(() => import('@/admin/pages/HeroEditor.jsx'))
 const CmsEditor = lazy(() => import('@/admin/pages/CmsEditor.jsx'))
 const StoryEditor = lazy(() => import('@/admin/pages/StoryEditor.jsx'))
 const JourneyEditor = lazy(() => import('@/admin/pages/JourneyEditor.jsx'))
+const EducationEditor = lazy(() => import('@/admin/pages/EducationEditor.jsx'))
 const AdminLayout = lazy(() => import('@/admin/layout/AdminLayout.jsx'))
 const ContactEditor = lazy(() => import('@/admin/pages/ContactEditor.jsx'))
 const ContactMessages = lazy(() => import('@/admin/pages/ContactMessages.jsx'))
@@ -89,7 +90,7 @@ export function AppRouter() {
           <Route path="timeline" element={<SectionPlaceholder title="Timeline" />} />
           <Route path="profile" element={<SectionPlaceholder title="Profile" />} />
           <Route path="profile/journey" element={<JourneyEditor />} />
-          <Route path="profile/education" element={<SectionPlaceholder title="Education" />} />
+          <Route path="profile/education" element={<EducationEditor />} />
           <Route path="profile/gallery" element={<SectionPlaceholder title="Gallery" />} />
           <Route path="ecosystem" element={<SectionPlaceholder title="Ecosystem" />} />
           <Route
