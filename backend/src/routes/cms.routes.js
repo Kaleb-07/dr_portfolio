@@ -21,7 +21,8 @@ const sectionSeeds = [
     slug: 'vision_agenda',
     section_type: 'hero_agenda',
     eyebrow: 'The Visionary Agenda',
-    title: "One doctor's blueprint for a <br /><em class=\"text-teal-mid italic\">self-sufficient healthcare Africa</em>",
+    title:
+      'One doctor\'s blueprint for a <br /><em class="text-teal-mid italic">self-sufficient healthcare Africa</em>',
     subtitle: 'DR. LIYANA - PROFILE',
     description: '',
     image_url: '/image.png',
@@ -29,15 +30,37 @@ const sectionSeeds = [
     metadata: {
       cta: [],
       metrics: [
-        { value: '20+', label: 'Years as Medical Doctor', description: 'Over two decades of clinical practice and medical expertise.' },
-        { value: '15+', label: 'Years as Anatomical Pathologist', description: 'Specialist in anatomical pathology with advanced diagnostic experience.' },
-        { value: '14+', label: 'Years Healthcare Investment & Leadership', description: 'Building and leading healthcare enterprises across the value chain.' },
+        {
+          value: '20+',
+          label: 'Years as Medical Doctor',
+          description: 'Over two decades of clinical practice and medical expertise.',
+        },
+        {
+          value: '15+',
+          label: 'Years as Anatomical Pathologist',
+          description: 'Specialist in anatomical pathology with advanced diagnostic experience.',
+        },
+        {
+          value: '14+',
+          label: 'Years Healthcare Investment & Leadership',
+          description: 'Building and leading healthcare enterprises across the value chain.',
+        },
       ],
     },
     blocks: [
       { block_type: 'identity_teaser', title: 'Physician', eyebrow: 'Identity I', sort_order: 1 },
-      { block_type: 'identity_teaser', title: 'Entrepreneur', eyebrow: 'Identity II', sort_order: 2 },
-      { block_type: 'identity_teaser', title: 'Nation Builder', eyebrow: 'Identity III', sort_order: 3 },
+      {
+        block_type: 'identity_teaser',
+        title: 'Entrepreneur',
+        eyebrow: 'Identity II',
+        sort_order: 2,
+      },
+      {
+        block_type: 'identity_teaser',
+        title: 'Nation Builder',
+        eyebrow: 'Identity III',
+        sort_order: 3,
+      },
     ],
   },
   {
@@ -62,12 +85,27 @@ const sectionSeeds = [
     title: 'A life in <em class="text-teal-mid not-italic">service</em>',
     description: 'A life in service and a portrait.',
     image_url: '/image.png',
-    image_alt: "Dr. Girma Ababi Portrait",
+    image_alt: 'Dr. Girma Ababi Portrait',
     metadata: {},
     blocks: [
-      { block_type: 'chapter', title: 'Early Life & Training', body: 'Born in Tulu Milky and educated at Gebreguracha High School, I earned my MD from the University of Gondar and Addis Ababa University. I became one of Ethiopia\'s leading Anatomical Pathologists after completing my specialty at AAU, serving as Chief Resident for two years.', sort_order: 1 },
-      { block_type: 'chapter', title: 'Clinical & Academic Career', body: 'I built my career as a clinical specialist and academic, serving as Assistant Professor at YLC Health Sciences and practicing anatomical pathology.', sort_order: 2 },
-      { block_type: 'chapter', title: 'Entrepreneurship & Leadership', body: 'Around 2010, I stepped into healthcare entrepreneurship to build an integrated system spanning hospitals, pharma manufacturing, training, research, and financing. In 2019 I attended Stanford GSB Seed Program and in 2023 I was appointed Vice President of the Ethiopian Healthcare Federation.', sort_order: 3 },
+      {
+        block_type: 'chapter',
+        title: 'Early Life & Training',
+        body: "Born in Tulu Milky and educated at Gebreguracha High School, I earned my MD from the University of Gondar and Addis Ababa University. I became one of Ethiopia's leading Anatomical Pathologists after completing my specialty at AAU, serving as Chief Resident for two years.",
+        sort_order: 1,
+      },
+      {
+        block_type: 'chapter',
+        title: 'Clinical & Academic Career',
+        body: 'I built my career as a clinical specialist and academic, serving as Assistant Professor at YLC Health Sciences and practicing anatomical pathology.',
+        sort_order: 2,
+      },
+      {
+        block_type: 'chapter',
+        title: 'Entrepreneurship & Leadership',
+        body: 'Around 2010, I stepped into healthcare entrepreneurship to build an integrated system spanning hospitals, pharma manufacturing, training, research, and financing. In 2019 I attended Stanford GSB Seed Program and in 2023 I was appointed Vice President of the Ethiopian Healthcare Federation.',
+        sort_order: 3,
+      },
     ],
   },
   {
@@ -100,26 +138,87 @@ const sectionSeeds = [
     description: '',
     metadata: {},
     blocks: [
-      { block_type: 'value', title: 'Institution Building', body: 'True impact comes from building institutions that outlast any individual. I am committed to creating sustainable healthcare organizations that serve generations.', sort_order: 1, metadata: { icon: 'hospital' } },
-      { block_type: 'value', title: 'Professional Empowerment', body: 'Healthcare transformation happens through empowered professionals. I invest in training, mentorship, and creating opportunities for the next generation of healthcare leaders.', sort_order: 2, metadata: { icon: 'users' } },
-      { block_type: 'value', title: 'Integrated Systems Thinking', body: 'Healthcare cannot be transformed piece by piece. An integrated approach spanning hospitals, education, manufacturing, research, digital health, and financing is the only path to lasting change.', sort_order: 3, metadata: { icon: 'grid' } },
-      { block_type: 'value', title: 'Service to Nation', body: 'From clinical practice to policy leadership, my work has always been driven by a deep commitment to serving Ethiopia and its people.', sort_order: 4, metadata: { icon: 'heart' } },
+      {
+        block_type: 'value',
+        title: 'Institution Building',
+        body: 'True impact comes from building institutions that outlast any individual. I am committed to creating sustainable healthcare organizations that serve generations.',
+        sort_order: 1,
+        metadata: { icon: 'hospital' },
+      },
+      {
+        block_type: 'value',
+        title: 'Professional Empowerment',
+        body: 'Healthcare transformation happens through empowered professionals. I invest in training, mentorship, and creating opportunities for the next generation of healthcare leaders.',
+        sort_order: 2,
+        metadata: { icon: 'users' },
+      },
+      {
+        block_type: 'value',
+        title: 'Integrated Systems Thinking',
+        body: 'Healthcare cannot be transformed piece by piece. An integrated approach spanning hospitals, education, manufacturing, research, digital health, and financing is the only path to lasting change.',
+        sort_order: 3,
+        metadata: { icon: 'grid' },
+      },
+      {
+        block_type: 'value',
+        title: 'Service to Nation',
+        body: 'From clinical practice to policy leadership, my work has always been driven by a deep commitment to serving Ethiopia and its people.',
+        sort_order: 4,
+        metadata: { icon: 'heart' },
+      },
     ],
   },
   {
     slug: 'liyana_framework',
     section_type: 'framework_grid',
     eyebrow: 'The Liyana Healthcare Framework',
-    title: 'A vertically integrated ecosystem <em class="not-italic text-teal-mid">for sovereignty and scale.</em>',
+    title:
+      'A vertically integrated ecosystem <em class="not-italic text-teal-mid">for sovereignty and scale.</em>',
     description: '',
     metadata: { cta: [{ label: 'Explore Ecosystem', path: '/ecosystem', variant: 'ghost' }] },
     blocks: [
-      { block_type: 'framework_node', title: 'Healthcare Delivery', body: 'The Yanet Chain of Hospitals provides tertiary diagnostic services, therapeutic care centers, and outpatient clinics across Ethiopia, forming the clinical backbone of Liyana Healthcare.', metadata: { icon: 'hospital', category: 'hospital' }, sort_order: 1 },
-      { block_type: 'framework_node', title: 'Education & Training', body: 'YLC Health Sciences College delivers medical professional training, research programs, and academic pathways for the next generation of healthcare professionals.', metadata: { icon: 'graduation-cap', category: 'education' }, sort_order: 2 },
-      { block_type: 'framework_node', title: 'Manufacturing', body: 'Pharmaceutical production and local drug manufacturing facilities ensure reliable supply chains, retail distribution, and affordable access to essential medicines.', metadata: { icon: 'flask', category: 'manufacturing' }, sort_order: 3 },
-      { block_type: 'framework_node', title: 'Research', body: 'Medical research programs, anatomical pathology research, academic publications, and innovation think-tanks drive evidence-based advancement in healthcare.', metadata: { icon: 'microscope', category: 'research' }, sort_order: 4 },
-      { block_type: 'framework_node', title: 'Digital Health', body: 'Healthcare technology platforms, digital health innovation, patient data systems, and telemedicine solutions bridge the gap between patients and providers.', metadata: { icon: 'mobile', category: 'digital-health' }, sort_order: 5 },
-      { block_type: 'framework_node', title: 'Healthcare Financing', body: 'Health insurance products, life insurance offerings, and innovative healthcare financing models make quality care accessible and affordable.', metadata: { icon: 'wallet', category: 'insurance' }, sort_order: 6 },
+      {
+        block_type: 'framework_node',
+        title: 'Healthcare Delivery',
+        body: 'The Yanet Chain of Hospitals provides tertiary diagnostic services, therapeutic care centers, and outpatient clinics across Ethiopia, forming the clinical backbone of Liyana Healthcare.',
+        metadata: { icon: 'hospital', category: 'hospital' },
+        sort_order: 1,
+      },
+      {
+        block_type: 'framework_node',
+        title: 'Education & Training',
+        body: 'YLC Health Sciences College delivers medical professional training, research programs, and academic pathways for the next generation of healthcare professionals.',
+        metadata: { icon: 'graduation-cap', category: 'education' },
+        sort_order: 2,
+      },
+      {
+        block_type: 'framework_node',
+        title: 'Manufacturing',
+        body: 'Pharmaceutical production and local drug manufacturing facilities ensure reliable supply chains, retail distribution, and affordable access to essential medicines.',
+        metadata: { icon: 'flask', category: 'manufacturing' },
+        sort_order: 3,
+      },
+      {
+        block_type: 'framework_node',
+        title: 'Research',
+        body: 'Medical research programs, anatomical pathology research, academic publications, and innovation think-tanks drive evidence-based advancement in healthcare.',
+        metadata: { icon: 'microscope', category: 'research' },
+        sort_order: 4,
+      },
+      {
+        block_type: 'framework_node',
+        title: 'Digital Health',
+        body: 'Healthcare technology platforms, digital health innovation, patient data systems, and telemedicine solutions bridge the gap between patients and providers.',
+        metadata: { icon: 'mobile', category: 'digital-health' },
+        sort_order: 5,
+      },
+      {
+        block_type: 'framework_node',
+        title: 'Healthcare Financing',
+        body: 'Health insurance products, life insurance offerings, and innovative healthcare financing models make quality care accessible and affordable.',
+        metadata: { icon: 'wallet', category: 'insurance' },
+        sort_order: 6,
+      },
     ],
   },
   {
@@ -127,7 +226,8 @@ const sectionSeeds = [
     section_type: 'foundation_preview',
     eyebrow: 'Foundation',
     title: 'The <em class="text-teal-mid not-italic">LUCS Foundation</em>',
-    description: 'Founded and patroned by Dr. Girma Ababi, the LUCS Foundation is dedicated to transforming lives through community health outreach, education access, healthcare access in underserved regions, professional empowerment & mentorship, and future healthcare infrastructure development.',
+    description:
+      'Founded and patroned by Dr. Girma Ababi, the LUCS Foundation is dedicated to transforming lives through community health outreach, education access, healthcare access in underserved regions, professional empowerment & mentorship, and future healthcare infrastructure development.',
     metadata: {
       cta: [{ label: 'Explore Foundation', path: '/foundation', variant: 'ghost' }],
       stats: [
@@ -138,10 +238,30 @@ const sectionSeeds = [
       ],
     },
     blocks: [
-      { block_type: 'pillar', title: 'Community Health', metadata: { icon: 'heart-pulse' }, sort_order: 1 },
-      { block_type: 'pillar', title: 'Education Access', metadata: { icon: 'graduation-cap' }, sort_order: 2 },
-      { block_type: 'pillar', title: 'Healthcare Infrastructure', metadata: { icon: 'hospital' }, sort_order: 3 },
-      { block_type: 'pillar', title: 'Professional Mentorship', metadata: { icon: 'handshake' }, sort_order: 4 },
+      {
+        block_type: 'pillar',
+        title: 'Community Health',
+        metadata: { icon: 'heart-pulse' },
+        sort_order: 1,
+      },
+      {
+        block_type: 'pillar',
+        title: 'Education Access',
+        metadata: { icon: 'graduation-cap' },
+        sort_order: 2,
+      },
+      {
+        block_type: 'pillar',
+        title: 'Healthcare Infrastructure',
+        metadata: { icon: 'hospital' },
+        sort_order: 3,
+      },
+      {
+        block_type: 'pillar',
+        title: 'Professional Mentorship',
+        metadata: { icon: 'handshake' },
+        sort_order: 4,
+      },
     ],
   },
   {
@@ -152,10 +272,50 @@ const sectionSeeds = [
     description: 'Distinctions that reflect a career of transformative leadership in healthcare.',
     metadata: { cta: [{ label: 'View All', path: '/awards-recognition', variant: 'ghost' }] },
     blocks: [
-      { block_type: 'award', title: 'Special Alumni Award for Extraordinary Achievement', body: 'Recognized by the University of Gondar with the Special Alumni Award for extraordinary achievement and distinguished contributions to healthcare and national development.', image_url: '/image.png', image_alt: 'Special Alumni Award for Extraordinary Achievement', metadata: { organization: 'University of Gondar', year: 2024, category: 'alumni' }, sort_order: 1 },
-      { block_type: 'award', title: 'Vice Presidential Appointment – National Leadership', body: 'Appointed Vice President of the Ethiopian Healthcare Federation, recognizing national leadership in healthcare policy, strategy, and sector development.', image_url: '/image.png', image_alt: 'Vice Presidential Appointment – National Leadership', metadata: { organization: 'Ethiopian Healthcare Federation', year: 2023, category: 'leadership' }, sort_order: 2 },
-      { block_type: 'award', title: 'Seed Program Graduate – Emerging Economies Leadership', body: 'Graduated from the Stanford GSB Seed Transformation Program, recognized for leadership in building transformative enterprises in emerging economies.', image_url: '/image.png', image_alt: 'Seed Program Graduate – Emerging Economies Leadership', metadata: { organization: 'Stanford University Graduate School of Business', year: 2021, category: 'industry' }, sort_order: 3 },
-      { block_type: 'award', title: 'Rotarian – Community Leadership Member', body: 'Honored as a Rotarian and Community Leadership Member for dedicated service to community health and development initiatives.', image_url: '/image.png', image_alt: 'Rotarian – Community Leadership Member', metadata: { organization: 'Rotary International', year: 2023, category: 'professional' }, sort_order: 4 },
+      {
+        block_type: 'award',
+        title: 'Special Alumni Award for Extraordinary Achievement',
+        body: 'Recognized by the University of Gondar with the Special Alumni Award for extraordinary achievement and distinguished contributions to healthcare and national development.',
+        image_url: '/image.png',
+        image_alt: 'Special Alumni Award for Extraordinary Achievement',
+        metadata: { organization: 'University of Gondar', year: 2024, category: 'alumni' },
+        sort_order: 1,
+      },
+      {
+        block_type: 'award',
+        title: 'Vice Presidential Appointment – National Leadership',
+        body: 'Appointed Vice President of the Ethiopian Healthcare Federation, recognizing national leadership in healthcare policy, strategy, and sector development.',
+        image_url: '/image.png',
+        image_alt: 'Vice Presidential Appointment – National Leadership',
+        metadata: {
+          organization: 'Ethiopian Healthcare Federation',
+          year: 2023,
+          category: 'leadership',
+        },
+        sort_order: 2,
+      },
+      {
+        block_type: 'award',
+        title: 'Seed Program Graduate – Emerging Economies Leadership',
+        body: 'Graduated from the Stanford GSB Seed Transformation Program, recognized for leadership in building transformative enterprises in emerging economies.',
+        image_url: '/image.png',
+        image_alt: 'Seed Program Graduate – Emerging Economies Leadership',
+        metadata: {
+          organization: 'Stanford University Graduate School of Business',
+          year: 2021,
+          category: 'industry',
+        },
+        sort_order: 3,
+      },
+      {
+        block_type: 'award',
+        title: 'Rotarian – Community Leadership Member',
+        body: 'Honored as a Rotarian and Community Leadership Member for dedicated service to community health and development initiatives.',
+        image_url: '/image.png',
+        image_alt: 'Rotarian – Community Leadership Member',
+        metadata: { organization: 'Rotary International', year: 2023, category: 'professional' },
+        sort_order: 4,
+      },
     ],
   },
   {
@@ -163,7 +323,8 @@ const sectionSeeds = [
     section_type: 'quote',
     eyebrow: 'Leadership Philosophy',
     title: '',
-    description: '"Building institutions, empowering professionals, and transforming healthcare for future generations — that is the only legacy worth pursuing."',
+    description:
+      '"Building institutions, empowering professionals, and transforming healthcare for future generations — that is the only legacy worth pursuing."',
     subtitle: '— Dr. Girma Ababi, Founder & CEO, Liyana Healthcare',
     metadata: {},
     blocks: [],
@@ -180,19 +341,22 @@ const identitySeeds = [
   {
     label: '02',
     title: 'Founder & CEO, Liyana Healthcare',
-    description: 'Yanet Chain of Hospitals · Health Sciences College · Pharmaceuticals · 1,000+ employees',
+    description:
+      'Yanet Chain of Hospitals · Health Sciences College · Pharmaceuticals · 1,000+ employees',
     sort_order: 2,
   },
   {
     label: '03',
     title: 'Vice President, Ethiopian Healthcare Federation',
-    description: 'National policy, strategy & regulatory advisory roles · Ministry of Health councils',
+    description:
+      'National policy, strategy & regulatory advisory roles · Ministry of Health councils',
     sort_order: 3,
   },
   {
     label: '04',
     title: 'Board Chairman · Stanford GSB Alumni · Philanthropist',
-    description: '4 boards · LUCS Foundation Founder & Patron · University of Gondar Special Alumni Awardee',
+    description:
+      '4 boards · LUCS Foundation Founder & Patron · University of Gondar Special Alumni Awardee',
     sort_order: 4,
   },
 ]
@@ -407,13 +571,49 @@ async function initCmsSchema() {
       CONSTRAINT navigation_items_parent_fk FOREIGN KEY (parent_id) REFERENCES navigation_items (id) ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
   `)
+  await db.query(`
+CREATE TABLE IF NOT EXISTS contact_settings (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    heading VARCHAR(255),
+    email VARCHAR(255),
+    phone VARCHAR(100),
+    location TEXT,
+    image_url TEXT,
+    image_caption VARCHAR(255)
+)
+`)
+
+  await db.query(`
+CREATE TABLE IF NOT EXISTS inquiry_types (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    label VARCHAR(255) NOT NULL,
+    value VARCHAR(255) NOT NULL UNIQUE
+)
+`)
+
+  await db.query(`
+CREATE TABLE IF NOT EXISTS contact_messages (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    organization VARCHAR(255) NOT NULL,
+    phone VARCHAR(100),
+    inquiry_type VARCHAR(255),
+    subject VARCHAR(255),
+    message TEXT,
+    is_read BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+)
+`)
 
   await seedCms()
 }
 
 async function seedCms() {
   for (const section of sectionSeeds) {
-    const [[existingSection]] = await db.query('SELECT id FROM cms_sections WHERE slug = ?', [section.slug])
+    const [[existingSection]] = await db.query('SELECT id FROM cms_sections WHERE slug = ?', [
+      section.slug,
+    ])
     if (!existingSection) {
       const [result] = await db.query(
         `INSERT INTO cms_sections
@@ -460,7 +660,14 @@ async function seedCms() {
       await db.query(
         `INSERT INTO identity_items (label, title, description, icon, image_url, sort_order)
          VALUES (?, ?, ?, ?, ?, ?)`,
-        [item.label, item.title, item.description, item.icon || null, item.image_url || null, item.sort_order],
+        [
+          item.label,
+          item.title,
+          item.description,
+          item.icon || null,
+          item.image_url || null,
+          item.sort_order,
+        ],
       )
     }
   }
@@ -615,13 +822,17 @@ router.put('/sections/:slug', verifyToken, async (req, res) => {
       ],
     )
 
-    const [[storedSection]] = await connection.query('SELECT id FROM cms_sections WHERE slug = ?', [req.params.slug])
+    const [[storedSection]] = await connection.query('SELECT id FROM cms_sections WHERE slug = ?', [
+      req.params.slug,
+    ])
     if (!storedSection) {
       await connection.rollback()
       return res.status(404).json({ message: 'Section not found' })
     }
 
-    await connection.query('DELETE FROM cms_section_blocks WHERE section_id = ?', [storedSection.id])
+    await connection.query('DELETE FROM cms_section_blocks WHERE section_id = ?', [
+      storedSection.id,
+    ])
     for (const [index, block] of blocks.entries()) {
       await connection.query(
         `INSERT INTO cms_section_blocks
@@ -666,7 +877,15 @@ router.post('/identity-items', verifyToken, async (req, res) => {
     const [result] = await db.query(
       `INSERT INTO identity_items (label, title, description, icon, image_url, sort_order, is_active)
        VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [label || null, title, description || null, icon || null, image_url || null, sort_order || 0, is_active === 0 ? 0 : 1],
+      [
+        label || null,
+        title,
+        description || null,
+        icon || null,
+        image_url || null,
+        sort_order || 0,
+        is_active === 0 ? 0 : 1,
+      ],
     )
     res.status(201).json({ id: result.insertId })
   } catch (error) {
@@ -716,7 +935,8 @@ router.get('/timeline-events', async (req, res) => {
 
 router.post('/timeline-events', verifyToken, async (req, res) => {
   try {
-    const { slug, year, title, subtitle, description, category, icon, sort_order, is_active } = req.body
+    const { slug, year, title, subtitle, description, category, icon, sort_order, is_active } =
+      req.body
     const [result] = await db.query(
       `INSERT INTO timeline_events (slug, year, title, subtitle, description, category, icon, sort_order, is_active)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -740,7 +960,8 @@ router.post('/timeline-events', verifyToken, async (req, res) => {
 
 router.put('/timeline-events/:id', verifyToken, async (req, res) => {
   try {
-    const { slug, year, title, subtitle, description, category, icon, sort_order, is_active } = req.body
+    const { slug, year, title, subtitle, description, category, icon, sort_order, is_active } =
+      req.body
     await db.query(
       `UPDATE timeline_events SET
         slug = ?, year = ?, title = ?, subtitle = ?, description = ?, category = ?, icon = ?, sort_order = ?, is_active = ?

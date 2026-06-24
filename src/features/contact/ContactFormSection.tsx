@@ -62,9 +62,7 @@ export default function ContactFormSection() {
             transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
             className="text-center p-8 md:p-12 border border-rule bg-white shadow-sm max-w-xl mx-auto relative overflow-hidden"
           >
-            {/* Soft decorative accent */}
             <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-teal to-teal-mid" />
-
             <p className="font-mono text-[9px] tracking-[0.2em] uppercase text-teal mb-4">Sent</p>
             <h2 className="font-serif text-4xl md:text-5xl font-light text-ink mb-4">
               Message sent
@@ -80,7 +78,6 @@ export default function ContactFormSection() {
 
   return (
     <section ref={sectionRef} className="relative overflow-hidden section-padding bg-paper">
-      {/* Ambient backgrounds */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-40">
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
@@ -98,7 +95,6 @@ export default function ContactFormSection() {
 
       <Container className="relative z-10">
         <div className="grid lg:grid-cols-5 gap-12 lg:gap-20">
-          {/* Sidebar Side (Moved to Left) */}
           <div className="lg:col-span-2">
             <div className="mb-8">
               <div className="section-header mb-4">
@@ -127,7 +123,6 @@ export default function ContactFormSection() {
               </motion.h2>
             </div>
 
-            {/* Contact details */}
             <div className="space-y-6 mb-12">
               {[
                 { label: 'Email', value: contactInfo.email },
@@ -154,7 +149,6 @@ export default function ContactFormSection() {
               ))}
             </div>
 
-            {/* Image to fill blank space */}
             <motion.div
               initial={{ opacity: 0, y: 24 }}
               animate={isInView ? { opacity: 1, y: 0 } : {}}
@@ -177,9 +171,7 @@ export default function ContactFormSection() {
             </motion.div>
           </div>
 
-          {/* Form Side (Moved to Right) */}
           <div className="lg:col-span-3">
-            {/* Header animation */}
             <div className="mb-8">
               <div className="section-header mb-4">
                 <motion.span
@@ -211,7 +203,6 @@ export default function ContactFormSection() {
               onSubmit={handleSubmit(onSubmit)}
               className="space-y-6 bg-white p-8 border border-rule shadow-sm"
             >
-              {/* Row 1 */}
               <motion.div
                 variants={formItemVariants}
                 initial="hidden"
@@ -243,7 +234,6 @@ export default function ContactFormSection() {
                 </div>
               </motion.div>
 
-              {/* Row 2 */}
               <motion.div
                 variants={formItemVariants}
                 initial="hidden"
@@ -276,7 +266,6 @@ export default function ContactFormSection() {
                 </div>
               </motion.div>
 
-              {/* Inquiry Type */}
               <motion.div
                 variants={formItemVariants}
                 initial="hidden"
@@ -301,7 +290,6 @@ export default function ContactFormSection() {
                 )}
               </motion.div>
 
-              {/* Subject */}
               <motion.div
                 variants={formItemVariants}
                 initial="hidden"
@@ -321,7 +309,6 @@ export default function ContactFormSection() {
                 )}
               </motion.div>
 
-              {/* Message */}
               <motion.div
                 variants={formItemVariants}
                 initial="hidden"
@@ -342,7 +329,6 @@ export default function ContactFormSection() {
                 )}
               </motion.div>
 
-              {/* Submit Button */}
               <motion.div
                 variants={formItemVariants}
                 initial="hidden"

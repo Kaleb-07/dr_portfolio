@@ -22,6 +22,8 @@ const CmsEditor = lazy(() => import('@/admin/pages/CmsEditor.jsx'))
 const StoryEditor = lazy(() => import('@/admin/pages/StoryEditor.jsx'))
 const JourneyEditor = lazy(() => import('@/admin/pages/JourneyEditor.jsx'))
 const AdminLayout = lazy(() => import('@/admin/layout/AdminLayout.jsx'))
+const ContactEditor = lazy(() => import('@/admin/pages/ContactEditor.jsx'))
+const ContactMessages = lazy(() => import('@/admin/pages/ContactMessages.jsx'))
 
 function RequireAdmin({ children }: { children: ReactNode }) {
   const token = localStorage.getItem('token')
@@ -49,6 +51,7 @@ export function AppRouter() {
   return (
     <Suspense fallback={<PageLoader />}>
       <Routes>
+        {/* Public routes */}
         <Route path="/" element={<HomePage />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/leadership" element={<LeadershipPage />} />
@@ -59,8 +62,10 @@ export function AppRouter() {
         <Route path="/foundation" element={<FoundationPage />} />
         <Route path="/media-speaking" element={<MediaPage />} />
         <Route path="/gallery" element={<GalleryPage />} />
-        <Route path="/contact" element={<ContactPage />} />
+        <Route path="/contact" element={<ContactPage />} /> {/* 👈 public contact page */}
+        {/* Admin login – outside the protected group */}
         <Route path="/admin/login" element={<Login />} />
+        {/* Protected admin routes */}
         <Route
           path="/admin"
           element={
@@ -74,6 +79,11 @@ export function AppRouter() {
           <Route path="story/:sectionSlug" element={<StoryEditor />} />
           <Route path="content" element={<CmsEditor />} />
           <Route path="hero" element={<HeroEditor />} />
+
+          {/* ✅ CONTACT ROUTES MOVED INSIDE /admin */}
+          <Route path="contact" element={<ContactEditor />} />
+          <Route path="contact/messages" element={<ContactMessages />} />
+
           <Route path="awards" element={<SectionPlaceholder title="Awards" />} />
           <Route path="leadership" element={<SectionPlaceholder title="Leadership" />} />
           <Route path="timeline" element={<SectionPlaceholder title="Timeline" />} />
@@ -82,18 +92,32 @@ export function AppRouter() {
           <Route path="profile/education" element={<SectionPlaceholder title="Education" />} />
           <Route path="profile/gallery" element={<SectionPlaceholder title="Gallery" />} />
           <Route path="ecosystem" element={<SectionPlaceholder title="Ecosystem" />} />
-          <Route path="ecosystem/vision" element={<SectionPlaceholder title="Ecosystem Vision" />} />
-          <Route path="ecosystem/breakdown" element={<SectionPlaceholder title="Ecosystem Breakdown" />} />
+          <Route
+            path="ecosystem/vision"
+            element={<SectionPlaceholder title="Ecosystem Vision" />}
+          />
+          <Route
+            path="ecosystem/breakdown"
+            element={<SectionPlaceholder title="Ecosystem Breakdown" />}
+          />
           <Route path="impact" element={<SectionPlaceholder title="Impact" />} />
-          <Route path="impact/public-service" element={<SectionPlaceholder title="Public Service" />} />
+          <Route
+            path="impact/public-service"
+            element={<SectionPlaceholder title="Public Service" />}
+          />
           <Route path="impact/leadership" element={<SectionPlaceholder title="Leadership" />} />
           <Route path="impact/foundation" element={<SectionPlaceholder title="Foundation" />} />
           <Route path="achievements" element={<SectionPlaceholder title="Achievements" />} />
-          <Route path="achievements/awards" element={<SectionPlaceholder title="Awards & Recognition" />} />
-          <Route path="achievements/media" element={<SectionPlaceholder title="Media & Speaking" />} />
-          <Route path="contact" element={<SectionPlaceholder title="Contact" />} />
-          <Route path="contact/inquiry-types" element={<SectionPlaceholder title="Inquiry Types" />} />
+          <Route
+            path="achievements/awards"
+            element={<SectionPlaceholder title="Awards & Recognition" />}
+          />
+          <Route
+            path="achievements/media"
+            element={<SectionPlaceholder title="Media & Speaking" />}
+          />
         </Route>
+        {/* 404 catch-all */}
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </Suspense>

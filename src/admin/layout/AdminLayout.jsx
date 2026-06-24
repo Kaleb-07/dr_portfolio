@@ -69,7 +69,7 @@ const navItems = [
     icon: Mail,
     children: [
       { label: 'Contact Details', path: '/admin/contact' },
-      { label: 'Inquiry Types', path: '/admin/contact/inquiry-types' },
+      { label: 'Messages', path: '/admin/contact/messages' },
     ],
   },
 ]
