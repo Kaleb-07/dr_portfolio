@@ -600,7 +600,29 @@ export default function EducationEditor() {
       {/* Memberships Editor */}
       <div className="grid gap-6 ">
         <div className="space-y-4 rounded-3xl border border-rule bg-paper-card p-6 shadow-sm">
-          <h2 className="text-2xl font-semibold text-slate-900">Affiliations / Memberships</h2>
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h2 className="text-2xl font-semibold text-slate-900">Affiliations / Memberships</h2>
+            </div>
+            <div className="flex items-center gap-2">
+              {/* <button
+                type="button"
+                className="inline-flex items-center gap-2 rounded-xl bg-teal px-4 py-2.5 text-sm font-semibold text-white transition-all hover:bg-teal-600"
+                onClick={addMembership}
+              >
+                <Plus size={16} /> Add Item
+              </button> */}
+              <button
+                type="button"
+                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-teal-500 to-teal-600 px-5 py-2.5 font-semibold text-white transition-all hover:shadow-xl"
+                onClick={saveMemberships}
+                disabled={isSaving}
+              >
+                <Save size={16} /> Save Memberships
+              </button>
+            </div>
+          </div>
+          {/* <h2 className="text-2xl font-semibold text-slate-900">Affiliations / Memberships</h2> */}
           {membershipsDraft && (
             <>
               <Field label="Eyebrow / Tag" hint="Small label above the headline">
