@@ -1,62 +1,23 @@
 import { AnimatedSection, Container } from '@/components/shared'
-import { education as staticEducation } from '@/data/education'
+import { education } from '@/data/education'
 import { FaGraduationCap, FaChevronRight } from 'react-icons/fa'
-import { useEffect, useState } from 'react'
-import { fetchSiteContent } from '@/services/cms'
 
 export default function EducationListSection() {
-  const [items, setItems] = useState(staticEducation)
-  const [eyebrow, setEyebrow] = useState('Credentials')
-  const [title, setTitle] = useState('Academic foundations')
-
-  useEffect(() => {
-    let active = true
-    const load = async () => {
-      try {
-        const content = await fetchSiteContent()
-        const section = content.sections?.education
-        if (!active) return
-        if (section) {
-          setEyebrow(section.eyebrow || 'Credentials')
-          setTitle(section.title ? String(section.title).replace(/<[^>]*>/g, '') : 'Academic foundations')
-          const blocks = (section.blocks || []).map((b) => ({
-            id: b.id || b.slug || `cms-${Math.random().toString(36).slice(2, 9)}`,
-            institution: b.title || b.metadata?.institution || '',
-            degree: b.subtitle || b.metadata?.degree || '',
-            field: b.metadata?.field || '',
-            year: b.metadata?.year || '',
-            description: b.body || '',
-            highlights: Array.isArray(b.metadata?.highlights) ? b.metadata.highlights : [],
-          }))
-          if (blocks.length > 0) setItems(blocks)
-        }
-      } catch (e) {
-        // silently fail and keep static data
-      }
-    }
-
-    load()
-    return () => {
-      active = false
-    }
-  }, [])
   return (
     <section className="section-padding bg-paper">
       <Container>
         <AnimatedSection>
           <div className="section-header">
-            <span className="section-tag">{eyebrow}</span>
+            <span className="section-tag">Credentials</span>
             <span className="section-rule" />
           </div>
           <h2 className="font-serif text-4xl md:text-5xl font-light text-ink mb-16">
-            {title.includes('<') ? (<span dangerouslySetInnerHTML={{ __html: title }} />) : (
-              <>{title}</>
-            )}
+            Academic <em className="text-teal-mid not-italic">foundations</em>
           </h2>
         </AnimatedSection>
 
         <div className="max-w-4xl mx-auto space-y-12">
-          {items.map((item, i) => (
+          {education.map((item, i) => (
             <AnimatedSection key={item.id} delay={i * 0.1}>
               <div className="grid md:grid-cols-12 gap-6 md:gap-12 items-start group relative">
                 {/* Visual vertical side anchor */}
@@ -70,9 +31,9 @@ export default function EducationListSection() {
                     </span>
                     <span className="font-mono text-xs tracking-widest text-teal font-bold">{item.year}</span>
                   </div>
-                  <h3 className="font-serif text-lg text-ink font-normal leading-snug">
+                  <h4 className="font-serif text-lg text-ink font-normal leading-snug">
                     {item.institution}
-                  </h3>
+                  </h4>
                   <p className="font-mono text-[9px] tracking-wider text-ink-muted uppercase mt-1">
                     {item.field}
                   </p>
@@ -85,7 +46,7 @@ export default function EducationListSection() {
                     {item.description}
                   </p>
                   
-                  {item.highlights && item.highlights.length > 0 && (
+                  {item.highlights.length > 0 && (
                     <div className="space-y-3">
                       <p className="font-mono text-[8px] tracking-widest text-gold uppercase font-bold">Highlights</p>
                       <ul className="space-y-2">
@@ -100,7 +61,7 @@ export default function EducationListSection() {
                   )}
                 </div>
               </div>
-              {i < items.length - 1 && (
+              {i < education.length - 1 && (
                 <div className="border-t border-rule mt-12 mb-4" />
               )}
             </AnimatedSection>
@@ -110,4 +71,3 @@ export default function EducationListSection() {
     </section>
   )
 }
-

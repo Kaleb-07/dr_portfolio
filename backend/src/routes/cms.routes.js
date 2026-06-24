@@ -13,8 +13,6 @@ const SECTION_SLUGS = [
   'liyana_framework',
   'foundation_story',
   'recognition_awards',
-  'education',
-  'education_memberships',
   'leadership_philosophy',
 ]
 
@@ -169,54 +167,6 @@ const sectionSeeds = [
     subtitle: '— Dr. Girma Ababi, Founder & CEO, Liyana Healthcare',
     metadata: {},
     blocks: [],
-  },
-  {
-    slug: 'education',
-    section_type: 'ordered_collection',
-    eyebrow: 'Credentials',
-    title: 'Academic foundations',
-    description: '',
-    metadata: {},
-    blocks: [
-      {
-        block_type: 'education_item',
-        title: 'University of Gondar & AAU/HSC',
-        subtitle: 'MD, Medicine',
-        body: "Earned his medical degree from the University of Gondar and Addis Ababa University Health Sciences Center, laying the foundation for a career in clinical medicine and anatomical pathology.",
-        metadata: { field: 'Medicine', year: '1992', highlights: ['Graduated from the joint University of Gondar and AAU/HSC program', 'Completed rigorous clinical training across multiple disciplines'] },
-        sort_order: 1,
-      },
-      {
-        block_type: 'education_item',
-        title: 'Addis Ababa University',
-        subtitle: 'Specialty Diploma in Anatomical Pathology',
-        body: "Completed a Specialty Diploma in Anatomical Pathology at Addis Ababa University from January 2002 to March 2006. Served as Chief Resident for two years, demonstrating exceptional clinical and leadership skills.",
-        metadata: { field: 'Anatomical Pathology', year: '2002', highlights: ['Chief Resident for 2 years during specialty training', 'Advanced expertise in anatomical pathology and diagnostics'] },
-        sort_order: 2,
-      },
-      {
-        block_type: 'education_item',
-        title: 'Stanford University Graduate School of Business',
-        subtitle: 'Seed Transformation Program',
-        body: "Selected for the Stanford GSB Seed Transformation Program (January 2019 – June 2021), an intensive leadership and organizational transformation program for emerging economy leaders.",
-        metadata: { field: 'Organizational Leadership', year: '2019', highlights: ['Completed the Seed Transformation Program at Stanford GSB', 'Focused on organizational leadership and enterprise scaling', 'Joined a global network of transformative entrepreneurs'] },
-        sort_order: 3,
-      },
-    ],
-  },
-  {
-    slug: 'education_memberships',
-    section_type: 'list',
-    eyebrow: 'Affiliations',
-    title: 'Professional memberships',
-    description: 'Active roles across national and international professional bodies in healthcare leadership and community service.',
-    metadata: {},
-    blocks: [
-      { block_type: 'membership', title: 'Regional Board Member, Ethiopian Medical Association (EMA)', sort_order: 1 },
-      { block_type: 'membership', title: 'Ethiopian Society of Anatomical Pathologists', sort_order: 2 },
-      { block_type: 'membership', title: 'Vice President, Ethiopian Private Health Facilities Association', sort_order: 3 },
-      { block_type: 'membership', title: 'International Rotarian – Rotary International', sort_order: 4 },
-    ],
   },
 ]
 
@@ -664,40 +614,21 @@ router.put('/sections/:slug', verifyToken, async (req, res) => {
         req.params.slug,
       ],
     )
+
     const [[storedSection]] = await connection.query('SELECT id FROM cms_sections WHERE slug = ?', [req.params.slug])
-    let sectionId
-    if (storedSection) {
-      sectionId = storedSection.id
-    } else {
-      const [insertResult] = await connection.query(
-        `INSERT INTO cms_sections
-          (slug, section_type, eyebrow, title, subtitle, description, image_url, image_alt, metadata, sort_order, is_active)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [
-          req.params.slug,
-          section.section_type || 'generic',
-          section.eyebrow || null,
-          section.title || null,
-          section.subtitle || null,
-          section.description || null,
-          section.image_url || null,
-          section.image_alt || null,
-          serializeJson(section.metadata),
-          section.sort_order || 0,
-          section.is_active === 0 ? 0 : 1,
-        ],
-      )
-      sectionId = insertResult.insertId
+    if (!storedSection) {
+      await connection.rollback()
+      return res.status(404).json({ message: 'Section not found' })
     }
 
-    await connection.query('DELETE FROM cms_section_blocks WHERE section_id = ?', [sectionId])
+    await connection.query('DELETE FROM cms_section_blocks WHERE section_id = ?', [storedSection.id])
     for (const [index, block] of blocks.entries()) {
       await connection.query(
         `INSERT INTO cms_section_blocks
           (section_id, block_type, eyebrow, title, body, image_url, image_alt, metadata, sort_order, is_active)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
-          sectionId,
+          storedSection.id,
           block.block_type || 'content',
           block.eyebrow || null,
           block.title || null,
