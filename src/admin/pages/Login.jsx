@@ -1,4 +1,4 @@
-import { Lock, LogIn, Mail } from 'lucide-react'
+import { Lock, LogIn, Mail, Zap } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../api'
@@ -27,58 +27,75 @@ export default function Login() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-paper px-5 py-12 text-ink">
-      <section className="w-full max-w-md border border-rule bg-paper-card p-6 shadow-[0_18px_60px_rgba(13,13,13,0.06)] sm:p-8">
-        <div className="mb-8 border-b border-rule pb-7">
-          <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-teal">Admin Access</p>
-          <h1 className="mt-3 font-serif text-4xl font-light text-ink">Sign in to CMS</h1>
-          <p className="mt-3 text-sm font-light leading-relaxed text-ink-mid">
-            Manage portfolio content with the same editorial tone as the public site.
+    <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100/60 px-5 py-12">
+      <section className="w-full max-w-md rounded-2xl border border-slate-200 bg-white/80 backdrop-blur-sm p-6 shadow-sm sm:p-8">
+        {/* Header */}
+        <div className="mb-8 border-b border-slate-200 pb-7">
+          <div className="mb-4 flex items-center gap-2">
+            <Zap size={16} className="text-emerald-600" />
+            <p className="text-xs font-bold uppercase tracking-widest text-emerald-600">
+              Admin Access
+            </p>
+          </div>
+          <h1 className="text-4xl font-bold text-slate-900">Sign in to CMS</h1>
+          <p className="mt-3 text-sm font-light leading-relaxed text-slate-600">
+            Manage your portfolio content with the same editorial precision as the public site.
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Email field */}
           <label className="block">
-            <span className="mb-2 block font-mono text-[10px] uppercase tracking-[0.18em] text-ink-muted">Email</span>
-            <span className="flex items-center gap-3 border border-rule bg-paper px-4 py-3 focus-within:border-teal">
-              <Mail size={17} className="text-teal" />
+            <span className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-600">
+              Email
+            </span>
+            <div className="relative">
+              <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 type="email"
                 value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                className="w-full bg-transparent text-sm text-ink outline-none placeholder:text-ink-faint"
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full rounded-xl border border-slate-200 bg-white/70 backdrop-blur pl-11 pr-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/10 focus:bg-white shadow-sm hover:border-emerald-300 hover:shadow-md"
                 placeholder="admin@example.com"
                 required
               />
-            </span>
+            </div>
           </label>
 
+          {/* Password field */}
           <label className="block">
-            <span className="mb-2 block font-mono text-[10px] uppercase tracking-[0.18em] text-ink-muted">Password</span>
-            <span className="flex items-center gap-3 border border-rule bg-paper px-4 py-3 focus-within:border-teal">
-              <Lock size={17} className="text-teal" />
+            <span className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-600">
+              Password
+            </span>
+            <div className="relative">
+              <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 type="password"
                 value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                className="w-full bg-transparent text-sm text-ink outline-none placeholder:text-ink-faint"
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full rounded-xl border border-slate-200 bg-white/70 backdrop-blur pl-11 pr-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/10 focus:bg-white shadow-sm hover:border-emerald-300 hover:shadow-md"
                 placeholder="Enter password"
                 required
               />
-            </span>
+            </div>
           </label>
 
+          {/* Error */}
           {error && (
-            <p className="border border-red-200 bg-red-50 px-4 py-3 text-xs font-medium text-red-700">{error}</p>
+            <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+              {error}
+            </div>
           )}
 
+          {/* Submit button */}
           <button
             type="submit"
             disabled={isSubmitting}
-            className="inline-flex w-full items-center justify-center gap-2 bg-teal px-6 py-3.5 font-sans text-xs font-medium uppercase tracking-[0.18em] text-white transition-colors hover:bg-teal-mid disabled:cursor-not-allowed disabled:opacity-70"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 px-6 py-3 font-semibold text-white transition-all hover:shadow-xl hover:shadow-emerald-500/30 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <LogIn size={16} />
-            {isSubmitting ? 'Signing in' : 'Login'}
+            <LogIn size={18} />
+            <span>{isSubmitting ? 'Signing in…' : 'Login'}</span>
           </button>
         </form>
       </section>
