@@ -1,6 +1,6 @@
 const express = require('express')
 const router = express.Router()
-const db = require('../db/db')
+const prisma = require('../prisma')
 const verifyToken = require('../middleware/auth.middleware')
 
 const SECTION_SLUGS = [
@@ -466,293 +466,138 @@ const navigationSeeds = [
   { label: 'Contact', path: '/contact', sort_order: 6, children: [] },
 ]
 
-const parseJson = (value, fallback = {}) => {
-  if (!value) return fallback
-  if (typeof value === 'object') return value
-  try {
-    return JSON.parse(value)
-  } catch {
-    return fallback
-  }
-}
-
-const serializeJson = (value) => JSON.stringify(value || {})
-
 async function initCmsSchema() {
-  await db.query(`
-    CREATE TABLE IF NOT EXISTS cms_sections (
-      id INT NOT NULL AUTO_INCREMENT,
-      slug VARCHAR(120) NOT NULL,
-      section_type VARCHAR(80) NOT NULL DEFAULT 'generic',
-      eyebrow VARCHAR(255) DEFAULT NULL,
-      title TEXT DEFAULT NULL,
-      subtitle TEXT DEFAULT NULL,
-      description TEXT DEFAULT NULL,
-      image_url VARCHAR(500) DEFAULT NULL,
-      image_alt VARCHAR(255) DEFAULT NULL,
-      metadata JSON DEFAULT NULL,
-      sort_order INT NOT NULL DEFAULT 0,
-      is_active TINYINT(1) NOT NULL DEFAULT 1,
-      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-      PRIMARY KEY (id),
-      UNIQUE KEY slug (slug)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
-  `)
-
-  await db.query(`
-    CREATE TABLE IF NOT EXISTS cms_section_blocks (
-      id INT NOT NULL AUTO_INCREMENT,
-      section_id INT NOT NULL,
-      block_type VARCHAR(80) NOT NULL DEFAULT 'content',
-      eyebrow VARCHAR(255) DEFAULT NULL,
-      title TEXT DEFAULT NULL,
-      body TEXT DEFAULT NULL,
-      image_url VARCHAR(500) DEFAULT NULL,
-      image_alt VARCHAR(255) DEFAULT NULL,
-      metadata JSON DEFAULT NULL,
-      sort_order INT NOT NULL DEFAULT 0,
-      is_active TINYINT(1) NOT NULL DEFAULT 1,
-      PRIMARY KEY (id),
-      KEY section_id (section_id),
-      CONSTRAINT cms_section_blocks_section_fk FOREIGN KEY (section_id) REFERENCES cms_sections (id) ON DELETE CASCADE
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
-  `)
-
-  await db.query(`
-    CREATE TABLE IF NOT EXISTS identity_items (
-      id INT NOT NULL AUTO_INCREMENT,
-      label VARCHAR(40) DEFAULT NULL,
-      title VARCHAR(255) NOT NULL,
-      description TEXT DEFAULT NULL,
-      icon VARCHAR(120) DEFAULT NULL,
-      image_url VARCHAR(500) DEFAULT NULL,
-      sort_order INT NOT NULL DEFAULT 0,
-      is_active TINYINT(1) NOT NULL DEFAULT 1,
-      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-      PRIMARY KEY (id)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
-  `)
-
-  await db.query(`
-    CREATE TABLE IF NOT EXISTS timeline_events (
-      id INT NOT NULL AUTO_INCREMENT,
-      slug VARCHAR(120) DEFAULT NULL,
-      year VARCHAR(40) DEFAULT NULL,
-      title VARCHAR(255) NOT NULL,
-      subtitle VARCHAR(255) DEFAULT NULL,
-      description TEXT DEFAULT NULL,
-      category VARCHAR(80) DEFAULT 'milestone',
-      icon VARCHAR(120) DEFAULT NULL,
-      sort_order INT NOT NULL DEFAULT 0,
-      is_active TINYINT(1) NOT NULL DEFAULT 1,
-      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-      PRIMARY KEY (id),
-      UNIQUE KEY slug (slug)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
-  `)
-
-  await db.query(`
-    CREATE TABLE IF NOT EXISTS navigation_items (
-      id INT NOT NULL AUTO_INCREMENT,
-      parent_id INT DEFAULT NULL,
-      label VARCHAR(255) NOT NULL,
-      path VARCHAR(500) DEFAULT NULL,
-      target VARCHAR(40) DEFAULT '_self',
-      sort_order INT NOT NULL DEFAULT 0,
-      is_active TINYINT(1) NOT NULL DEFAULT 1,
-      metadata JSON DEFAULT NULL,
-      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-      PRIMARY KEY (id),
-      KEY parent_id (parent_id),
-      CONSTRAINT navigation_items_parent_fk FOREIGN KEY (parent_id) REFERENCES navigation_items (id) ON DELETE CASCADE
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
-  `)
-  await db.query(`
-CREATE TABLE IF NOT EXISTS contact_settings (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    heading VARCHAR(255),
-    email VARCHAR(255),
-    phone VARCHAR(100),
-    location TEXT,
-    image_url TEXT,
-    image_caption VARCHAR(255)
-)
-`)
-
-  await db.query(`
-CREATE TABLE IF NOT EXISTS inquiry_types (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    label VARCHAR(255) NOT NULL,
-    value VARCHAR(255) NOT NULL UNIQUE
-)
-`)
-
-  await db.query(`
-CREATE TABLE IF NOT EXISTS contact_messages (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(255) NOT NULL,
-    email VARCHAR(255) NOT NULL,
-    organization VARCHAR(255) NOT NULL,
-    phone VARCHAR(100),
-    inquiry_type VARCHAR(255),
-    subject VARCHAR(255),
-    message TEXT,
-    is_read BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-)
-`)
-
   await seedCms()
 }
 
 async function seedCms() {
   for (const section of sectionSeeds) {
-    const [[existingSection]] = await db.query('SELECT id FROM cms_sections WHERE slug = ?', [
-      section.slug,
-    ])
+    const existingSection = await prisma.cms_sections.findUnique({ where: { slug: section.slug } })
     if (!existingSection) {
-      const [result] = await db.query(
-        `INSERT INTO cms_sections
-          (slug, section_type, eyebrow, title, subtitle, description, image_url, image_alt, metadata, sort_order)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [
-          section.slug,
-          section.section_type,
-          section.eyebrow || null,
-          section.title || null,
-          section.subtitle || null,
-          section.description || null,
-          section.image_url || null,
-          section.image_alt || null,
-          serializeJson(section.metadata),
-          sectionSeeds.indexOf(section) + 1,
-        ],
-      )
+      const created = await prisma.cms_sections.create({
+        data: {
+          slug: section.slug,
+          section_type: section.section_type,
+          eyebrow: section.eyebrow || null,
+          title: section.title || null,
+          subtitle: section.subtitle || null,
+          description: section.description || null,
+          image_url: section.image_url || null,
+          image_alt: section.image_alt || null,
+          metadata: section.metadata || {},
+          sort_order: sectionSeeds.indexOf(section) + 1,
+        },
+      })
 
-      for (const block of section.blocks || []) {
-        await db.query(
-          `INSERT INTO cms_section_blocks
-            (section_id, block_type, eyebrow, title, body, image_url, image_alt, metadata, sort_order)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-          [
-            result.insertId,
-            block.block_type || 'content',
-            block.eyebrow || null,
-            block.title || null,
-            block.body || null,
-            block.image_url || null,
-            block.image_alt || null,
-            serializeJson(block.metadata),
-            block.sort_order || 0,
-          ],
-        )
+      if (section.blocks && section.blocks.length > 0) {
+        await prisma.cms_section_blocks.createMany({
+          data: section.blocks.map((block) => ({
+            section_id: created.id,
+            block_type: block.block_type || 'content',
+            eyebrow: block.eyebrow || null,
+            title: block.title || null,
+            body: block.body || null,
+            image_url: block.image_url || null,
+            image_alt: block.image_alt || null,
+            metadata: block.metadata || {},
+            sort_order: block.sort_order || 0,
+          })),
+        })
       }
     }
   }
 
-  const [[identityCount]] = await db.query('SELECT COUNT(*) AS count FROM identity_items')
-  if (identityCount.count === 0) {
-    for (const item of identitySeeds) {
-      await db.query(
-        `INSERT INTO identity_items (label, title, description, icon, image_url, sort_order)
-         VALUES (?, ?, ?, ?, ?, ?)`,
-        [
-          item.label,
-          item.title,
-          item.description,
-          item.icon || null,
-          item.image_url || null,
-          item.sort_order,
-        ],
-      )
-    }
+  const identityCount = await prisma.identity_items.count()
+  if (identityCount === 0) {
+    await prisma.identity_items.createMany({
+      data: identitySeeds.map((item) => ({
+        label: item.label,
+        title: item.title,
+        description: item.description,
+        icon: item.icon || null,
+        image_url: item.image_url || null,
+        sort_order: item.sort_order,
+      })),
+    })
   }
 
-  const [[timelineCount]] = await db.query('SELECT COUNT(*) AS count FROM timeline_events')
-  if (timelineCount.count === 0) {
-    for (const event of timelineSeeds) {
-      await db.query(
-        `INSERT INTO timeline_events (slug, year, title, subtitle, description, category, icon, sort_order)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-        [
-          event.slug,
-          event.year,
-          event.title,
-          event.subtitle,
-          event.description,
-          event.category,
-          event.icon || null,
-          event.sort_order,
-        ],
-      )
-    }
+  const timelineCount = await prisma.timeline_events.count()
+  if (timelineCount === 0) {
+    await prisma.timeline_events.createMany({
+      data: timelineSeeds.map((event) => ({
+        slug: event.slug,
+        year: event.year,
+        title: event.title,
+        subtitle: event.subtitle,
+        description: event.description,
+        category: event.category,
+        icon: event.icon || null,
+        sort_order: event.sort_order,
+      })),
+    })
   }
 
-  const [[navCount]] = await db.query('SELECT COUNT(*) AS count FROM navigation_items')
-  if (navCount.count === 0) {
+  const navCount = await prisma.navigation_items.count()
+  if (navCount === 0) {
     for (const item of navigationSeeds) {
-      const [parent] = await db.query(
-        `INSERT INTO navigation_items (parent_id, label, path, sort_order, metadata)
-         VALUES (NULL, ?, ?, ?, ?)`,
-        [item.label, item.path || null, item.sort_order, serializeJson({})],
-      )
+      const parent = await prisma.navigation_items.create({
+        data: {
+          parent_id: null,
+          label: item.label,
+          path: item.path || null,
+          sort_order: item.sort_order,
+          metadata: {},
+        },
+      })
 
-      for (const child of item.children || []) {
-        await db.query(
-          `INSERT INTO navigation_items (parent_id, label, path, sort_order, metadata)
-           VALUES (?, ?, ?, ?, ?)`,
-          [parent.insertId, child.label, child.path || null, child.sort_order, serializeJson({})],
-        )
+      if (item.children && item.children.length > 0) {
+        await prisma.navigation_items.createMany({
+          data: item.children.map((child) => ({
+            parent_id: parent.id,
+            label: child.label,
+            path: child.path || null,
+            sort_order: child.sort_order,
+            metadata: {},
+          })),
+        })
       }
     }
   }
 }
 
 async function getSections(slugs = SECTION_SLUGS) {
-  const [sections] = await db.query(
-    `SELECT * FROM cms_sections
-     WHERE slug IN (${slugs.map(() => '?').join(',')})
-     ORDER BY sort_order ASC, id ASC`,
-    slugs,
-  )
-  const [blocks] = await db.query(
-    `SELECT b.* FROM cms_section_blocks b
-     INNER JOIN cms_sections s ON s.id = b.section_id
-     WHERE s.slug IN (${slugs.map(() => '?').join(',')})
-     ORDER BY b.sort_order ASC, b.id ASC`,
-    slugs,
-  )
+  const sections = await prisma.cms_sections.findMany({
+    where: { slug: { in: slugs } },
+    orderBy: [{ sort_order: 'asc' }, { id: 'asc' }],
+  })
+
+  const sectionIds = sections.map((s) => s.id)
+  const blocks = await prisma.cms_section_blocks.findMany({
+    where: { section_id: { in: sectionIds } },
+    orderBy: [{ sort_order: 'asc' }, { id: 'asc' }],
+  })
 
   return sections.reduce((acc, section) => {
     acc[section.slug] = {
       ...section,
-      metadata: parseJson(section.metadata),
-      blocks: blocks
-        .filter((block) => block.section_id === section.id)
-        .map((block) => ({ ...block, metadata: parseJson(block.metadata) })),
+      blocks: blocks.filter((block) => block.section_id === section.id),
     }
     return acc
   }, {})
 }
 
 async function getIdentityItems(includeInactive = false) {
-  const [rows] = await db.query(
-    `SELECT * FROM identity_items ${includeInactive ? '' : 'WHERE is_active = 1'}
-     ORDER BY sort_order ASC, id ASC`,
-  )
-  return rows
+  return prisma.identity_items.findMany({
+    where: includeInactive ? {} : { is_active: true },
+    orderBy: [{ sort_order: 'asc' }, { id: 'asc' }],
+  })
 }
 
 async function getTimelineEvents(includeInactive = false) {
-  const [rows] = await db.query(
-    `SELECT * FROM timeline_events ${includeInactive ? '' : 'WHERE is_active = 1'}
-     ORDER BY sort_order ASC, id ASC`,
-  )
-  return rows
+  return prisma.timeline_events.findMany({
+    where: includeInactive ? {} : { is_active: true },
+    orderBy: [{ sort_order: 'asc' }, { id: 'asc' }],
+  })
 }
 
 function buildNavigationTree(rows, parentId = null) {
@@ -761,16 +606,15 @@ function buildNavigationTree(rows, parentId = null) {
     .sort((a, b) => a.sort_order - b.sort_order || a.id - b.id)
     .map((item) => ({
       ...item,
-      metadata: parseJson(item.metadata),
       children: buildNavigationTree(rows, item.id),
     }))
 }
 
 async function getNavigation(includeInactive = false) {
-  const [rows] = await db.query(
-    `SELECT * FROM navigation_items ${includeInactive ? '' : 'WHERE is_active = 1'}
-     ORDER BY parent_id ASC, sort_order ASC, id ASC`,
-  )
+  const rows = await prisma.navigation_items.findMany({
+    where: includeInactive ? {} : { is_active: true },
+    orderBy: [{ parent_id: 'asc' }, { sort_order: 'asc' }, { id: 'asc' }],
+  })
   return buildNavigationTree(rows)
 }
 
@@ -800,66 +644,58 @@ router.get('/sections/:slug', async (req, res) => {
 })
 
 router.put('/sections/:slug', verifyToken, async (req, res) => {
-  const connection = await db.getConnection()
   try {
     const { section = {}, blocks = [] } = req.body
-    await connection.beginTransaction()
 
-    await connection.query(
-      `UPDATE cms_sections SET
-        eyebrow = ?, title = ?, subtitle = ?, description = ?, image_url = ?, image_alt = ?, metadata = ?, is_active = ?
-       WHERE slug = ?`,
-      [
-        section.eyebrow || null,
-        section.title || null,
-        section.subtitle || null,
-        section.description || null,
-        section.image_url || null,
-        section.image_alt || null,
-        serializeJson(section.metadata),
-        section.is_active === 0 ? 0 : 1,
-        req.params.slug,
-      ],
-    )
+    await prisma.$transaction(async (tx) => {
+      await tx.cms_sections.updateMany({
+        where: { slug: req.params.slug },
+        data: {
+          eyebrow: section.eyebrow || null,
+          title: section.title || null,
+          subtitle: section.subtitle || null,
+          description: section.description || null,
+          image_url: section.image_url || null,
+          image_alt: section.image_alt || null,
+          metadata: section.metadata || {},
+          is_active: section.is_active === 0 ? false : true,
+        },
+      })
 
-    const [[storedSection]] = await connection.query('SELECT id FROM cms_sections WHERE slug = ?', [
-      req.params.slug,
-    ])
-    if (!storedSection) {
-      await connection.rollback()
-      return res.status(404).json({ message: 'Section not found' })
-    }
+      const storedSection = await tx.cms_sections.findUnique({
+        where: { slug: req.params.slug },
+        select: { id: true },
+      })
 
-    await connection.query('DELETE FROM cms_section_blocks WHERE section_id = ?', [
-      storedSection.id,
-    ])
-    for (const [index, block] of blocks.entries()) {
-      await connection.query(
-        `INSERT INTO cms_section_blocks
-          (section_id, block_type, eyebrow, title, body, image_url, image_alt, metadata, sort_order, is_active)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [
-          storedSection.id,
-          block.block_type || 'content',
-          block.eyebrow || null,
-          block.title || null,
-          block.body || null,
-          block.image_url || null,
-          block.image_alt || null,
-          serializeJson(block.metadata),
-          block.sort_order || index + 1,
-          block.is_active === 0 ? 0 : 1,
-        ],
-      )
-    }
+      if (!storedSection) {
+        throw new Error('Section not found')
+      }
 
-    await connection.commit()
+      await tx.cms_section_blocks.deleteMany({
+        where: { section_id: storedSection.id },
+      })
+
+      if (blocks.length > 0) {
+        await tx.cms_section_blocks.createMany({
+          data: blocks.map((block, index) => ({
+            section_id: storedSection.id,
+            block_type: block.block_type || 'content',
+            eyebrow: block.eyebrow || null,
+            title: block.title || null,
+            body: block.body || null,
+            image_url: block.image_url || null,
+            image_alt: block.image_alt || null,
+            metadata: block.metadata || {},
+            sort_order: block.sort_order || index + 1,
+            is_active: block.is_active === 0 ? false : true,
+          })),
+        })
+      }
+    })
+
     res.json({ message: 'Section saved' })
   } catch (error) {
-    await connection.rollback()
     res.status(500).json({ error: error.message })
-  } finally {
-    connection.release()
   }
 })
 
@@ -874,20 +710,18 @@ router.get('/identity-items', async (req, res) => {
 router.post('/identity-items', verifyToken, async (req, res) => {
   try {
     const { label, title, description, icon, image_url, sort_order, is_active } = req.body
-    const [result] = await db.query(
-      `INSERT INTO identity_items (label, title, description, icon, image_url, sort_order, is_active)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [
-        label || null,
+    const created = await prisma.identity_items.create({
+      data: {
+        label: label || null,
         title,
-        description || null,
-        icon || null,
-        image_url || null,
-        sort_order || 0,
-        is_active === 0 ? 0 : 1,
-      ],
-    )
-    res.status(201).json({ id: result.insertId })
+        description: description || null,
+        icon: icon || null,
+        image_url: image_url || null,
+        sort_order: sort_order || 0,
+        is_active: is_active === 0 ? false : true,
+      },
+    })
+    res.status(201).json({ id: created.id })
   } catch (error) {
     res.status(500).json({ error: error.message })
   }
@@ -896,20 +730,18 @@ router.post('/identity-items', verifyToken, async (req, res) => {
 router.put('/identity-items/:id', verifyToken, async (req, res) => {
   try {
     const { label, title, description, icon, image_url, sort_order, is_active } = req.body
-    await db.query(
-      `UPDATE identity_items SET label = ?, title = ?, description = ?, icon = ?, image_url = ?, sort_order = ?, is_active = ?
-       WHERE id = ?`,
-      [
-        label || null,
+    await prisma.identity_items.update({
+      where: { id: Number(req.params.id) },
+      data: {
+        label: label || null,
         title,
-        description || null,
-        icon || null,
-        image_url || null,
-        sort_order || 0,
-        is_active === 0 ? 0 : 1,
-        req.params.id,
-      ],
-    )
+        description: description || null,
+        icon: icon || null,
+        image_url: image_url || null,
+        sort_order: sort_order || 0,
+        is_active: is_active === 0 ? false : true,
+      },
+    })
     res.json({ message: 'Identity item saved' })
   } catch (error) {
     res.status(500).json({ error: error.message })
@@ -918,7 +750,9 @@ router.put('/identity-items/:id', verifyToken, async (req, res) => {
 
 router.delete('/identity-items/:id', verifyToken, async (req, res) => {
   try {
-    await db.query('DELETE FROM identity_items WHERE id = ?', [req.params.id])
+    await prisma.identity_items.delete({
+      where: { id: Number(req.params.id) },
+    })
     res.json({ message: 'Identity item deleted' })
   } catch (error) {
     res.status(500).json({ error: error.message })
@@ -937,22 +771,20 @@ router.post('/timeline-events', verifyToken, async (req, res) => {
   try {
     const { slug, year, title, subtitle, description, category, icon, sort_order, is_active } =
       req.body
-    const [result] = await db.query(
-      `INSERT INTO timeline_events (slug, year, title, subtitle, description, category, icon, sort_order, is_active)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        slug || null,
-        year || null,
+    const created = await prisma.timeline_events.create({
+      data: {
+        slug: slug || null,
+        year: year || null,
         title,
-        subtitle || null,
-        description || null,
-        category || 'milestone',
-        icon || null,
-        sort_order || 0,
-        is_active === 0 ? 0 : 1,
-      ],
-    )
-    res.status(201).json({ id: result.insertId })
+        subtitle: subtitle || null,
+        description: description || null,
+        category: category || 'milestone',
+        icon: icon || null,
+        sort_order: sort_order || 0,
+        is_active: is_active === 0 ? false : true,
+      },
+    })
+    res.status(201).json({ id: created.id })
   } catch (error) {
     res.status(500).json({ error: error.message })
   }
@@ -962,23 +794,20 @@ router.put('/timeline-events/:id', verifyToken, async (req, res) => {
   try {
     const { slug, year, title, subtitle, description, category, icon, sort_order, is_active } =
       req.body
-    await db.query(
-      `UPDATE timeline_events SET
-        slug = ?, year = ?, title = ?, subtitle = ?, description = ?, category = ?, icon = ?, sort_order = ?, is_active = ?
-       WHERE id = ?`,
-      [
-        slug || null,
-        year || null,
+    await prisma.timeline_events.update({
+      where: { id: Number(req.params.id) },
+      data: {
+        slug: slug || null,
+        year: year || null,
         title,
-        subtitle || null,
-        description || null,
-        category || 'milestone',
-        icon || null,
-        sort_order || 0,
-        is_active === 0 ? 0 : 1,
-        req.params.id,
-      ],
-    )
+        subtitle: subtitle || null,
+        description: description || null,
+        category: category || 'milestone',
+        icon: icon || null,
+        sort_order: sort_order || 0,
+        is_active: is_active === 0 ? false : true,
+      },
+    })
     res.json({ message: 'Timeline event saved' })
   } catch (error) {
     res.status(500).json({ error: error.message })
@@ -987,7 +816,9 @@ router.put('/timeline-events/:id', verifyToken, async (req, res) => {
 
 router.delete('/timeline-events/:id', verifyToken, async (req, res) => {
   try {
-    await db.query('DELETE FROM timeline_events WHERE id = ?', [req.params.id])
+    await prisma.timeline_events.delete({
+      where: { id: Number(req.params.id) },
+    })
     res.json({ message: 'Timeline event deleted' })
   } catch (error) {
     res.status(500).json({ error: error.message })
@@ -1005,20 +836,18 @@ router.get('/navigation-items', async (req, res) => {
 router.post('/navigation-items', verifyToken, async (req, res) => {
   try {
     const { parent_id, label, path, target, sort_order, is_active, metadata } = req.body
-    const [result] = await db.query(
-      `INSERT INTO navigation_items (parent_id, label, path, target, sort_order, is_active, metadata)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [
-        parent_id || null,
+    const created = await prisma.navigation_items.create({
+      data: {
+        parent_id: parent_id || null,
         label,
-        path || null,
-        target || '_self',
-        sort_order || 0,
-        is_active === 0 ? 0 : 1,
-        serializeJson(metadata),
-      ],
-    )
-    res.status(201).json({ id: result.insertId })
+        path: path || null,
+        target: target || '_self',
+        sort_order: sort_order || 0,
+        is_active: is_active === 0 ? false : true,
+        metadata: metadata || {},
+      },
+    })
+    res.status(201).json({ id: created.id })
   } catch (error) {
     res.status(500).json({ error: error.message })
   }
@@ -1027,20 +856,18 @@ router.post('/navigation-items', verifyToken, async (req, res) => {
 router.put('/navigation-items/:id', verifyToken, async (req, res) => {
   try {
     const { parent_id, label, path, target, sort_order, is_active, metadata } = req.body
-    await db.query(
-      `UPDATE navigation_items SET parent_id = ?, label = ?, path = ?, target = ?, sort_order = ?, is_active = ?, metadata = ?
-       WHERE id = ?`,
-      [
-        parent_id || null,
+    await prisma.navigation_items.update({
+      where: { id: Number(req.params.id) },
+      data: {
+        parent_id: parent_id || null,
         label,
-        path || null,
-        target || '_self',
-        sort_order || 0,
-        is_active === 0 ? 0 : 1,
-        serializeJson(metadata),
-        req.params.id,
-      ],
-    )
+        path: path || null,
+        target: target || '_self',
+        sort_order: sort_order || 0,
+        is_active: is_active === 0 ? false : true,
+        metadata: metadata || {},
+      },
+    })
     res.json({ message: 'Navigation item saved' })
   } catch (error) {
     res.status(500).json({ error: error.message })
@@ -1049,7 +876,9 @@ router.put('/navigation-items/:id', verifyToken, async (req, res) => {
 
 router.delete('/navigation-items/:id', verifyToken, async (req, res) => {
   try {
-    await db.query('DELETE FROM navigation_items WHERE id = ?', [req.params.id])
+    await prisma.navigation_items.delete({
+      where: { id: Number(req.params.id) },
+    })
     res.json({ message: 'Navigation item deleted' })
   } catch (error) {
     res.status(500).json({ error: error.message })

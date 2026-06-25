@@ -1,10 +1,32 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { motion, useInView, type Variants } from 'framer-motion'
 import { Container, Button } from '@/components/shared'
-import { contactInfo } from '@/data/contact'
+import axios from 'axios'
+
+const api = axios.create({
+  baseURL: 'http://localhost:5000/api',
+  timeout: 5000,
+})
+
+const fallbackContact = {
+  heading: 'Get in touch',
+  email: 'info@liyanahealthcare.com',
+  phone: '+251-11-XXX-XXXX',
+  location: 'Addis Ababa, Ethiopia',
+  image_url: '',
+  image_caption: '',
+}
+
+const fallbackInquiryTypes = [
+  { value: 'partnership', label: 'Partnerships' },
+  { value: 'media', label: 'Media' },
+  { value: 'speaking', label: 'Speaking' },
+  { value: 'other', label: 'Policy' },
+  { value: 'foundation', label: 'Foundation' },
+]
 
 const contactSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -13,7 +35,7 @@ const contactSchema = z.object({
   phone: z.string().optional(),
   subject: z.string().min(1, 'Subject is required'),
   message: z.string().min(10, 'Message must be at least 10 characters'),
-  inquiryType: z.enum(['partnership', 'speaking', 'media', 'foundation', 'other']),
+  inquiryType: z.string().min(1, 'Please select an inquiry type'),
 })
 
 type ContactFormValues = z.infer<typeof contactSchema>
@@ -21,6 +43,8 @@ type ContactFormValues = z.infer<typeof contactSchema>
 export default function ContactFormSection() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
+  const [contactData, setContactData] = useState(fallbackContact)
+  const [inquiryTypes, setInquiryTypes] = useState(fallbackInquiryTypes)
 
   const sectionRef = useRef<HTMLDivElement>(null)
   const isInView = useInView(sectionRef, { once: true, margin: '-60px' })
@@ -31,17 +55,44 @@ export default function ContactFormSection() {
     formState: { errors },
   } = useForm<ContactFormValues>({
     resolver: zodResolver(contactSchema),
-    defaultValues: { inquiryType: 'partnership' },
+    defaultValues: { inquiryType: '' },
   })
 
-  const onSubmit = async (_data: ContactFormValues) => {
-    setIsSubmitting(true)
-    await new Promise((resolve) => setTimeout(resolve, 1500))
-    setIsSubmitting(false)
-    setIsSuccess(true)
-  }
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      try {
+        const [settingsRes, typesRes] = await Promise.all([
+          api.get('/contact/settings'),
+          api.get('/contact/inquiry-types'),
+        ])
+        if (cancelled) return
+        if (settingsRes.data && Object.keys(settingsRes.data).length) {
+          setContactData((prev) => ({ ...prev, ...settingsRes.data }))
+        }
+        if (typesRes.data?.length) {
+          setInquiryTypes(typesRes.data)
+        }
+      } catch (err) {
+        console.warn('CMS offline – using default contact data', err)
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
-  const { inquiryTypes } = contactInfo
+  const onSubmit = async (data: ContactFormValues) => {
+    setIsSubmitting(true)
+    try {
+      await api.post('/contact/messages', data)
+      setIsSubmitting(false)
+      setIsSuccess(true)
+    } catch (err) {
+      setIsSubmitting(false)
+      console.error('Failed to send message:', err)
+    }
+  }
 
   const formItemVariants: Variants = {
     hidden: { opacity: 0, y: 15 },
@@ -119,15 +170,15 @@ export default function ContactFormSection() {
                 transition={{ duration: 0.6, delay: 0.1 }}
                 className="font-serif text-3xl lg:text-4xl font-light text-ink"
               >
-                Get in <em className="text-teal-mid not-italic">touch</em>
+                {contactData.heading}
               </motion.h2>
             </div>
 
             <div className="space-y-6 mb-12">
               {[
-                { label: 'Email', value: contactInfo.email },
-                { label: 'Phone', value: contactInfo.phone },
-                { label: 'Location', value: contactInfo.location },
+                { label: 'Email', value: contactData.email },
+                { label: 'Phone', value: contactData.phone },
+                { label: 'Location', value: contactData.location },
               ].map((info, idx) => (
                 <motion.div
                   key={info.label}
@@ -157,7 +208,7 @@ export default function ContactFormSection() {
             >
               <div className="border border-rule p-2 bg-white shadow-sm relative group">
                 <img
-                  src="/image.png"
+                  src={contactData.image_url || '/image.png'}
                   alt="Contact Profile"
                   onError={(e) => {
                     ;(e.target as HTMLImageElement).src = '/lab-connect.png'
@@ -166,7 +217,7 @@ export default function ContactFormSection() {
                 />
               </div>
               <p className="mt-3 text-[9px] font-mono tracking-widest uppercase text-ink-muted text-center">
-                Ready to collaborate
+                {contactData.image_caption || 'Ready to collaborate'}
               </p>
             </motion.div>
           </div>
@@ -279,8 +330,9 @@ export default function ContactFormSection() {
                   {...register('inquiryType')}
                   className="w-full border border-rule bg-paper-warm px-4 py-3 text-sm text-ink outline-none transition-all duration-300 focus:border-teal focus:ring-1 focus:ring-teal/30 focus:bg-white"
                 >
-                  {inquiryTypes.map((type) => (
-                    <option key={type.value} value={type.value}>
+                  <option value="">Select type</option>
+                  {inquiryTypes.map((type: any) => (
+                    <option key={type.id || type.value} value={type.value}>
                       {type.label}
                     </option>
                   ))}

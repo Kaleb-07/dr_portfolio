@@ -1,23 +1,22 @@
 const express = require('express')
 const router = express.Router()
-const db = require('../db/db')
+const prisma = require('../prisma')
 const verifyToken = require('../middleware/auth.middleware')
 
 router.get('/', async (req, res) => {
   try {
-    const [rows] = await db.query('SELECT * FROM hero_section LIMIT 1')
+    const hero = await prisma.hero_section.findFirst()
 
-    if (rows.length === 0) {
+    if (!hero) {
       return res.status(404).json({ message: 'Hero not found' })
     }
 
-    res.json(rows[0])
+    res.json(hero)
   } catch (error) {
     res.status(500).json({ error: error.message })
   }
 })
 
-// UPDATE HERO DATA
 router.put('/', verifyToken, async (req, res) => {
   try {
     const {
@@ -32,19 +31,9 @@ router.put('/', verifyToken, async (req, res) => {
       backgroundImage,
     } = req.body
 
-    await db.query(
-      `UPDATE hero_section SET
-        name = ?,
-        title = ?,
-        subtitle = ?,
-        description = ?,
-        cta_1_label = ?,
-        cta_1_path = ?,
-        cta_2_label = ?,
-        cta_2_path = ?,
-        backgroundImage = ?
-      WHERE id = 1`,
-      [
+    await prisma.hero_section.upsert({
+      where: { id: 1 },
+      update: {
         name,
         title,
         subtitle,
@@ -54,8 +43,20 @@ router.put('/', verifyToken, async (req, res) => {
         cta_2_label,
         cta_2_path,
         backgroundImage,
-      ],
-    )
+      },
+      create: {
+        id: 1,
+        name,
+        title,
+        subtitle,
+        description,
+        cta_1_label,
+        cta_1_path,
+        cta_2_label,
+        cta_2_path,
+        backgroundImage,
+      },
+    })
 
     res.json({ message: 'Hero updated successfully 🚀' })
   } catch (error) {
