@@ -1,14 +1,28 @@
 import { motion } from 'framer-motion'
 import { Container } from '@/components/shared'
-
-const meta = [
-  { value: '6', label: 'Integrated Sectors' },
-  { value: '1000+', label: 'Employees' },
-  { value: '2010', label: 'Established' },
-  { value: 'Pan-African', label: 'Reach' },
-]
+import { useSiteContent } from '@/hooks/useSiteContent'
 
 export default function EcosystemHero() {
+  const { content } = useSiteContent()
+  const section = content?.sections.liyana_framework
+  const ecosystemMeta = (section?.metadata?.ecosystem || {}) as {
+    hero?: {
+      tag?: string
+      title?: string
+      description?: string
+      meta?: Array<{ value: string; label: string }>
+    }
+  }
+  const meta =
+    ecosystemMeta.hero?.meta && ecosystemMeta.hero.meta.length > 0
+      ? ecosystemMeta.hero.meta
+      : [
+          { value: '6', label: 'Integrated Sectors' },
+          { value: '1000+', label: 'Employees' },
+          { value: '2010', label: 'Established' },
+          { value: 'Pan-African', label: 'Reach' },
+        ]
+
   return (
     <section className="bg-paper-warm relative overflow-hidden pt-20 pb-10 lg:pt-24 lg:pb-12 border-b border-rule">
       {/* Ambient glows */}
@@ -35,7 +49,7 @@ export default function EcosystemHero() {
           transition={{ duration: 0.5 }}
           className="flex items-center gap-5 mb-5"
         >
-          <span className="section-tag">Strategic Infrastructure</span>
+          <span className="section-tag">{ecosystemMeta.hero?.tag || 'Strategic Infrastructure'}</span>
           <span className="section-rule" />
         </motion.div>
 
@@ -46,8 +60,7 @@ export default function EcosystemHero() {
           transition={{ duration: 0.75, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
           className="font-serif text-5xl sm:text-6xl lg:text-7xl font-light text-ink leading-[1.1] mb-5 max-w-3xl"
         >
-          Most investors build one piece…{' '}
-          <em className="text-teal-mid italic">He built the entire chain.</em>
+          {ecosystemMeta.hero?.title || 'Most investors build one piece… He built the entire chain.'}
         </motion.h1>
 
         {/* Description */}
@@ -57,9 +70,8 @@ export default function EcosystemHero() {
           transition={{ duration: 0.6, delay: 0.2 }}
           className="text-sm font-light text-ink-mid leading-relaxed max-w-xl mb-8"
         >
-          Liyana Healthcare represents a paradigm shift in medical economics. By vertically
-          integrating every touchpoint of the patient journey — from pharmaceutical manufacturing
-          to primary delivery — we have eliminated the friction that stalls progress in emerging markets.
+          {ecosystemMeta.hero?.description ||
+            'Liyana Healthcare represents a paradigm shift in medical economics. By vertically integrating every touchpoint of the patient journey — from pharmaceutical manufacturing to primary delivery — we have eliminated the friction that stalls progress in emerging markets.'}
         </motion.p>
 
         {/* Meta stats strip */}

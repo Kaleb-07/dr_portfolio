@@ -7,37 +7,27 @@ import {
   Phone,
   Calendar,
   MessageSquare,
-  ChevronDown,
-  Zap,
+  Check,
+  CheckCheck,
 } from 'lucide-react'
 
-const IconButton = ({ label, onClick, children, disabled, danger = false }) => (
-  <button
-    type="button"
-    aria-label={label}
-    title={label}
-    disabled={disabled}
-    onClick={onClick}
-    className={`inline-flex h-9 w-9 items-center justify-center rounded-lg transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-40 ${
-      danger
-        ? 'bg-red-50 text-red-600 hover:bg-red-100 hover:scale-110 active:scale-95'
-        : 'bg-slate-100 text-slate-600 hover:bg-slate-200 hover:scale-110 active:scale-95'
-    }`}
-  >
-    {children}
-  </button>
-)
-
-export default function ContactMessages() {
+const LuxuryContactMessages = () => {
   const [messages, setMessages] = useState([])
   const [loading, setLoading] = useState(true)
   const [selected, setSelected] = useState(null)
-  const [expanded, setExpanded] = useState(false)
+  const [readMessages, setReadMessages] = useState(new Set())
+
+  const STORAGE_KEY = 'luxury_messages_read_status'
 
   const fetchMessages = async () => {
     try {
       const res = await api.get('/contact/messages')
       setMessages(res.data)
+
+      const saved = localStorage.getItem(STORAGE_KEY)
+      if (saved) {
+        setReadMessages(new Set(JSON.parse(saved)))
+      }
     } catch (err) {
       console.error('Failed to load messages:', err)
     } finally {
@@ -55,126 +45,243 @@ export default function ContactMessages() {
     if (selected?.id === id) setSelected(null)
   }
 
+  const handleSelectMessage = async (message) => {
+    setSelected(message)
+    const newReadSet = new Set([...readMessages, message.id])
+    setReadMessages(newReadSet)
+
+    localStorage.setItem(STORAGE_KEY, JSON.stringify([...newReadSet]))
+
+    try {
+      await api.patch(`/contact/messages/${message.id}`, { read: true })
+    } catch (err) {
+      console.log('Message marked as read locally')
+    }
+  }
+
+  const unreadCount = messages.filter((m) => !readMessages.has(m.id)).length
+
   if (loading) {
     return (
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <Loader2 size={32} className="animate-spin text-emerald-500" />
+      <div className="flex h-screen items-center justify-center bg-gradient-to-br from-slate-50 via-white to-slate-50">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 size={40} className="animate-spin text-emerald-500" />
+          <p className="text-sm text-slate-600 font-semibold">Loading your messages</p>
+        </div>
       </div>
     )
   }
 
   return (
-    <section className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100/60 py-10 px-6">
-      <div className="mx-auto max-w-7xl">
-        <div className="mb-10">
-          <p className="text-xs font-bold uppercase tracking-widest text-emerald-600 flex items-center gap-2">
-            <Zap size={14} /> Messages
-          </p>
-          <h1 className="mt-3 text-4xl font-bold text-slate-900 sm:text-5xl">Contact Messages</h1>
-        </div>
-
-        <div className="grid gap-8 lg:grid-cols-[1fr_1.5fr]">
-          {/* List Card */}
-          <div className="rounded-2xl border border-slate-200 bg-white/80 backdrop-blur-sm p-6 shadow-sm transition-all duration-300 hover:shadow-lg hover:border-emerald-300">
-            <h2 className="text-2xl font-bold text-slate-900 mb-4">Inbox</h2>
-            <div className="space-y-2 max-h-[70vh] overflow-y-auto">
-              {messages.length === 0 ? (
-                <div className="rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 px-6 py-12 text-center">
-                  <p className="text-slate-600">No messages yet.</p>
-                </div>
-              ) : (
-                messages.map((m) => (
-                  <div
-                    key={m.id}
-                    onClick={() => setSelected(m)}
-                    className={`rounded-2xl border bg-white/80 backdrop-blur-sm shadow-sm transition-all duration-300 hover:shadow-lg hover:border-emerald-300 cursor-pointer ${
-                      selected?.id === m.id
-                        ? 'border-emerald-400 ring-2 ring-emerald-400/30 shadow-xl shadow-emerald-100/50'
-                        : 'border-slate-200'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between p-5">
-                      <div className="flex items-center gap-4">
-                        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 text-sm font-bold text-white shadow-md">
-                          {m.name.charAt(0).toUpperCase()}
-                        </span>
-                        <div>
-                          <p className="text-xs font-semibold uppercase tracking-wider text-emerald-600">
-                            {m.inquiry_type}
-                          </p>
-                          <h3 className="text-base font-semibold text-slate-900 line-clamp-1">
-                            {m.subject}
-                          </h3>
-                          <p className="text-sm text-slate-500">{m.name}</p>
-                        </div>
-                      </div>
-                      <ChevronDown size={18} className="text-slate-400" />
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-
-          {/* Detail Card */}
-          <div className="rounded-2xl border border-slate-200 bg-white/80 backdrop-blur-sm p-6 shadow-sm transition-all duration-300 hover:shadow-lg hover:border-emerald-300">
-            {selected ? (
-              <>
-                <div className="flex items-center justify-between mb-6 border-b border-slate-200 pb-6">
-                  <div>
-                    <p className="text-xs font-bold uppercase tracking-widest text-emerald-600 flex items-center gap-2">
-                      <MessageSquare size={14} /> Message Details
-                    </p>
-                    <h2 className="mt-2 text-2xl font-bold text-slate-900">{selected.subject}</h2>
-                  </div>
-                  <IconButton label="Delete" danger onClick={() => deleteMessage(selected.id)}>
-                    <Trash2 size={16} />
-                  </IconButton>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="flex items-center gap-2 text-sm text-slate-600">
-                      <Mail size={16} className="text-emerald-500" />
-                      <span className="font-medium">Email:</span> {selected.email}
-                    </div>
-                    {selected.phone && (
-                      <div className="flex items-center gap-2 text-sm text-slate-600">
-                        <Phone size={16} className="text-emerald-500" />
-                        <span className="font-medium">Phone:</span> {selected.phone}
-                      </div>
-                    )}
-                    {selected.organization && (
-                      <div className="flex items-center gap-2 text-sm text-slate-600">
-                        <span className="font-medium">Organization:</span> {selected.organization}
-                      </div>
-                    )}
-                    <div className="flex items-center gap-2 text-sm text-slate-600">
-                      <Calendar size={16} className="text-emerald-500" />
-                      <span className="font-medium">Date:</span>{' '}
-                      {new Date(selected.created_at).toLocaleString()}
-                    </div>
-                  </div>
-
-                  <div className="border-t border-slate-200 pt-4">
-                    <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">
-                      Message
-                    </p>
-                    <div className="rounded-xl bg-slate-50 p-4 text-sm text-slate-700 whitespace-pre-wrap">
-                      {selected.message}
-                    </div>
-                  </div>
-                </div>
-              </>
-            ) : (
-              <div className="rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 px-6 py-12 text-center">
-                <MessageSquare size={32} className="mx-auto text-slate-400 mb-2" />
-                <p className="text-slate-600">Select a message to read</p>
-              </div>
+    <div className="flex h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 font-sans">
+      {/* Sidebar */}
+      <div className="w-96 border-r border-slate-200/60 bg-white/40 backdrop-blur-xl flex flex-col">
+        {/* Header */}
+        <div className="px-6 py-8 border-b border-slate-200/60">
+          <div className="flex items-baseline gap-3">
+            <h1 className="text-3xl font-black text-slate-900 font-serif tracking-tight">
+              Messages
+            </h1>
+            {unreadCount > 0 && (
+              <span className="px-3 py-1.5 rounded-full bg-rose-600 text-white text-xs font-black shadow-md shadow-rose-600/20">
+                {unreadCount}
+              </span>
             )}
           </div>
+          <p className="text-sm font-semibold text-slate-600 mt-2">{messages.length} total</p>
+        </div>
+
+        {/* Messages List */}
+        <div className="flex-1 overflow-y-auto scroll-smooth">
+          {messages.length === 0 ? (
+            <div className="flex items-center justify-center h-full px-6">
+              <div className="text-center">
+                <MessageSquare size={40} className="mx-auto text-slate-300 mb-3" />
+                <p className="text-slate-600 text-sm font-bold">No messages yet</p>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-1 p-4">
+              {messages.map((message) => {
+                const isSelected = selected?.id === message.id
+                const isRead = readMessages.has(message.id)
+
+                return (
+                  <button
+                    key={message.id}
+                    onClick={() => handleSelectMessage(message)}
+                    className={`w-full text-left px-4 py-3 rounded-2xl transition-all duration-200 group relative overflow-hidden ${
+                      isSelected
+                        ? 'bg-emerald-50 shadow-sm'
+                        : 'hover:bg-slate-100/60 active:bg-slate-100'
+                    }`}
+                  >
+                    {/* Unread indicator line – now RED */}
+                    {!isRead && (
+                      <div className="absolute left-0 top-0 bottom-0 w-1 bg-rose-500 transition-opacity duration-300" />
+                    )}
+
+                    <div className="flex items-center gap-3">
+                      {/* Avatar */}
+                      <div
+                        className={`h-12 w-12 rounded-full flex items-center justify-center font-semibold text-white transition-all duration-200 flex-shrink-0 ${
+                          isSelected
+                            ? 'bg-emerald-500 shadow-md'
+                            : 'bg-emerald-400/80 group-hover:bg-emerald-500'
+                        }`}
+                      >
+                        {message.name.charAt(0).toUpperCase()}
+                      </div>
+
+                      {/* Content */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-baseline gap-2">
+                          <p
+                            className={`text-sm font-black truncate ${
+                              isRead ? 'text-slate-700' : 'text-slate-900 font-black'
+                            }`}
+                          >
+                            {message.name}
+                          </p>
+                          {/* Unread dot – now RED */}
+                          {!isRead && (
+                            <span className="h-2.5 w-2.5 rounded-full bg-rose-500 flex-shrink-0" />
+                          )}
+                        </div>
+                        <p className="text-xs font-bold uppercase tracking-wide text-emerald-600 mt-0.5">
+                          {message.inquiry_type}
+                        </p>
+                        <p className="text-sm font-semibold text-slate-700 truncate mt-1">
+                          {message.subject}
+                        </p>
+                      </div>
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+          )}
         </div>
       </div>
-    </section>
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col bg-white/30 backdrop-blur-sm">
+        {selected ? (
+          <>
+            {/* Header */}
+            <div className="border-b border-slate-200/40 px-8 py-6 flex items-center justify-between bg-white/20 backdrop-blur-sm">
+              <div className="flex items-center gap-4">
+                <div className="h-14 w-14 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-white font-black shadow-md text-lg">
+                  {selected.name.charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <h2 className="text-2xl font-black text-slate-900 font-serif">
+                    {selected.subject}
+                  </h2>
+                  <p className="text-sm font-bold text-slate-700 mt-0.5 flex items-center gap-2">
+                    {selected.name}
+                    <span className="flex items-center gap-1 text-emerald-600 font-bold">
+                      <CheckCheck size={14} />
+                      Read
+                    </span>
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => deleteMessage(selected.id)}
+                className="p-2.5 hover:bg-red-50 text-red-600 rounded-xl transition-colors duration-200 active:scale-95"
+                title="Delete message"
+              >
+                <Trash2 size={20} />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto px-8 py-8">
+              <div className="max-w-3xl space-y-8">
+                {/* Info Grid */}
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-5 border border-slate-200/40">
+                    <p className="text-xs font-black uppercase tracking-wider text-emerald-600 mb-2">
+                      Email
+                    </p>
+                    <p className="text-slate-900 font-bold break-all">{selected.email}</p>
+                  </div>
+
+                  {selected.phone && (
+                    <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-5 border border-slate-200/40">
+                      <p className="text-xs font-black uppercase tracking-wider text-emerald-600 mb-2">
+                        Phone
+                      </p>
+                      <p className="text-slate-900 font-bold">{selected.phone}</p>
+                    </div>
+                  )}
+
+                  {selected.organization && (
+                    <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-5 border border-slate-200/40">
+                      <p className="text-xs font-black uppercase tracking-wider text-emerald-600 mb-2">
+                        Organization
+                      </p>
+                      <p className="text-slate-900 font-bold">{selected.organization}</p>
+                    </div>
+                  )}
+
+                  <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-5 border border-slate-200/40">
+                    <p className="text-xs font-black uppercase tracking-wider text-emerald-600 mb-2">
+                      Received
+                    </p>
+                    <p className="text-slate-900 font-bold">
+                      {new Date(selected.created_at).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                      })}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Type Badge */}
+                <div>
+                  <p className="text-xs font-black uppercase tracking-wider text-emerald-600 mb-3">
+                    Inquiry Type
+                  </p>
+                  <div className="inline-block">
+                    <span className="px-4 py-2 bg-emerald-100 text-emerald-900 rounded-full text-sm font-black border border-emerald-300">
+                      {selected.inquiry_type}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Message */}
+                <div>
+                  <p className="text-xs font-black uppercase tracking-wider text-emerald-600 mb-3">
+                    Message
+                  </p>
+                  <div className="bg-gradient-to-br from-slate-50 to-slate-100/50 rounded-2xl p-6 border border-slate-200/40 backdrop-blur-sm">
+                    <p className="text-slate-800 leading-relaxed whitespace-pre-wrap text-base font-medium">
+                      {selected.message}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="flex items-center justify-center h-full px-8">
+            <div className="text-center">
+              <MessageSquare size={56} className="mx-auto text-slate-300 mb-4" />
+              <p className="text-slate-700 text-lg font-bold font-serif">
+                Select a message to read
+              </p>
+              <p className="text-slate-500 text-sm mt-2 font-semibold">
+                Messages will appear as read once selected
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
   )
 }
+
+export default LuxuryContactMessages

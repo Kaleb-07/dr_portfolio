@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { AnimatedSection, Container } from '@/components/shared'
 import { awards } from '@/data/awards'
+import { useSiteContent } from '@/hooks/useSiteContent'
 import type { Award } from '@/types'
 
 const categoryLabels: Record<Award['category'], string> = {
@@ -13,18 +14,31 @@ const categoryLabels: Record<Award['category'], string> = {
 const categoryKeys: Award['category'][] = ['professional', 'alumni', 'industry', 'leadership']
 
 export default function AwardsList() {
+  const { content } = useSiteContent()
   const groupedAwards = useMemo(() => {
+    const cmsAwards =
+      content?.sections.recognition_awards?.blocks?.map((block) => ({
+        id: String(block.id),
+        title: block.title || '',
+        organization: String(block.metadata?.organization || ''),
+        year: Number(block.metadata?.year || new Date().getFullYear()),
+        description: block.body || '',
+        image: block.image_url || '/image.png',
+        category: String(block.metadata?.category || 'professional') as Award['category'],
+      })) || []
+
     const groups: Record<string, Award[]> = {
       professional: [],
       alumni: [],
       industry: [],
       leadership: [],
     }
-    for (const award of awards) {
+    const sourceAwards = cmsAwards.length ? cmsAwards : awards
+    for (const award of sourceAwards) {
       if (groups[award.category]) groups[award.category]!.push(award)
     }
     return groups
-  }, [])
+  }, [content])
 
   return (
     <section className="section-padding bg-paper relative overflow-hidden">

@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
 import { AnimatedSection, Container } from '@/components/shared'
 import { mediaItems } from '@/data/media'
+import { useSiteContent } from '@/hooks/useSiteContent'
 import { cn } from '@/lib/utils'
 import type { MediaItem } from '@/types'
 
@@ -17,11 +18,25 @@ const allTypes: MediaItem['type'][] = ['interview', 'conference', 'podcast', 'pr
 
 export default function MediaListSection() {
   const [activeType, setActiveType] = useState<MediaItem['type'] | 'all'>('all')
+  const { content } = useSiteContent()
 
   const filtered = useMemo(() => {
-    if (activeType === 'all') return mediaItems
-    return mediaItems.filter((item) => item.type === activeType)
-  }, [activeType])
+    const cmsMedia =
+      content?.sections.media_speaking?.blocks?.map((block) => ({
+        id: String(block.id),
+        title: block.title || '',
+        type: (block.metadata?.type || 'interview') as MediaItem['type'],
+        source: String(block.metadata?.source || ''),
+        date: String(block.metadata?.date || ''),
+        description: block.body || '',
+        url: String(block.metadata?.url || ''),
+        thumbnail: String(block.image_url || ''),
+      })) || []
+
+    const sourceItems = cmsMedia.length ? cmsMedia : mediaItems
+    if (activeType === 'all') return sourceItems
+    return sourceItems.filter((item) => item.type === activeType)
+  }, [activeType, content])
 
   return (
     <section className="section-padding bg-paper relative overflow-hidden">

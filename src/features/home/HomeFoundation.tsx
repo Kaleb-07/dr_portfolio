@@ -91,7 +91,7 @@ export default function HomeFoundation() {
   const leftRef    = useRef<HTMLDivElement>(null)
   const leftInView = useInView(leftRef, { once: true, margin: '-60px' })
   const { content } = useSiteContent()
-  const section = content?.sections.foundation_story
+  const section = content?.sections.foundation || content?.sections.foundation_story
   const cmsStats = section?.metadata?.stats
   const displayedStats = Array.isArray(cmsStats) && cmsStats.length > 0 ? cmsStats : stats
   const displayedPillars = section?.blocks?.length

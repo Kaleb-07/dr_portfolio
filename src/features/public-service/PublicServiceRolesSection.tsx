@@ -1,6 +1,7 @@
 import { AnimatedSection, Container } from '@/components/shared'
+import { useSiteContent } from '@/hooks/useSiteContent'
 
-const roles = [
+const fallbackRoles = [
   {
     title: 'VP, Ethiopian Healthcare Federation',
     period: 'Current',
@@ -28,33 +29,34 @@ const roles = [
 ]
 
 export default function PublicServiceRolesSection() {
+  const { content } = useSiteContent()
+  const section = content?.sections['public-service']
+  const roles = Array.isArray(section?.metadata?.roles) && section.metadata.roles.length > 0
+    ? section.metadata.roles
+    : fallbackRoles
+
   return (
     <section className="section-padding bg-white">
       <Container>
         <div className="grid lg:grid-cols-12 gap-12 lg:gap-20">
-
-          {/* Left label */}
           <div className="lg:col-span-3 lg:sticky lg:top-24 lg:self-start">
             <AnimatedSection>
               <h2 className="font-serif text-2xl lg:text-3xl font-light text-ink mb-4">
                 Policy &amp; Leadership
               </h2>
               <p className="text-sm font-light text-ink-mid leading-relaxed">
-                Active roles in national federations and ministerial advisory boards
-                focused on healthcare sovereignty.
+                Active roles in national federations and ministerial advisory boards focused on
+                healthcare sovereignty.
               </p>
             </AnimatedSection>
           </div>
 
-          {/* Right role list */}
           <div className="lg:col-span-9">
             {roles.map((role, i) => (
               <AnimatedSection key={role.title} delay={i * 0.07}>
                 <div className="py-7 border-b border-rule first:border-t">
                   <div className="flex items-start justify-between gap-6 mb-3">
-                    <h3 className="font-serif text-lg font-light text-ink">
-                      {role.title}
-                    </h3>
+                    <h3 className="font-serif text-lg font-light text-ink">{role.title}</h3>
                     <span className="font-mono text-[9px] tracking-[0.2em] uppercase text-teal shrink-0 pt-1">
                       {role.period}
                     </span>

@@ -5,11 +5,13 @@ import { siteConfig } from '@/constants/site'
 export default function AboutPhilosophy() {
   const { content } = useSiteContent()
   const section = content?.sections?.leadership_philosophy
-  const eyebrow = section?.eyebrow || siteConfig.philosophy.label || 'Philosophy'
-  const title = section?.title || siteConfig.philosophy.title || 'Leadership philosophy'
+  const title = section?.title || 'Leadership philosophy'
   const primaryQuote = section?.description || siteConfig.philosophy.quote
   const attribution = section?.subtitle || siteConfig.philosophy.attribution
-  const quotes = Array.isArray(section?.blocks) && section.blocks.length > 0 ? section.blocks : [{ body: primaryQuote, title: attribution }]
+  const quotes =
+    Array.isArray(section?.blocks) && section.blocks.length > 0
+      ? section.blocks
+      : [{ body: primaryQuote, title: attribution }]
 
   return (
     <section className="section-padding bg-paper-warm relative overflow-hidden">
@@ -40,7 +42,7 @@ export default function AboutPhilosophy() {
             <div className="relative z-10 space-y-6">
               {quotes.map((q, i) => (
                 <blockquote key={i} className="font-serif text-xl lg:text-2xl italic font-light text-ink-mid leading-relaxed">
-                  &ldquo;{q.body || q.description || ''}&rdquo;
+                  &ldquo;{q.body || (q as { description?: string }).description || ''}&rdquo;
                   {q.title && <div className="mt-3 text-sm font-semibold text-ink-mid">{q.title}</div>}
                 </blockquote>
               ))}

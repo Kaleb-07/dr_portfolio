@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { AnimatedSection, Container } from '@/components/shared'
 import { programs } from '@/data/foundation'
+import { useSiteContent } from '@/hooks/useSiteContent'
 import {
   FaHeartbeat,
   FaGraduationCap,
@@ -19,8 +20,18 @@ const programIcons: Record<string, React.ComponentType<{ className?: string; siz
 }
 
 export default function FoundationProgramsSection() {
-  const [activeId, setActiveId] = useState(programs[0]?.id ?? '')
-  const activeProgram = programs.find((p) => p.id === activeId) ?? programs[0]
+  const { content } = useSiteContent()
+  const section = content?.sections.foundation || content?.sections.foundation_story
+  const cmsPrograms = Array.isArray(section?.metadata?.programs) ? section.metadata.programs : []
+  const displayedPrograms = cmsPrograms.length > 0 ? cmsPrograms : programs
+  const [activeId, setActiveId] = useState(displayedPrograms[0]?.id ?? '')
+  const activeProgram = displayedPrograms.find((p) => p.id === activeId) ?? displayedPrograms[0]
+
+  useEffect(() => {
+    if (!displayedPrograms.some((program) => program.id === activeId)) {
+      setActiveId(displayedPrograms[0]?.id ?? '')
+    }
+  }, [displayedPrograms, activeId])
 
   return (
     <section className="section-padding bg-paper-warm relative overflow-hidden">
@@ -43,7 +54,7 @@ export default function FoundationProgramsSection() {
         <div className="grid lg:grid-cols-12 gap-8 lg:gap-12">
           {/* Left: Program Selector List */}
           <div className="lg:col-span-4 border-t border-rule divide-y divide-rule">
-            {programs.map((program, i) => {
+            {displayedPrograms.map((program, i) => {
               const Icon = programIcons[program.id] ?? FaHeartbeat
               const isActive = program.id === activeId
               return (

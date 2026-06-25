@@ -1,7 +1,8 @@
 import { FaGraduationCap, FaMicroscope, FaStar } from 'react-icons/fa'
 import { AnimatedSection, Container } from '@/components/shared'
+import { useSiteContent } from '@/hooks/useSiteContent'
 
-const degrees = [
+const fallbackDegrees = [
   {
     icon: FaGraduationCap,
     title: 'Doctor of Medicine',
@@ -26,6 +27,12 @@ const degrees = [
 ]
 
 export default function PublicServiceAcademicSection() {
+  const { content } = useSiteContent()
+  const section = content?.sections['public-service']
+  const degrees = Array.isArray(section?.metadata?.education) && section.metadata.education.length > 0
+    ? section.metadata.education
+    : fallbackDegrees
+
   return (
     <section className="section-padding bg-paper">
       <Container>
@@ -40,29 +47,22 @@ export default function PublicServiceAcademicSection() {
 
         <div className="grid sm:grid-cols-3 gap-6">
           {degrees.map((deg, i) => {
-            const Icon = deg.icon
+            const Icon = deg.icon || FaGraduationCap
             return (
               <AnimatedSection key={deg.title} delay={i * 0.08}>
                 <div
                   className={`h-full flex flex-col p-7 ${
-                    deg.highlight
-                      ? 'bg-teal text-white'
-                      : 'bg-white border border-rule text-ink'
+                    deg.highlight ? 'bg-teal text-white' : 'bg-white border border-rule text-ink'
                   }`}
                 >
-                  {/* Icon */}
                   <div
                     className={`w-9 h-9 rounded-full flex items-center justify-center mb-6 ${
                       deg.highlight ? 'bg-white/20' : 'bg-paper'
                     }`}
                   >
-                    <Icon
-                      size={16}
-                      className={deg.highlight ? 'text-white' : 'text-teal'}
-                    />
+                    <Icon size={16} className={deg.highlight ? 'text-white' : 'text-teal'} />
                   </div>
 
-                  {/* Title */}
                   <h3
                     className={`font-serif text-lg font-light mb-2 ${
                       deg.highlight ? 'text-white' : 'text-ink'
@@ -71,7 +71,6 @@ export default function PublicServiceAcademicSection() {
                     {deg.title}
                   </h3>
 
-                  {/* Institution / description */}
                   <p
                     className={`text-sm font-light leading-relaxed flex-1 ${
                       deg.highlight ? 'text-white/75' : 'text-ink-mid'
@@ -80,7 +79,6 @@ export default function PublicServiceAcademicSection() {
                     {deg.institution}
                   </p>
 
-                  {/* Footer tag */}
                   <p
                     className={`mt-6 font-mono text-[9px] tracking-[0.2em] uppercase ${
                       deg.highlight ? 'text-white/50' : 'text-ink-muted'

@@ -17,12 +17,17 @@ export default function AboutPage() {
 
   const { content } = useSiteContent()
   const banner = content?.sections?.about_banner
+  const aboutStory = content?.sections?.about_story
 
   return (
     <>
       <PageBanner
-        title={banner?.title || 'The Story'}
-        description={banner?.description || 'A life dedicated to healthcare leadership and transformation.'}
+        title={banner?.title || aboutStory?.title || 'The Story'}
+        description={
+          banner?.description ||
+          aboutStory?.description ||
+          'A life dedicated to healthcare leadership and transformation.'
+        }
       />
       <AboutStory />
       <AboutPhilosophy />
@@ -32,4 +37,3 @@ export default function AboutPage() {
     </>
   )
 }
-

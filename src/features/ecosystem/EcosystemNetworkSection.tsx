@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import { motion, useInView, AnimatePresence } from 'framer-motion'
 import { AnimatedSection, Container } from '@/components/shared'
+import { useSiteContent } from '@/hooks/useSiteContent'
 
 /* ── Diagram constants ─────────────────────────────────────── */
 const CX = 260, CY = 260, ORBIT = 172, NODE_R = 36, HUB_R = 66
@@ -97,17 +98,22 @@ const SECTORS = [
   },
 ]
 
-const nodes = SECTORS.map((s) => ({
-  ...s,
-  x: CX + ORBIT * Math.cos((s.angle * Math.PI) / 180),
-  y: CY + ORBIT * Math.sin((s.angle * Math.PI) / 180),
-}))
-
 /* ── Component ─────────────────────────────────────────────── */
 export default function EcosystemNetworkSection() {
   const ref = useRef<HTMLElement>(null)
   const inView = useInView(ref, { once: true, margin: '-80px' })
   const [activeId, setActiveId] = useState<string>(SECTORS[0]!.id)
+  const { content } = useSiteContent()
+  const section = content?.sections.liyana_framework
+  const ecosystem = (section?.metadata?.ecosystem || {}) as any
+  const network = ecosystem.network || {}
+  const hero = network.hero || {}
+  const sectors: any[] = Array.isArray(network.sectors) && network.sectors.length > 0 ? network.sectors : SECTORS
+  const nodes = sectors.map((s: any) => ({
+    ...s,
+    x: CX + ORBIT * Math.cos((s.angle * Math.PI) / 180),
+    y: CY + ORBIT * Math.sin((s.angle * Math.PI) / 180),
+  }))
 
   const activeNode = nodes.find((n) => n.id === activeId) ?? nodes[0]!
 
@@ -123,14 +129,15 @@ export default function EcosystemNetworkSection() {
         <AnimatedSection className="text-center mb-10">
           <div className="section-header justify-center mb-6">
             <span className="section-rule !bg-white/10" />
-            <span className="section-tag !text-teal">System Generated</span>
+            <span className="section-tag !text-teal">{hero.tag || 'System Generated'}</span>
             <span className="section-rule !bg-white/10" />
           </div>
           <h2 className="font-serif text-4xl md:text-5xl font-light text-white">
-            The Ecosystem <em className="text-teal-mid not-italic">Core</em>
+            {hero.title || 'The Ecosystem Core'}
           </h2>
           <p className="mt-4 text-sm font-light text-white/50 max-w-md mx-auto leading-relaxed">
-            Six interconnected sectors — each reinforcing the next — forming a single, self-sustaining healthcare chain.
+            {hero.description ||
+              'Six interconnected sectors — each reinforcing the next — forming a single, self-sustaining healthcare chain.'}
           </p>
         </AnimatedSection>
 
@@ -164,7 +171,7 @@ export default function EcosystemNetworkSection() {
                 </filter>
 
                 {/* Gradient for each spoke */}
-                {nodes.map((n) => (
+                {nodes.map((n: any) => (
                   <linearGradient
                     key={`grad-${n.id}`}
                     id={`grad-${n.id}`}
@@ -212,7 +219,7 @@ export default function EcosystemNetworkSection() {
               />
 
               {/* ── Gradient spoke lines ── */}
-              {nodes.map((n, i) => (
+              {nodes.map((n: any, i: number) => (
                 <motion.path
                   key={`spoke-${n.id}`}
                   d={`M ${CX} ${CY} L ${n.x} ${n.y}`}
@@ -227,7 +234,7 @@ export default function EcosystemNetworkSection() {
               ))}
 
               {/* ── Traveling dots along spokes ── */}
-              {inView && nodes.map((n, i) => (
+              {inView && nodes.map((n: any, i: number) => (
                 <motion.circle
                   key={`dot-${n.id}`}
                   r={2.5}
@@ -300,7 +307,7 @@ export default function EcosystemNetworkSection() {
               </motion.g>
 
               {/* ── Outer nodes ── */}
-              {nodes.map((n, i) => {
+              {nodes.map((n: any, i: number) => {
                 const isActive = n.id === activeId
                 return (
                   <motion.g
@@ -354,7 +361,7 @@ export default function EcosystemNetworkSection() {
               </p>
 
               <div className="space-y-1">
-                {nodes.map((n, i) => {
+                {nodes.map((n: any, i: number) => {
                   const isActive = n.id === activeId
                   return (
                     <button

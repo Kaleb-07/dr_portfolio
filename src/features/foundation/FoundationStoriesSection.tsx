@@ -1,8 +1,13 @@
 import { AnimatedSection, Container } from '@/components/shared'
 import { impactStories } from '@/data/foundation'
 import { motion } from 'framer-motion'
+import { useSiteContent } from '@/hooks/useSiteContent'
 
 export default function FoundationStoriesSection() {
+  const { content } = useSiteContent()
+  const section = content?.sections.foundation || content?.sections.foundation_story
+  const cmsStories = Array.isArray(section?.metadata?.impactStories) ? section.metadata.impactStories : []
+  const displayedStories = cmsStories.length > 0 ? cmsStories : impactStories
   return (
     <section className="section-padding bg-paper relative overflow-hidden">
       {/* Background accent */}
@@ -23,7 +28,7 @@ export default function FoundationStoriesSection() {
 
         {/* Magazine layout: featured story top, two below */}
         <div className="space-y-0 border-t border-rule divide-y divide-rule max-w-4xl mx-auto">
-          {impactStories.map((story, i) => (
+          {displayedStories.map((story, i) => (
             <AnimatedSection key={story.title} delay={i * 0.12}>
               <div className="py-10 md:py-12 grid md:grid-cols-12 gap-6 items-start group cursor-default">
                 {/* Left: Number watermark + beneficiary tag */}

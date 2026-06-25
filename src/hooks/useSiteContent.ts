@@ -1,40 +1,27 @@
 import { useEffect, useState } from 'react'
 import { fetchSiteContent, type SiteContent } from '@/services/cms'
 
-let cachedContent: SiteContent | null = null
-let pendingContent: Promise<SiteContent> | null = null
-
 export function useSiteContent() {
-  const [content, setContent] = useState<SiteContent | null>(cachedContent)
-  const [isLoading, setIsLoading] = useState(!cachedContent)
+  const [content, setContent] = useState<SiteContent | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
 
   useEffect(() => {
     let isMounted = true
 
-    if (!pendingContent) {
-      pendingContent = fetchSiteContent().then((data) => {
-        cachedContent = data
-        return data
-      })
-    }
-
-    pendingContent
+    fetchSiteContent()
       .then((data) => {
-        if (isMounted) {
-          setContent(data)
-          setError(null)
-        }
+        if (!isMounted) return
+        setContent(data)
+        setError(null)
       })
       .catch((caughtError) => {
-        if (isMounted) {
-          setError(caughtError instanceof Error ? caughtError : new Error('CMS content failed'))
-        }
+        if (!isMounted) return
+        setError(caughtError instanceof Error ? caughtError : new Error('CMS content failed'))
       })
       .finally(() => {
-        if (isMounted) {
-          setIsLoading(false)
-        }
+        if (!isMounted) return
+        setIsLoading(false)
       })
 
     return () => {

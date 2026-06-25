@@ -2,7 +2,6 @@ const express = require('express')
 const router = express.Router()
 const prisma = require('../prisma')
 
-/* ---------------- SETTINGS ---------------- */
 router.get('/settings', async (req, res) => {
   try {
     const settings = await prisma.contact_settings.findFirst()

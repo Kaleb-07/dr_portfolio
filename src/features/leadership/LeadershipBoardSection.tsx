@@ -1,11 +1,19 @@
 import { useMemo } from 'react'
 import { AnimatedSection, Container } from '@/components/shared'
 import { leadershipRoles } from '@/data/leadership'
+import { useSiteContent } from '@/hooks/useSiteContent'
 
 export default function LeadershipBoardSection() {
+  const { content } = useSiteContent()
+  const section = content?.sections.leadership || content?.sections.leadership_philosophy
   const boardRoles = useMemo(
-    () => leadershipRoles.filter((r) => r.category === 'board' || r.category === 'advisory'),
-    [],
+    () => {
+      const cmsRoles = Array.isArray(section?.metadata?.governanceRoles) ? section.metadata.governanceRoles : []
+      return cmsRoles.length > 0
+        ? cmsRoles
+        : leadershipRoles.filter((r) => r.category === 'board' || r.category === 'advisory')
+    },
+    [section?.metadata?.governanceRoles],
   )
 
   return (
@@ -61,9 +69,9 @@ export default function LeadershipBoardSection() {
                   <p className="text-sm font-light text-ink-mid leading-relaxed mb-4">
                     {role.description}
                   </p>
-                  {role.highlights.length > 0 && (
+                  {Array.isArray(role.highlights) && role.highlights.length > 0 && (
                     <div className="space-y-2">
-                      {role.highlights.map((h, j) => (
+                      {role.highlights.map((h: string, j: number) => (
                         <div key={j} className="flex items-start gap-3">
                           <span className="w-3 h-px bg-gold mt-2.5 shrink-0" />
                           <p className="text-sm font-light text-ink-muted leading-relaxed">{h}</p>

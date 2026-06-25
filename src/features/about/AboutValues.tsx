@@ -30,7 +30,7 @@ export default function AboutValues() {
 
         <div className="max-w-4xl mx-auto border-t border-rule divide-y divide-rule">
           {values.map((value, i) => {
-            const Icon = valueIcons[value.title] || FaHeart
+            const Icon = valueIcons[(value.title || '') as keyof typeof valueIcons] || FaHeart
             return (
               <AnimatedSection key={value.title} delay={i * 0.1}>
                 <div className="py-8 md:py-10 grid md:grid-cols-12 gap-6 items-start group hover:bg-paper-warm/30 px-6 transition-colors duration-300">
@@ -51,7 +51,8 @@ export default function AboutValues() {
                   {/* Right Column: Description */}
                   <div className="md:col-span-7">
                     <p className="text-sm font-light text-ink-mid leading-relaxed">
-                      {value.description || value.body}
+                      {(value as { description?: string; body?: string }).description ||
+                        (value as { body?: string }).body}
                     </p>
                   </div>
                 </div>

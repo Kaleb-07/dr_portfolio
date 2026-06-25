@@ -1,23 +1,48 @@
 import { AnimatedSection, Container } from '@/components/shared'
 import { education } from '@/data/education'
+import { useSiteContent } from '@/hooks/useSiteContent'
 import { FaGraduationCap, FaChevronRight } from 'react-icons/fa'
 
 export default function EducationListSection() {
+  const { content } = useSiteContent()
+  const cmsEducation =
+    content?.sections.about_education?.blocks?.map((block) => ({
+      id: String(block.id),
+      institution: block.title || '',
+      degree: String(block.metadata?.degree || ''),
+      field: String(block.metadata?.field || ''),
+      year: Number(block.metadata?.year || new Date().getFullYear()),
+      description: block.body || '',
+      highlights: Array.isArray(block.metadata?.highlights) ? (block.metadata.highlights as string[]) : [],
+    })) || []
+
+  const items = cmsEducation.length ? cmsEducation : education
+
   return (
     <section className="section-padding bg-paper">
       <Container>
         <AnimatedSection>
           <div className="section-header">
-            <span className="section-tag">Credentials</span>
+            <span className="section-tag">{content?.sections.about_education?.eyebrow || 'Credentials'}</span>
             <span className="section-rule" />
           </div>
           <h2 className="font-serif text-4xl md:text-5xl font-light text-ink mb-16">
-            Academic <em className="text-teal-mid not-italic">foundations</em>
+            {content?.sections.about_education?.title ? (
+              content.sections.about_education.title
+            ) : (
+              <>
+                Academic <em className="text-teal-mid not-italic">foundations</em>
+              </>
+            )}
           </h2>
+          <p className="text-sm font-light text-ink-muted mb-12 max-w-xl">
+            {content?.sections.about_education?.description ||
+              'Academic training and professional credentials that shaped the journey.'}
+          </p>
         </AnimatedSection>
 
         <div className="max-w-4xl mx-auto space-y-12">
-          {education.map((item, i) => (
+          {items.map((item, i) => (
             <AnimatedSection key={item.id} delay={i * 0.1}>
               <div className="grid md:grid-cols-12 gap-6 md:gap-12 items-start group relative">
                 {/* Visual vertical side anchor */}

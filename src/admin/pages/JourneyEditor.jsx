@@ -1,55 +1,55 @@
+import { useEffect, useRef, useState } from 'react'
 import {
+  AlertCircle,
   ArrowDown,
   ArrowUp,
+  CheckCircle2,
+  ChevronDown,
+  Eye,
   Loader2,
   Plus,
   Save,
+  Sparkles,
   Trash2,
   Upload,
-  AlertCircle,
-  CheckCircle2,
+  Zap,
 } from 'lucide-react'
-import { useEffect, useState } from 'react'
 import api from '../api'
 
+// --------------- Helpers (identical to ImpactEditor) ---------------
 const formInput =
-  'w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/10'
+  'w-full rounded-xl border border-slate-200 bg-white/70 backdrop-blur px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/10 focus:bg-white shadow-sm hover:border-emerald-300 hover:shadow-md'
+
 const labelClass = 'mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-600'
 
-function Field({ label, children }) {
-  return (
-    <label className="block">
-      <span className={labelClass}>{label}</span>
-      {children}
-    </label>
-  )
-}
+const Field = ({ label, children }) => (
+  <label className="block">
+    <span className={labelClass}>{label}</span>
+    {children}
+  </label>
+)
 
-function IconButton({ label, onClick, children, disabled, danger = false }) {
-  return (
-    <button
-      type="button"
-      aria-label={label}
-      title={label}
-      disabled={disabled}
-      onClick={onClick}
-      className={`inline-flex h-9 w-9 items-center justify-center rounded-lg transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-40 ${
-        danger
-          ? 'bg-red-50 text-red-600 hover:bg-red-100'
-          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-      }`}
-    >
-      {children}
-    </button>
-  )
-}
+const IconButton = ({ label, onClick, children, disabled, danger = false }) => (
+  <button
+    type="button"
+    aria-label={label}
+    disabled={disabled}
+    onClick={onClick}
+    className={`inline-flex h-9 w-9 items-center justify-center rounded-lg transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-40 ${
+      danger
+        ? 'bg-red-50 text-red-600 hover:bg-red-100'
+        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+    }`}
+  >
+    {children}
+  </button>
+)
 
-function Toast({ message, error }) {
+const Toast = ({ message, error }) => {
   if (!message && !error) return null
-
   return (
     <div
-      className={`fixed bottom-6 right-6 flex items-center gap-3 rounded-lg px-5 py-3.5 text-sm font-medium shadow-lg transition-all duration-300 ${
+      className={`fixed bottom-6 right-6 flex items-center gap-3 rounded-lg px-5 py-3.5 text-sm font-medium shadow-lg ${
         error ? 'bg-red-50 text-red-700' : 'bg-emerald-50 text-emerald-700'
       }`}
     >
@@ -59,16 +59,178 @@ function Toast({ message, error }) {
   )
 }
 
-// ICON options and grid picker removed — timeline events use a compact form now
-
-function buildTimelineEvents(events = []) {
-  return events.map((event) => ({
-    ...event,
-    year: event.year || '',
-    title: event.title || '',
-  }))
+const readLocalImage = (file, onLoad, onError) => {
+  if (!file) return
+  const reader = new FileReader()
+  reader.onload = () => onLoad(String(reader.result || ''))
+  reader.onerror = onError
+  reader.readAsDataURL(file)
 }
 
+/* --------------- Reusable sub‑components (identical to ImpactEditor) --------------- */
+function EditorShell({ title, saving, onSave, message, error, children }) {
+  return (
+    <section className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100/60">
+      <div className="mx-auto max-w-7xl px-6 py-10">
+        <div className="mb-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-widest text-emerald-600 flex items-center gap-2">
+              <Zap size={14} /> {title} Editor
+            </p>
+            <h1 className="mt-3 text-4xl font-bold text-slate-900">{title}</h1>
+          </div>
+          <button
+            onClick={onSave}
+            disabled={saving}
+            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 px-6 py-3 font-semibold text-white transition-all hover:shadow-xl hover:shadow-emerald-500/30 active:scale-[0.98] disabled:opacity-50"
+          >
+            {saving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
+            <span>{saving ? 'Saving...' : 'Save All Changes'}</span>
+          </button>
+        </div>
+
+        <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
+          <div className="space-y-8">{children}</div>
+
+          <aside className="space-y-6">
+            <div className="sticky top-8 space-y-6">
+              <div className="rounded-2xl border border-slate-200 bg-white/80 backdrop-blur-md p-6 shadow-sm hover:shadow-lg transition-all">
+                <h3 className="mb-4 text-xs font-bold uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2">
+                  <Eye size={14} className="text-emerald-500" /> Live Preview
+                </h3>
+                <div className="rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-slate-900 min-h-[160px]">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                    JOURNEY
+                  </p>
+                  <p className="mt-2 text-sm text-slate-600">
+                    All changes are stored in the database.
+                  </p>
+                </div>
+              </div>
+              <div className="rounded-2xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-emerald-100 p-6">
+                <h3 className="mb-3 flex items-center gap-2 text-sm font-bold text-emerald-900">
+                  <Sparkles size={16} className="text-emerald-600" /> Editing Guide
+                </h3>
+                <p className="text-sm leading-relaxed text-emerald-800">
+                  Click <strong>Save All Changes</strong> to persist your edits.
+                </p>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </div>
+      <Toast message={message} error={error} />
+    </section>
+  )
+}
+
+function Card({ title, description, onAdd, children }) {
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-white/80 backdrop-blur-sm p-6 sm:p-8 shadow-sm transition-all duration-300 hover:shadow-lg hover:border-emerald-300">
+      <div className="mb-6 flex items-center justify-between border-b border-slate-200 pb-6">
+        <div>
+          <h2 className="text-2xl font-bold text-slate-900">{title}</h2>
+          {description && <p className="mt-2 text-sm text-slate-600">{description}</p>}
+        </div>
+        {onAdd && (
+          <button
+            onClick={onAdd}
+            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 px-4 py-2 font-semibold text-white transition-all hover:shadow-xl hover:shadow-emerald-500/30 active:scale-95"
+          >
+            <Plus size={18} /> Add
+          </button>
+        )}
+      </div>
+      {children}
+    </div>
+  )
+}
+
+function ExpandableItem({
+  idx,
+  expanded,
+  setExpanded,
+  headerLabel,
+  headerValue,
+  children,
+  onUp,
+  onDown,
+  onDelete,
+  upDisabled,
+  downDisabled,
+  isFocused,
+  refProp,
+}) {
+  const isOpen = expanded.includes(String(idx))
+  return (
+    <div
+      ref={isFocused ? refProp : null}
+      className={`rounded-2xl border bg-white/80 backdrop-blur-sm shadow-sm transition-all duration-300 hover:shadow-lg hover:border-emerald-300 hover:scale-[1.01] cursor-pointer ${
+        isFocused
+          ? 'border-emerald-400 ring-2 ring-emerald-400/30 shadow-xl shadow-emerald-100/50'
+          : 'border-slate-200'
+      }`}
+    >
+      <button
+        onClick={() =>
+          setExpanded((prev) =>
+            prev.includes(String(idx))
+              ? prev.filter((i) => i !== String(idx))
+              : [...prev, String(idx)],
+          )
+        }
+        className="flex w-full items-center justify-between p-5 text-left"
+      >
+        <div className="flex items-center gap-4">
+          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 text-sm font-bold text-white shadow-md">
+            {String(idx + 1).padStart(2, '0')}
+          </span>
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider text-emerald-600">
+              {headerLabel}
+            </p>
+            <h3 className="text-base font-semibold text-slate-900 line-clamp-1">{headerValue}</h3>
+          </div>
+        </div>
+        <ChevronDown
+          size={18}
+          className={`text-slate-400 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}
+        />
+      </button>
+
+      <div
+        className={`overflow-hidden transition-all duration-500 ease-in-out ${isOpen ? 'max-h-[900px] opacity-100' : 'max-h-0 opacity-0'}`}
+      >
+        <div className="border-t border-slate-100 bg-slate-50/50 p-5 space-y-4">
+          {children}
+          <div className="flex items-center justify-between gap-2 border-t border-slate-200 pt-4">
+            <div className="flex gap-2">
+              <IconButton label="Move up" disabled={upDisabled} onClick={onUp}>
+                <ArrowUp size={16} />
+              </IconButton>
+              <IconButton label="Move down" disabled={downDisabled} onClick={onDown}>
+                <ArrowDown size={16} />
+              </IconButton>
+            </div>
+            <IconButton label="Delete" danger onClick={onDelete}>
+              <Trash2 size={16} />
+            </IconButton>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function EmptyState({ message }) {
+  return (
+    <div className="rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 px-6 py-12 text-center hover:border-emerald-300 hover:bg-emerald-50 transition-all">
+      <p className="text-slate-600">{message}</p>
+    </div>
+  )
+}
+
+/* --------------- Main Component --------------- */
 export default function JourneyEditor() {
   const [content, setContent] = useState(null)
   const [draft, setDraft] = useState(null)
@@ -78,6 +240,26 @@ export default function JourneyEditor() {
   const [error, setError] = useState('')
   const [deletedIds, setDeletedIds] = useState([])
 
+  // Expand/collapse states for each list
+  const [expandedChapters, setExpandedChapters] = useState([])
+  const [expandedPrinciples, setExpandedPrinciples] = useState([])
+  const [expandedQuotes, setExpandedQuotes] = useState([])
+  const [expandedEvents, setExpandedEvents] = useState([])
+
+  // Focus for new items
+  const newRef = useRef(null)
+  const [focusId, setFocusId] = useState(null)
+
+  useEffect(() => {
+    if (focusId && newRef.current) {
+      newRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      const timer = setTimeout(() => newRef.current?.querySelector('input, textarea')?.focus(), 350)
+      return () => clearTimeout(timer)
+    }
+    const reset = setTimeout(() => setFocusId(null), 2500)
+    return () => clearTimeout(reset)
+  }, [focusId])
+
   useEffect(() => {
     let active = true
     const load = async () => {
@@ -85,34 +267,212 @@ export default function JourneyEditor() {
       try {
         const response = await api.get('/cms/site-content')
         if (!active) return
-            setContent(response.data)
-            const timeline = buildTimelineEvents(response.data.timelineEvents || [])
-            const about = response.data.sections?.about_story || {}
-            const philosophy = response.data.sections?.leadership_philosophy || {}
-            const principles = response.data.sections?.about_values || {}
-            const vision = response.data.sections?.about_vision || {}
-            setDraft({
-              events: timeline,
-              about: { eyebrow: about.eyebrow || '', title: about.title || '', description: about.description || '', image_url: about.image_url || '', image_alt: about.image_alt || '', blocks: about.blocks || [] },
-              principles: { eyebrow: principles.eyebrow || '', title: principles.title || '', description: principles.description || '', blocks: principles.blocks || [] },
-              vision: { eyebrow: vision.eyebrow || '', title: vision.title || '', description: vision.description || '', blocks: vision.blocks || [] },
-              philosophy: { eyebrow: philosophy.eyebrow || '', title: philosophy.title || '', description: philosophy.description || '', subtitle: philosophy.subtitle || '', blocks: philosophy.blocks || [] },
-            })
+        setContent(response.data)
+        const timeline = (response.data.timelineEvents || []).map((event) => ({
+          ...event,
+          year: event.year || '',
+          title: event.title || '',
+        }))
+        const about = response.data.sections?.about_story || {}
+        const philosophy = response.data.sections?.leadership_philosophy || {}
+        const principles = response.data.sections?.about_values || {}
+        const vision = response.data.sections?.about_vision || {}
+        setDraft({
+          events: timeline,
+          about: {
+            eyebrow: about.eyebrow || '',
+            title: about.title || '',
+            description: about.description || '',
+            image_url: about.image_url || '',
+            image_alt: about.image_alt || '',
+            blocks: about.blocks || [],
+          },
+          principles: {
+            eyebrow: principles.eyebrow || '',
+            title: principles.title || '',
+            description: principles.description || '',
+            blocks: principles.blocks || [],
+          },
+          vision: {
+            eyebrow: vision.eyebrow || '',
+            title: vision.title || '',
+            description: vision.description || '',
+            blocks: vision.blocks || [],
+          },
+          philosophy: {
+            eyebrow: philosophy.eyebrow || '',
+            title: philosophy.title || '',
+            description: philosophy.description || '',
+            subtitle: philosophy.subtitle || '',
+            blocks: philosophy.blocks || [],
+          },
+        })
       } catch (e) {
         if (!active) return
         setError('Unable to load Journey content.')
       } finally {
-        if (!active) return
-        setIsLoading(false)
+        if (active) setIsLoading(false)
       }
     }
-
     load()
     return () => {
       active = false
     }
   }, [])
 
+  // --------------- Helper functions for each section ---------------
+  // About Story
+  const updateAbout = (patch) =>
+    setDraft((current) => ({ ...current, about: { ...current.about, ...patch } }))
+  const addChapter = () => {
+    setDraft((current) => ({
+      ...current,
+      about: {
+        ...current.about,
+        blocks: [
+          ...(current.about.blocks || []),
+          {
+            id: `new-${Date.now()}`,
+            block_type: 'chapter',
+            title: 'New Chapter',
+            body: '',
+            sort_order: (current.about.blocks || []).length + 1,
+          },
+        ],
+      },
+    }))
+    setExpandedChapters((prev) => [...prev, String((draft?.about?.blocks || []).length)])
+    setFocusId(`new-${Date.now()}`) // will be updated by the actual id generation; we can simplify
+  }
+  const updateChapter = (index, patch) =>
+    setDraft((current) => ({
+      ...current,
+      about: {
+        ...current.about,
+        blocks: current.about.blocks.map((b, i) => (i === index ? { ...b, ...patch } : b)),
+      },
+    }))
+  const removeChapter = (index) =>
+    setDraft((current) => ({
+      ...current,
+      about: { ...current.about, blocks: current.about.blocks.filter((_, i) => i !== index) },
+    }))
+  const reorderChapter = (index, direction) =>
+    setDraft((current) => {
+      const blocks = [...current.about.blocks]
+      const target = index + direction
+      if (target < 0 || target >= blocks.length) return current
+      const item = blocks[index]
+      blocks[index] = blocks[target]
+      blocks[target] = item
+      return { ...current, about: { ...current.about, blocks } }
+    })
+
+  // Principles
+  const updatePrinciples = (patch) =>
+    setDraft((current) => ({ ...current, principles: { ...current.principles, ...patch } }))
+  const addPrinciple = () => {
+    setDraft((current) => ({
+      ...current,
+      principles: {
+        ...current.principles,
+        blocks: [
+          ...(current.principles.blocks || []),
+          {
+            id: `new-${Date.now()}`,
+            block_type: 'value',
+            title: 'New Principle',
+            body: '',
+            sort_order: (current.principles.blocks || []).length + 1,
+          },
+        ],
+      },
+    }))
+    setExpandedPrinciples((prev) => [...prev, String((draft?.principles?.blocks || []).length)])
+    setFocusId(`new-${Date.now()}`)
+  }
+  const updatePrinciple = (index, patch) =>
+    setDraft((current) => ({
+      ...current,
+      principles: {
+        ...current.principles,
+        blocks: current.principles.blocks.map((b, i) => (i === index ? { ...b, ...patch } : b)),
+      },
+    }))
+  const removePrinciple = (index) =>
+    setDraft((current) => ({
+      ...current,
+      principles: {
+        ...current.principles,
+        blocks: current.principles.blocks.filter((_, i) => i !== index),
+      },
+    }))
+  const reorderPrinciple = (index, direction) =>
+    setDraft((current) => {
+      const blocks = [...current.principles.blocks]
+      const target = index + direction
+      if (target < 0 || target >= blocks.length) return current
+      const item = blocks[index]
+      blocks[index] = blocks[target]
+      blocks[target] = item
+      return { ...current, principles: { ...current.principles, blocks } }
+    })
+
+  // Leadership Philosophy
+  const updatePhilosophy = (patch) =>
+    setDraft((current) => ({ ...current, philosophy: { ...current.philosophy, ...patch } }))
+  const addQuote = () => {
+    setDraft((current) => ({
+      ...current,
+      philosophy: {
+        ...current.philosophy,
+        blocks: [
+          ...(current.philosophy.blocks || []),
+          {
+            id: `new-${Date.now()}`,
+            block_type: 'quote',
+            body: '',
+            title: '',
+            sort_order: (current.philosophy.blocks || []).length + 1,
+          },
+        ],
+      },
+    }))
+    setExpandedQuotes((prev) => [...prev, String((draft?.philosophy?.blocks || []).length)])
+    setFocusId(`new-${Date.now()}`)
+  }
+  const updateQuote = (index, patch) =>
+    setDraft((current) => ({
+      ...current,
+      philosophy: {
+        ...current.philosophy,
+        blocks: current.philosophy.blocks.map((b, i) => (i === index ? { ...b, ...patch } : b)),
+      },
+    }))
+  const removeQuote = (index) =>
+    setDraft((current) => ({
+      ...current,
+      philosophy: {
+        ...current.philosophy,
+        blocks: current.philosophy.blocks.filter((_, i) => i !== index),
+      },
+    }))
+  const reorderQuote = (index, direction) =>
+    setDraft((current) => {
+      const blocks = [...current.philosophy.blocks]
+      const target = index + direction
+      if (target < 0 || target >= blocks.length) return current
+      const item = blocks[index]
+      blocks[index] = blocks[target]
+      blocks[target] = item
+      return { ...current, philosophy: { ...current.philosophy, blocks } }
+    })
+
+  // Vision
+  const updateVision = (patch) =>
+    setDraft((current) => ({ ...current, vision: { ...current.vision, ...patch } }))
+
+  // Timeline Events
   const addEvent = () => {
     setDraft((current) => ({
       ...current,
@@ -126,16 +486,22 @@ export default function JourneyEditor() {
         },
       ],
     }))
+    setExpandedEvents((prev) => [...prev, String((draft?.events || []).length)])
+    setFocusId(`new-${Date.now()}`)
   }
-
-  const updateEvent = (index, patch) => {
+  const updateEvent = (index, patch) =>
     setDraft((current) => ({
       ...current,
       events: current.events.map((item, i) => (i === index ? { ...item, ...patch } : item)),
     }))
+  const removeEvent = (index) => {
+    setDraft((current) => {
+      const removed = current.events[index]
+      if (typeof removed?.id === 'number') setDeletedIds((ids) => [...ids, removed.id])
+      return { ...current, events: current.events.filter((_, i) => i !== index) }
+    })
   }
-
-  const reorder = (index, direction) => {
+  const reorderEvent = (index, direction) =>
     setDraft((current) => {
       const next = [...current.events]
       const target = index + direction
@@ -145,263 +511,129 @@ export default function JourneyEditor() {
       next[target] = item
       return { ...current, events: next }
     })
-  }
+  const updateEventImage = (index, file) =>
+    readLocalImage(
+      file,
+      (url) => updateEvent(index, { image_url: url }),
+      () => setError('Could not read image.'),
+    )
+  const updateAboutImage = (file) =>
+    readLocalImage(
+      file,
+      (url) => updateAbout({ image_url: url }),
+      () => setError('Could not read image.'),
+    )
 
-  const remove = (index) => {
-    setDraft((current) => {
-      const removed = current.events[index]
-      if (typeof removed?.id === 'number') {
-        setDeletedIds((ids) => [...ids, removed.id])
-      }
-      return { ...current, events: current.events.filter((_, i) => i !== index) }
-    })
-  }
-
-  const updateImage = (index, file) => {
-    if (!file) return
-    const reader = new FileReader()
-    reader.onload = () => updateEvent(index, { image_url: String(reader.result || '') })
-    reader.onerror = () => setError('Could not read the selected image.')
-    reader.readAsDataURL(file)
-  }
-
-  const updateAboutImage = (file) => {
-    if (!file) return
-    const reader = new FileReader()
-    reader.onload = () => updateAbout({ image_url: String(reader.result || '') })
-    reader.onerror = () => setError('Could not read the selected image.')
-    reader.readAsDataURL(file)
-  }
-
-  // About Story block helpers
-  const updateAbout = (patch) => {
-    setDraft((current) => ({ ...current, about: { ...(current.about || {}), ...patch } }))
-  }
-
-  const addChapter = () => {
-    setDraft((current) => ({
-      ...current,
-      about: {
-        ...(current.about || {}),
-        blocks: [
-          ...((current.about && current.about.blocks) || []),
-          { id: `new-${Date.now()}`, block_type: 'chapter', title: 'New Chapter', body: '', sort_order: ((current.about && current.about.blocks) || []).length + 1 },
-        ],
-      },
-    }))
-  }
-
-  const updateChapter = (index, patch) => {
-    setDraft((current) => ({
-      ...current,
-      about: {
-        ...(current.about || {}),
-        blocks: (current.about.blocks || []).map((b, i) => (i === index ? { ...b, ...patch } : b)),
-      },
-    }))
-  }
-
-  const removeChapter = (index) => {
-    setDraft((current) => ({
-      ...current,
-      about: { ...(current.about || {}), blocks: (current.about.blocks || []).filter((_, i) => i !== index) },
-    }))
-  }
-
-  const reorderChapter = (index, direction) => {
-    setDraft((current) => {
-      const next = [...(current.about.blocks || [])]
-      const target = index + direction
-      if (target < 0 || target >= next.length) return current
-      const item = next[index]
-      next[index] = next[target]
-      next[target] = item
-      return { ...current, about: { ...(current.about || {}), blocks: next } }
-    })
-  }
-
-  // Leadership Philosophy helpers
-  const updatePhilosophy = (patch) => {
-    setDraft((current) => ({ ...current, philosophy: { ...(current.philosophy || {}), ...patch } }))
-  }
-
-  // Vision helpers
-  const updateVision = (patch) => {
-    setDraft((current) => ({ ...current, vision: { ...(current.vision || {}), ...patch } }))
-  }
-
-  const addQuote = () => {
-    setDraft((current) => ({
-      ...current,
-      philosophy: {
-        ...(current.philosophy || {}),
-        blocks: [
-          ...((current.philosophy && current.philosophy.blocks) || []),
-          { id: `new-${Date.now()}`, block_type: 'quote', body: '', title: '', sort_order: ((current.philosophy && current.philosophy.blocks) || []).length + 1 },
-        ],
-      },
-    }))
-  }
-
-  const updateQuote = (index, patch) => {
-    setDraft((current) => ({
-      ...current,
-      philosophy: { ...(current.philosophy || {}), blocks: (current.philosophy.blocks || []).map((b, i) => (i === index ? { ...b, ...patch } : b)) },
-    }))
-  }
-
-  const removeQuote = (index) => {
-    setDraft((current) => ({
-      ...current,
-      philosophy: { ...(current.philosophy || {}), blocks: (current.philosophy.blocks || []).filter((_, i) => i !== index) },
-    }))
-  }
-
-  const reorderQuote = (index, direction) => {
-    setDraft((current) => {
-      const next = [...(current.philosophy.blocks || [])]
-      const target = index + direction
-      if (target < 0 || target >= next.length) return current
-      const item = next[index]
-      next[index] = next[target]
-      next[target] = item
-      return { ...current, philosophy: { ...(current.philosophy || {}), blocks: next } }
-    })
-  }
-
-  // Principles (About Values) helpers
-  const updatePrinciples = (patch) => {
-    setDraft((current) => ({ ...current, principles: { ...(current.principles || {}), ...patch } }))
-  }
-
-  const addPrinciple = () => {
-    setDraft((current) => ({
-      ...current,
-      principles: {
-        ...(current.principles || {}),
-        blocks: [
-          ...((current.principles && current.principles.blocks) || []),
-          { id: `new-${Date.now()}`, block_type: 'value', title: 'New Principle', body: '', sort_order: ((current.principles && current.principles.blocks) || []).length + 1 },
-        ],
-      },
-    }))
-  }
-
-  const updatePrinciple = (index, patch) => {
-    setDraft((current) => ({
-      ...current,
-      principles: { ...(current.principles || {}), blocks: (current.principles.blocks || []).map((b, i) => (i === index ? { ...b, ...patch } : b)) },
-    }))
-  }
-
-  const removePrinciple = (index) => {
-    setDraft((current) => ({
-      ...current,
-      principles: { ...(current.principles || {}), blocks: (current.principles.blocks || []).filter((_, i) => i !== index) },
-    }))
-  }
-
-  const reorderPrinciple = (index, direction) => {
-    setDraft((current) => {
-      const next = [...(current.principles.blocks || [])]
-      const target = index + direction
-      if (target < 0 || target >= next.length) return current
-      const item = next[index]
-      next[index] = next[target]
-      next[target] = item
-      return { ...current, principles: { ...(current.principles || {}), blocks: next } }
-    })
-  }
-
+  // --------------- Save ---------------
   const save = async () => {
     if (!draft) return
     setMessage('')
     setError('')
     setIsSaving(true)
     try {
-      // delete removed timeline events
       for (const id of deletedIds) {
         await api.delete(`/cms/timeline-events/${id}`)
       }
-
-      // save timeline events (only slug/year/title/sort_order)
       for (const [index, event] of (draft.events || []).entries()) {
-        const payloadWithOrder = {
+        const payload = {
           slug: event.slug || null,
           year: event.year || null,
           title: event.title || '',
           sort_order: index + 1,
         }
-        if (typeof event.id === 'number') {
-          await api.put(`/cms/timeline-events/${event.id}`, payloadWithOrder)
-        } else {
-          await api.post('/cms/timeline-events', payloadWithOrder)
-        }
+        if (typeof event.id === 'number') await api.put(`/cms/timeline-events/${event.id}`, payload)
+        else await api.post('/cms/timeline-events', payload)
       }
-
-      // save about_story section
       if (draft.about) {
-        const sectionPatch = {
-          eyebrow: draft.about.eyebrow,
-          title: draft.about.title,
-          description: draft.about.description,
-          image_url: draft.about.image_url,
-          image_alt: draft.about.image_alt,
-        }
-        await api.put('/cms/sections/about_story', { section: sectionPatch, blocks: draft.about.blocks || [] })
+        await api.put('/cms/sections/about_story', {
+          section: {
+            eyebrow: draft.about.eyebrow,
+            title: draft.about.title,
+            description: draft.about.description,
+            image_url: draft.about.image_url,
+            image_alt: draft.about.image_alt,
+          },
+          blocks: draft.about.blocks || [],
+        })
       }
-
-      // save about_vision section
       if (draft.vision) {
-        const sectionPatch = {
-          eyebrow: draft.vision.eyebrow,
-          title: draft.vision.title,
-          description: draft.vision.description,
-        }
-        await api.put('/cms/sections/about_vision', { section: sectionPatch, blocks: draft.vision.blocks || [] })
+        await api.put('/cms/sections/about_vision', {
+          section: {
+            eyebrow: draft.vision.eyebrow,
+            title: draft.vision.title,
+            description: draft.vision.description,
+          },
+          blocks: draft.vision.blocks || [],
+        })
       }
-
-      // save leadership_philosophy section
       if (draft.philosophy) {
-        const sectionPatch = {
-          eyebrow: draft.philosophy.eyebrow,
-          title: draft.philosophy.title,
-          description: draft.philosophy.description,
-          subtitle: draft.philosophy.subtitle,
-        }
-        await api.put('/cms/sections/leadership_philosophy', { section: sectionPatch, blocks: draft.philosophy.blocks || [] })
+        await api.put('/cms/sections/leadership_philosophy', {
+          section: {
+            eyebrow: draft.philosophy.eyebrow,
+            title: draft.philosophy.title,
+            description: draft.philosophy.description,
+            subtitle: draft.philosophy.subtitle,
+          },
+          blocks: draft.philosophy.blocks || [],
+        })
       }
-
-      // save about_values (Principles) section
       if (draft.principles) {
-        const sectionPatch = {
-          eyebrow: draft.principles.eyebrow,
-          title: draft.principles.title,
-          description: draft.principles.description,
-        }
-        await api.put('/cms/sections/about_values', { section: sectionPatch, blocks: draft.principles.blocks || [] })
+        await api.put('/cms/sections/about_values', {
+          section: {
+            eyebrow: draft.principles.eyebrow,
+            title: draft.principles.title,
+            description: draft.principles.description,
+          },
+          blocks: draft.principles.blocks || [],
+        })
       }
 
-      setMessage('Journey saved successfully!')
+      setMessage('✨ Journey saved successfully!')
       setDeletedIds([])
       setTimeout(() => setMessage(''), 3000)
 
-      // refresh site content
       const response = await api.get('/cms/site-content')
       setContent(response.data)
-      const timeline = buildTimelineEvents(response.data.timelineEvents || [])
+      const timeline = (response.data.timelineEvents || []).map((event) => ({
+        ...event,
+        year: event.year || '',
+        title: event.title || '',
+      }))
       const about = response.data.sections?.about_story || {}
       const philosophy = response.data.sections?.leadership_philosophy || {}
       const principles = response.data.sections?.about_values || {}
       const vision = response.data.sections?.about_vision || {}
       setDraft({
         events: timeline,
-        about: { eyebrow: about.eyebrow || '', title: about.title || '', description: about.description || '', image_url: about.image_url || '', image_alt: about.image_alt || '', blocks: about.blocks || [] },
-        principles: { eyebrow: principles.eyebrow || '', title: principles.title || '', description: principles.description || '', blocks: principles.blocks || [] },
-        vision: { eyebrow: vision.eyebrow || '', title: vision.title || '', description: vision.description || '', blocks: vision.blocks || [] },
-        philosophy: { eyebrow: philosophy.eyebrow || '', title: philosophy.title || '', description: philosophy.description || '', subtitle: philosophy.subtitle || '', blocks: philosophy.blocks || [] },
+        about: {
+          eyebrow: about.eyebrow || '',
+          title: about.title || '',
+          description: about.description || '',
+          image_url: about.image_url || '',
+          image_alt: about.image_alt || '',
+          blocks: about.blocks || [],
+        },
+        principles: {
+          eyebrow: principles.eyebrow || '',
+          title: principles.title || '',
+          description: principles.description || '',
+          blocks: principles.blocks || [],
+        },
+        vision: {
+          eyebrow: vision.eyebrow || '',
+          title: vision.title || '',
+          description: vision.description || '',
+          blocks: vision.blocks || [],
+        },
+        philosophy: {
+          eyebrow: philosophy.eyebrow || '',
+          title: philosophy.title || '',
+          description: philosophy.description || '',
+          subtitle: philosophy.subtitle || '',
+          blocks: philosophy.blocks || [],
+        },
       })
-    } catch (e) {
+    } catch {
       setError('Could not save Journey. Please try again.')
     } finally {
       setIsSaving(false)
@@ -410,274 +642,372 @@ export default function JourneyEditor() {
 
   if (isLoading || !draft) {
     return (
-      <div className="flex min-h-96 items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 size={32} className="animate-spin text-teal-500" />
-          <p className="text-sm text-slate-600">Loading journey content...</p>
-        </div>
+      <div className="flex min-h-screen items-center justify-center">
+        <Loader2 className="animate-spin text-emerald-500" size={32} />
+        <p className="ml-3 text-slate-600">Loading Journey...</p>
       </div>
     )
   }
 
   return (
-    <section className="mx-auto max-w-7xl">
-      <div className="mb-10 flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-widest text-teal-600">Journey Editor</p>
-          <h1 className="mt-3 text-4xl font-bold text-slate-900 sm:text-5xl">Journey</h1>
-          {/* <p className="mt-3 max-w-3xl text-slate-600">Manage the chronological items that appear on the Journey timeline.</p> */}
-        </div>
-        <button
-          type="button"
-          onClick={save}
-          disabled={isSaving}
-          className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-teal-500 to-teal-600 px-6 py-3 font-semibold text-white transition-all hover:shadow-lg hover:shadow-teal-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {isSaving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
-          <span>{isSaving ? 'Saving...' : 'Save Changes'}</span>
-        </button>
-      </div>
-
-      <div className="space-y-6">
-        {/* About Story */}
-        <div className="mt-12 rounded-xl border border-slate-200 bg-white p-6">
-          <div className="mb-4 flex items-center justify-between">
-            <div>
-              <h2 className="text-2xl font-bold text-slate-900">About Story</h2>
-            </div>
+    <EditorShell title="Journey" saving={isSaving} onSave={save} message={message} error={error}>
+      {/* About Story Card */}
+      <Card
+        title="About Story"
+        description="Header and chapter blocks."
+        onAdd={() => {
+          addChapter()
+        }}
+      >
+        <div className="grid gap-6 md:grid-cols-2 mb-6">
+          <Field label="Eyebrow">
+            <input
+              className={formInput}
+              value={draft.about.eyebrow}
+              onChange={(e) => updateAbout({ eyebrow: e.target.value })}
+            />
+          </Field>
+          <Field label="Title (HTML)">
+            <input
+              className={formInput}
+              value={draft.about.title}
+              onChange={(e) => updateAbout({ title: e.target.value })}
+            />
+          </Field>
+          <Field label="Image URL">
             <div className="flex gap-2">
-              <button type="button" className="inline-flex items-center gap-2 rounded-lg bg-slate-100 px-4 py-2 text-sm font-medium text-slate-800" onClick={addChapter}>
-                <Plus size={16} /> Add Chapter
-              </button>
+              <input
+                className={formInput}
+                value={draft.about.image_url || ''}
+                onChange={(e) => updateAbout({ image_url: e.target.value })}
+              />
+              <label className="inline-flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-slate-200 bg-slate-100 text-slate-600 transition-all hover:bg-slate-200">
+                <Upload size={18} />
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="sr-only"
+                  onChange={(e) => updateAboutImage(e.target.files?.[0])}
+                />
+              </label>
             </div>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2">
-            <Field label="Eyebrow"><input className={formInput} value={(draft.about && draft.about.eyebrow) || ''} onChange={(e) => updateAbout({ eyebrow: e.target.value })} /></Field>
-            <Field label="Title (HTML)"><input className={formInput} value={(draft.about && draft.about.title) || ''} onChange={(e) => updateAbout({ title: e.target.value })} /></Field>
-            <Field label="Image URL"><input className={formInput} value={(draft.about && draft.about.image_url) || ''} onChange={(e) => updateAbout({ image_url: e.target.value })} /></Field>
-            <Field label="Image Alt"><input className={formInput} value={(draft.about && draft.about.image_alt) || ''} onChange={(e) => updateAbout({ image_alt: e.target.value })} /></Field>
-            <div className="md:col-span-2">
-              <Field label="Description"><textarea className={formInput} rows={3} value={(draft.about && draft.about.description) || ''} onChange={(e) => updateAbout({ description: e.target.value })} /></Field>
-            </div>
-          </div>
-
-          <div className="mt-6 space-y-4">
-            {((draft.about && draft.about.blocks) || []).map((block, index) => (
-              <div key={block.id || index} className="rounded-lg border border-slate-200 p-4">
-                <div className="mb-3 grid gap-3 md:grid-cols-2">
-                  <Field label="Chapter Title"><input className={formInput} value={block.title || ''} onChange={(e) => updateChapter(index, { title: e.target.value })} /></Field>
-                  <Field label="Order"><input className={formInput} type="number" value={block.sort_order || index + 1} onChange={(e) => updateChapter(index, { sort_order: Number(e.target.value) })} /></Field>
-                  <div className="md:col-span-2">
-                    <Field label="Body"><textarea className={formInput} rows={5} value={block.body || ''} onChange={(e) => updateChapter(index, { body: e.target.value })} /></Field>
-                  </div>
-                </div>
-                <div className="flex gap-2 justify-end">
-                  <button type="button" className="inline-flex items-center gap-2 border border-slate-200 px-3 py-1 text-xs" disabled={index === 0} onClick={() => reorderChapter(index, -1)}>
-                    <ArrowUp size={14} />
-                  </button>
-                  <button type="button" className="inline-flex items-center gap-2 border border-slate-200 px-3 py-1 text-xs" disabled={index === ((draft.about && draft.about.blocks) || []).length - 1} onClick={() => reorderChapter(index, 1)}>
-                    <ArrowDown size={14} />
-                  </button>
-                  <button type="button" className="inline-flex items-center gap-2 border border-slate-200 px-3 py-1 text-xs text-red-700" onClick={() => removeChapter(index)}>
-                    <Trash2 size={14} /> Delete
-                  </button>
-                </div>
-              </div>
-            ))}
+          </Field>
+          <Field label="Image Alt">
+            <input
+              className={formInput}
+              value={draft.about.image_alt || ''}
+              onChange={(e) => updateAbout({ image_alt: e.target.value })}
+            />
+          </Field>
+          <div className="md:col-span-2">
+            <Field label="Description">
+              <textarea
+                className={formInput}
+                rows={4}
+                value={draft.about.description}
+                onChange={(e) => updateAbout({ description: e.target.value })}
+              />
+            </Field>
           </div>
         </div>
 
-        {/* Principles / Values Editor */}
-        <hr />
-        <div className="mt-12 rounded-xl border border-slate-200 bg-white p-6">
-          <div className="mb-4 flex items-center justify-between">
-            <div>
-              <h2 className="text-2xl font-bold text-slate-900">Principles (Values)</h2>
-              {/* <p className="text-sm text-slate-600">Edit the section title and the list of principles shown on the About page.</p> */}
-            </div>
-            <div className="flex gap-2">
-              <button type="button" className="inline-flex items-center gap-2 rounded-lg bg-slate-100 px-4 py-2 text-sm font-medium text-slate-800" onClick={addPrinciple}>
-                <Plus size={16} /> Add Principle
-              </button>
-            </div>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2">
-            <Field label="Eyebrow"><input className={formInput} value={(draft.principles && draft.principles.eyebrow) || ''} onChange={(e) => updatePrinciples({ eyebrow: e.target.value })} /></Field>
-            <Field label="Title (HTML)"><input className={formInput} value={(draft.principles && draft.principles.title) || ''} onChange={(e) => updatePrinciples({ title: e.target.value })} /></Field>
-            <div className="md:col-span-2">
-              <Field label="Description"><textarea className={formInput} rows={3} value={(draft.principles && draft.principles.description) || ''} onChange={(e) => updatePrinciples({ description: e.target.value })} /></Field>
-            </div>
-          </div>
-
-          <div className="mt-6 space-y-4">
-            {((draft.principles && draft.principles.blocks) || []).map((block, index) => (
-              <div key={block.id || index} className="rounded-lg border border-slate-200 p-4">
-                <div className="mb-3 grid gap-3 md:grid-cols-2">
-                  <Field label="Principle Title"><input className={formInput} value={block.title || ''} onChange={(e) => updatePrinciple(index, { title: e.target.value })} /></Field>
-                  <Field label="Order"><input className={formInput} type="number" value={block.sort_order || index + 1} onChange={(e) => updatePrinciple(index, { sort_order: Number(e.target.value) })} /></Field>
-                  <div className="md:col-span-2">
-                    <Field label="Description"><textarea className={formInput} rows={4} value={block.body || ''} onChange={(e) => updatePrinciple(index, { body: e.target.value })} /></Field>
-                  </div>
-                </div>
-                <div className="flex gap-2 justify-end">
-                  <button type="button" className="inline-flex items-center gap-2 border border-slate-200 px-3 py-1 text-xs" disabled={index === 0} onClick={() => reorderPrinciple(index, -1)}>
-                    <ArrowUp size={14} />
-                  </button>
-                  <button type="button" className="inline-flex items-center gap-2 border border-slate-200 px-3 py-1 text-xs" disabled={index === ((draft.principles && draft.principles.blocks) || []).length - 1} onClick={() => reorderPrinciple(index, 1)}>
-                    <ArrowDown size={14} />
-                  </button>
-                  <button type="button" className="inline-flex items-center gap-2 border border-slate-200 px-3 py-1 text-xs text-red-700" onClick={() => removePrinciple(index)}>
-                    <Trash2 size={14} /> Delete
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Leadership Philosophy Editor */}
-        <hr />
-        <div className="mt-12 rounded-xl border border-slate-200 bg-white p-6">
-
-        <div className="mb-4 flex items-center justify-between">
-        <div>
-            <h2 className="text-2xl font-bold text-slate-900">Leadership Philosophy</h2>
-        </div>
-        <div className="flex gap-2">
-            <button type="button" className="inline-flex items-center gap-2 rounded-lg bg-slate-100 px-4 py-2 text-sm font-medium text-slate-800" onClick={addQuote}>
-            <Plus size={16} /> Add Quote
-            </button>
-        </div>
-        </div>
-          <div className="grid gap-4 md:grid-cols-2">
-            <Field label="Eyebrow"><input className={formInput} value={(draft.philosophy && draft.philosophy.eyebrow) || ''} onChange={(e) => updatePhilosophy({ eyebrow: e.target.value })} /></Field>
-            <Field label="Title"><input className={formInput} value={(draft.philosophy && draft.philosophy.title) || ''} onChange={(e) => updatePhilosophy({ title: e.target.value })} /></Field>
-            <div className="md:col-span-2">
-              <Field label="Primary Quote"><textarea className={formInput} rows={3} value={(draft.philosophy && draft.philosophy.description) || ''} onChange={(e) => updatePhilosophy({ description: e.target.value })} /></Field>
-            </div>
-            <Field label="Attribution"><input className={formInput} value={(draft.philosophy && draft.philosophy.subtitle) || ''} onChange={(e) => updatePhilosophy({ subtitle: e.target.value })} /></Field>
-          </div>
-
-          <div className="mt-6 space-y-4">
-            {((draft.philosophy && draft.philosophy.blocks) || []).map((block, index) => (
-              <div key={block.id || index} className="rounded-lg border border-slate-200 p-4">
-                <div className="mb-3 grid gap-3 md:grid-cols-2">
-                  <Field label="Quote Text"><textarea className={formInput} rows={4} value={block.body || ''} onChange={(e) => updateQuote(index, { body: e.target.value })} /></Field>
-                  <Field label="Attribution"><input className={formInput} value={block.title || ''} onChange={(e) => updateQuote(index, { title: e.target.value })} /></Field>
-                </div>
-                <div className="flex gap-2 justify-end">
-                  <button type="button" className="inline-flex items-center gap-2 border border-slate-200 px-3 py-1 text-xs" disabled={index === 0} onClick={() => reorderQuote(index, -1)}>
-                    <ArrowUp size={14} />
-                  </button>
-                  <button type="button" className="inline-flex items-center gap-2 border border-slate-200 px-3 py-1 text-xs" disabled={index === ((draft.philosophy && draft.philosophy.blocks) || []).length - 1} onClick={() => reorderQuote(index, 1)}>
-                    <ArrowDown size={14} />
-                  </button>
-                  <button type="button" className="inline-flex items-center gap-2 border border-slate-200 px-3 py-1 text-xs text-red-700" onClick={() => removeQuote(index)}>
-                    <Trash2 size={14} /> Delete
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Timeline Events */}
-        {/* Vision Section Editor */}
-        <hr />
-        <div className="mt-12 rounded-xl border border-slate-200 bg-white p-6">
-          <div className="mb-4">
-            <h2 className="text-2xl font-bold text-slate-900">Vision</h2>
-            <p className="text-sm text-slate-600">Edit the Vision section displayed above the timeline on the public About page.</p>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2">
-            <Field label="Eyebrow"><input className={formInput} value={(draft.vision && draft.vision.eyebrow) || ''} onChange={(e) => updateVision({ eyebrow: e.target.value })} /></Field>
-            <Field label="Title"><input className={formInput} value={(draft.vision && draft.vision.title) || ''} onChange={(e) => updateVision({ title: e.target.value })} /></Field>
-            <div className="md:col-span-2">
-              <Field label="Quote / Description"><textarea className={formInput} rows={4} value={(draft.vision && draft.vision.description) || ''} onChange={(e) => updateVision({ description: e.target.value })} /></Field>
-            </div>
-          </div>
-        </div>
-        <hr />
-        <div>
-          <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-            <div>
-              <h2 className="text-2xl font-bold text-slate-900">Timeline Events</h2>
-            </div>
-            <button
-              type="button"
-              className="inline-flex items-center gap-2 rounded-lg bg-teal-500 px-5 py-2.5 font-semibold text-white transition-all hover:bg-teal-600"
-              onClick={addEvent}
+        {draft.about.blocks.length === 0 ? (
+          <EmptyState message="No chapters yet. Add one to get started." />
+        ) : (
+          draft.about.blocks.map((block, idx) => (
+            <ExpandableItem
+              key={block.id || idx}
+              idx={idx}
+              expanded={expandedChapters}
+              setExpanded={setExpandedChapters}
+              headerLabel={`Chapter ${idx + 1}`}
+              headerValue={block.title || 'Untitled'}
+              isFocused={focusId === block.id}
+              refProp={newRef}
+              onUp={() => reorderChapter(idx, -1)}
+              onDown={() => reorderChapter(idx, 1)}
+              onDelete={() => removeChapter(idx)}
+              upDisabled={idx === 0}
+              downDisabled={idx === draft.about.blocks.length - 1}
             >
-              <Plus size={18} /> Add Event
-            </button>
-          </div>
+              <Field label="Title">
+                <input
+                  className={formInput}
+                  value={block.title}
+                  onChange={(e) => updateChapter(idx, { title: e.target.value })}
+                />
+              </Field>
+              <Field label="Body">
+                <textarea
+                  className={formInput}
+                  rows={5}
+                  value={block.body}
+                  onChange={(e) => updateChapter(idx, { body: e.target.value })}
+                />
+              </Field>
+              <Field label="Order">
+                <input
+                  className={formInput}
+                  type="number"
+                  value={block.sort_order || idx + 1}
+                  onChange={(e) => updateChapter(idx, { sort_order: Number(e.target.value) })}
+                />
+              </Field>
+            </ExpandableItem>
+          ))
+        )}
+      </Card>
 
-          <div className="space-y-4 mt-4">
-            {draft.events.map((event, index) => (
-              <div
-                key={event.id || index}
-                className="rounded-xl border border-slate-200 bg-white p-6 transition-all duration-200 hover:shadow-lg"
-                style={{
-                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05), 0 2px 8px rgba(0, 0, 0, 0.04)',
-                }}
-              >
-                  <div className="mb-4 flex items-center gap-3">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-teal-100 text-teal-600 font-bold">{index + 1}</div>
-                    <h3 className="font-semibold text-slate-900">{event.title || 'Untitled Event'}</h3>
-                  </div>
-
-                  <div className="grid gap-4 md:grid-cols-[120px_minmax(0,1fr)]">
-                    <Field label="Year">
-                      <input
-                        className={formInput}
-                        value={event.year}
-                        onChange={(e) => updateEvent(index, { year: e.target.value })}
-                        placeholder="2024"
-                      />
-                    </Field>
-                    <Field label="Title">
-                      <input
-                        className={formInput}
-                        value={event.title}
-                        onChange={(e) => updateEvent(index, { title: e.target.value })}
-                        placeholder="Event title"
-                      />
-                    </Field>
-                  </div>
-
-                <div className="mt-6 flex items-center justify-between gap-2">
-                  <div className="flex gap-2">
-                    <IconButton label="Move up" disabled={index === 0} onClick={() => reorder(index, -1)}>
-                      <ArrowUp size={16} />
-                    </IconButton>
-                    <IconButton
-                      label="Move down"
-                      disabled={index === draft.events.length - 1}
-                      onClick={() => reorder(index, 1)}
-                    >
-                      <ArrowDown size={16} />
-                    </IconButton>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {/* <label className="inline-flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-slate-200 bg-slate-100 text-slate-600 transition-all hover:bg-slate-200"> */}
-                      {/* <Upload size={18} /> */}
-                      {/* <input type="file" accept="image/*" className="sr-only" onChange={(e) => updateImage(index, e.target.files?.[0])} /> */}
-                    {/* </label> */}
-                    <IconButton label="Delete" danger onClick={() => remove(index)}>
-                      <Trash2 size={16} />
-                    </IconButton>
-                  </div>
-                </div>
-              </div>
-            ))}
+      {/* Principles Card */}
+      <Card
+        title="Principles (Values)"
+        description="Core principles and values."
+        onAdd={() => addPrinciple()}
+      >
+        <div className="grid gap-6 md:grid-cols-2 mb-6">
+          <Field label="Eyebrow">
+            <input
+              className={formInput}
+              value={draft.principles.eyebrow}
+              onChange={(e) => updatePrinciples({ eyebrow: e.target.value })}
+            />
+          </Field>
+          <Field label="Title (HTML)">
+            <input
+              className={formInput}
+              value={draft.principles.title}
+              onChange={(e) => updatePrinciples({ title: e.target.value })}
+            />
+          </Field>
+          <div className="md:col-span-2">
+            <Field label="Description">
+              <textarea
+                className={formInput}
+                rows={4}
+                value={draft.principles.description}
+                onChange={(e) => updatePrinciples({ description: e.target.value })}
+              />
+            </Field>
           </div>
         </div>
-      </div>
 
-      <Toast message={message} error={error} />
-    </section>
+        {draft.principles.blocks.length === 0 ? (
+          <EmptyState message="No principles yet." />
+        ) : (
+          draft.principles.blocks.map((block, idx) => (
+            <ExpandableItem
+              key={block.id || idx}
+              idx={idx}
+              expanded={expandedPrinciples}
+              setExpanded={setExpandedPrinciples}
+              headerLabel="Principle"
+              headerValue={block.title || 'Untitled'}
+              isFocused={focusId === block.id}
+              refProp={newRef}
+              onUp={() => reorderPrinciple(idx, -1)}
+              onDown={() => reorderPrinciple(idx, 1)}
+              onDelete={() => removePrinciple(idx)}
+              upDisabled={idx === 0}
+              downDisabled={idx === draft.principles.blocks.length - 1}
+            >
+              <Field label="Title">
+                <input
+                  className={formInput}
+                  value={block.title}
+                  onChange={(e) => updatePrinciple(idx, { title: e.target.value })}
+                />
+              </Field>
+              <Field label="Description">
+                <textarea
+                  className={formInput}
+                  rows={4}
+                  value={block.body}
+                  onChange={(e) => updatePrinciple(idx, { body: e.target.value })}
+                />
+              </Field>
+              <Field label="Order">
+                <input
+                  className={formInput}
+                  type="number"
+                  value={block.sort_order || idx + 1}
+                  onChange={(e) => updatePrinciple(idx, { sort_order: Number(e.target.value) })}
+                />
+              </Field>
+            </ExpandableItem>
+          ))
+        )}
+      </Card>
+
+      {/* Leadership Philosophy Card */}
+      <Card
+        title="Leadership Philosophy"
+        description="Quotes and philosophy section."
+        onAdd={() => addQuote()}
+      >
+        <div className="grid gap-6 md:grid-cols-2 mb-6">
+          <Field label="Eyebrow">
+            <input
+              className={formInput}
+              value={draft.philosophy.eyebrow}
+              onChange={(e) => updatePhilosophy({ eyebrow: e.target.value })}
+            />
+          </Field>
+          <Field label="Title">
+            <input
+              className={formInput}
+              value={draft.philosophy.title}
+              onChange={(e) => updatePhilosophy({ title: e.target.value })}
+            />
+          </Field>
+          <div className="md:col-span-2">
+            <Field label="Primary Quote">
+              <textarea
+                className={formInput}
+                rows={4}
+                value={draft.philosophy.description}
+                onChange={(e) => updatePhilosophy({ description: e.target.value })}
+              />
+            </Field>
+          </div>
+          <Field label="Attribution">
+            <input
+              className={formInput}
+              value={draft.philosophy.subtitle}
+              onChange={(e) => updatePhilosophy({ subtitle: e.target.value })}
+            />
+          </Field>
+        </div>
+
+        {draft.philosophy.blocks.length === 0 ? (
+          <EmptyState message="No quotes yet." />
+        ) : (
+          draft.philosophy.blocks.map((block, idx) => (
+            <ExpandableItem
+              key={block.id || idx}
+              idx={idx}
+              expanded={expandedQuotes}
+              setExpanded={setExpandedQuotes}
+              headerLabel="Quote"
+              headerValue={block.body ? block.body.slice(0, 50) + '...' : 'Untitled'}
+              isFocused={focusId === block.id}
+              refProp={newRef}
+              onUp={() => reorderQuote(idx, -1)}
+              onDown={() => reorderQuote(idx, 1)}
+              onDelete={() => removeQuote(idx)}
+              upDisabled={idx === 0}
+              downDisabled={idx === draft.philosophy.blocks.length - 1}
+            >
+              <Field label="Quote Text">
+                <textarea
+                  className={formInput}
+                  rows={4}
+                  value={block.body}
+                  onChange={(e) => updateQuote(idx, { body: e.target.value })}
+                />
+              </Field>
+              <Field label="Attribution">
+                <input
+                  className={formInput}
+                  value={block.title}
+                  onChange={(e) => updateQuote(idx, { title: e.target.value })}
+                />
+              </Field>
+            </ExpandableItem>
+          ))
+        )}
+      </Card>
+
+      {/* Vision Card */}
+      <Card title="Vision">
+        <div className="grid gap-6 md:grid-cols-2">
+          <Field label="Eyebrow">
+            <input
+              className={formInput}
+              value={draft.vision.eyebrow}
+              onChange={(e) => updateVision({ eyebrow: e.target.value })}
+            />
+          </Field>
+          <Field label="Title">
+            <input
+              className={formInput}
+              value={draft.vision.title}
+              onChange={(e) => updateVision({ title: e.target.value })}
+            />
+          </Field>
+          <div className="md:col-span-2">
+            <Field label="Quote / Description">
+              <textarea
+                className={formInput}
+                rows={4}
+                value={draft.vision.description}
+                onChange={(e) => updateVision({ description: e.target.value })}
+              />
+            </Field>
+          </div>
+        </div>
+      </Card>
+
+      {/* Timeline Events Card */}
+      <Card title="Timeline Events" description="Chronological events." onAdd={() => addEvent()}>
+        {draft.events.length === 0 ? (
+          <EmptyState message="No events yet." />
+        ) : (
+          draft.events.map((event, idx) => (
+            <ExpandableItem
+              key={event.id || idx}
+              idx={idx}
+              expanded={expandedEvents}
+              setExpanded={setExpandedEvents}
+              headerLabel={event.year || 'Year'}
+              headerValue={event.title || 'Untitled Event'}
+              isFocused={focusId === event.id}
+              refProp={newRef}
+              onUp={() => reorderEvent(idx, -1)}
+              onDown={() => reorderEvent(idx, 1)}
+              onDelete={() => removeEvent(idx)}
+              upDisabled={idx === 0}
+              downDisabled={idx === draft.events.length - 1}
+            >
+              <div className="grid gap-4 md:grid-cols-2">
+                <Field label="Year">
+                  <input
+                    className={formInput}
+                    value={event.year}
+                    onChange={(e) => updateEvent(idx, { year: e.target.value })}
+                  />
+                </Field>
+                <Field label="Title">
+                  <input
+                    className={formInput}
+                    value={event.title}
+                    onChange={(e) => updateEvent(idx, { title: e.target.value })}
+                  />
+                </Field>
+              </div>
+              {/* Image upload for event */}
+              <div className="flex items-center gap-3">
+                <Field label="Image">
+                  <input
+                    className={formInput}
+                    value={event.image_url || ''}
+                    onChange={(e) => updateEvent(idx, { image_url: e.target.value })}
+                    placeholder="Image URL"
+                  />
+                </Field>
+                <label className="inline-flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-slate-200 bg-slate-100 text-slate-600 transition-all hover:bg-slate-200 mt-5">
+                  <Upload size={18} />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="sr-only"
+                    onChange={(e) => updateEventImage(idx, e.target.files?.[0])}
+                  />
+                </label>
+              </div>
+            </ExpandableItem>
+          ))
+        )}
+      </Card>
+    </EditorShell>
   )
 }

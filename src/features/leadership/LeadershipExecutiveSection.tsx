@@ -1,11 +1,20 @@
 import { useMemo } from 'react'
 import { AnimatedSection, Container } from '@/components/shared'
 import { leadershipRoles } from '@/data/leadership'
+import { useSiteContent } from '@/hooks/useSiteContent'
 
 export default function LeadershipExecutiveSection() {
+  const { content } = useSiteContent()
+  const section = content?.sections.leadership || content?.sections.leadership_philosophy
+  const overview = (section?.metadata?.overview || {}) as { title?: string }
   const executiveRoles = useMemo(
-    () => leadershipRoles.filter((r) => r.category === 'executive' || r.category === 'founder'),
-    [],
+    () => {
+      const cmsRoles = Array.isArray(section?.metadata?.executiveRoles) ? section.metadata.executiveRoles : []
+      return cmsRoles.length > 0
+        ? cmsRoles
+        : leadershipRoles.filter((r) => r.category === 'executive' || r.category === 'founder')
+    },
+    [section?.metadata?.executiveRoles],
   )
 
   return (
@@ -22,7 +31,7 @@ export default function LeadershipExecutiveSection() {
             <span className="section-rule" />
           </div>
           <h2 className="font-serif text-4xl md:text-5xl font-light text-ink mb-16">
-            Founder & <em className="text-teal-mid not-italic">executive</em> leadership
+            {overview.title || 'Founder &'} <em className="text-teal-mid not-italic">executive</em> leadership
           </h2>
         </AnimatedSection>
 
@@ -62,12 +71,12 @@ export default function LeadershipExecutiveSection() {
                   </p>
 
                   {/* Highlights as indented dash list */}
-                  {role.highlights.length > 0 && (
+                  {Array.isArray(role.highlights) && role.highlights.length > 0 && (
                     <div className="border-l-2 border-gold/40 pl-6 space-y-3">
                       <p className="font-mono text-[9px] tracking-[0.2em] uppercase text-gold mb-4">
                         Key Highlights
                       </p>
-                      {role.highlights.map((h, j) => (
+                      {role.highlights.map((h: string, j: number) => (
                         <div key={j} className="flex items-start gap-3">
                           <span className="w-4 h-px bg-teal mt-2.5 shrink-0" />
                           <p className="text-sm font-light text-ink-mid leading-relaxed">{h}</p>

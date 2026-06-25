@@ -2,10 +2,14 @@ import { useRef } from 'react'
 import { motion, useInView } from 'framer-motion'
 import { Container } from '@/components/shared'
 import { futureVision } from '@/data/foundation'
+import { useSiteContent } from '@/hooks/useSiteContent'
 
 export default function FoundationFutureSection() {
   const ref = useRef<HTMLDivElement>(null)
   const inView = useInView(ref, { once: true, margin: '-80px' })
+  const { content } = useSiteContent()
+  const section = content?.sections.foundation || content?.sections.foundation_story
+  const quote = (section?.metadata?.futureVision as string) || futureVision
 
   return (
     <section
@@ -77,7 +81,7 @@ export default function FoundationFutureSection() {
             transition={{ duration: 0.7, delay: 0.45 }}
             className="relative z-10 font-serif text-lg md:text-xl italic font-light text-white/85 leading-relaxed max-w-2xl mx-auto"
           >
-            &ldquo;{futureVision}&rdquo;
+            &ldquo;{quote}&rdquo;
           </motion.blockquote>
 
           <motion.div

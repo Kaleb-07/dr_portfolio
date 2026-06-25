@@ -326,8 +326,10 @@ export default function StoryEditor() {
       setIsLoading(true)
       setError('')
       try {
+        console.log('[StoryEditor] GET /cms/site-content')
         const response = await api.get('/cms/site-content')
         if (!active) return
+        console.log('[StoryEditor] GET response', response.data)
         setContent(response.data)
       } catch {
         if (!active) return
@@ -604,10 +606,9 @@ export default function StoryEditor() {
             await api.post('/cms/timeline-events', p)
           }
         }
-        setMessage('✨ Timeline saved beautifully!')
         setDeletedTimelineIds([])
-        setTimeout(() => setMessage(''), 3000)
-        await refreshContent()
+        const refreshed = await refreshContent()
+        if (!refreshed) throw new Error('refresh failed')
       } else if (selectedSection.type === 'identities') {
         if (!Array.isArray(draft.identities)) throw new Error('No identities')
         for (const id of deletedIdentityIds) await api.delete(`/cms/identity-items/${id}`)
@@ -620,10 +621,9 @@ export default function StoryEditor() {
             await api.post('/cms/identity-items', p)
           }
         }
-        setMessage('✨ Identity items saved beautifully!')
         setDeletedIdentityIds([])
-        setTimeout(() => setMessage(''), 3000)
-        await refreshContent()
+        const refreshed = await refreshContent()
+        if (!refreshed) throw new Error('refresh failed')
       } else if (selectedSection.type === 'testimonials') {
         // Fixed: Save section with all required fields
         const sectionPatch = {
@@ -638,9 +638,8 @@ export default function StoryEditor() {
         await api.put(`/cms/sections/${selectedSection.backendSlug}`, {
           section: sectionPatch,
         })
-        setMessage('✨ Testimonials heading saved beautifully!')
-        setTimeout(() => setMessage(''), 3000)
-        await refreshContent()
+        const refreshed = await refreshContent()
+        if (!refreshed) throw new Error('refresh failed')
       } else if (selectedSection.backendSlug) {
         const sectionPatch = {
           eyebrow: draft.eyebrow,
@@ -661,10 +660,10 @@ export default function StoryEditor() {
           section: sectionPatch,
           blocks: draft.blocks,
         })
-        setMessage('✨ Section saved beautifully!')
-        setTimeout(() => setMessage(''), 3000)
-        await refreshContent()
+        const refreshed = await refreshContent()
+        if (!refreshed) throw new Error('refresh failed')
       }
+      setMessage('Saved successfully.')
     } catch {
       setError('Could not save. Please try again.')
     } finally {
@@ -674,10 +673,14 @@ export default function StoryEditor() {
 
   const refreshContent = async () => {
     try {
+      console.log('[StoryEditor] REFRESH /cms/site-content')
       const response = await api.get('/cms/site-content')
+      console.log('[StoryEditor] REFRESH response', response.data)
       setContent(response.data)
+      return true
     } catch {
       setError('Could not refresh content after save.')
+      return false
     }
   }
 

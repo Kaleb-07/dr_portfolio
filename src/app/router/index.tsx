@@ -21,9 +21,16 @@ const HeroEditor = lazy(() => import('@/admin/pages/HeroEditor.jsx'))
 const CmsEditor = lazy(() => import('@/admin/pages/CmsEditor.jsx'))
 const StoryEditor = lazy(() => import('@/admin/pages/StoryEditor.jsx'))
 const JourneyEditor = lazy(() => import('@/admin/pages/JourneyEditor.jsx'))
+const EducationEditor = lazy(() => import('@/admin/pages/EducationEditor.jsx'))
+const GalleryEditor = lazy(() => import('@/admin/pages/GalleryEditor.jsx'))
+const EcosystemEditor = lazy(() => import('@/admin/pages/EcosystemEditor.jsx'))
 const AdminLayout = lazy(() => import('@/admin/layout/AdminLayout.jsx'))
 const ContactEditor = lazy(() => import('@/admin/pages/ContactEditor.jsx'))
 const ContactMessages = lazy(() => import('@/admin/pages/ContactMessages.jsx'))
+const AchievementEditor = lazy(() => import('@/admin/pages/AchievementEditor.jsx'))
+
+// ✅ NEW: dynamic block‑based Impact editor
+const ImpactEditor = lazy(() => import('@/admin/pages/ImpactEditor.jsx'))
 
 function RequireAdmin({ children }: { children: ReactNode }) {
   const token = localStorage.getItem('token')
@@ -62,9 +69,11 @@ export function AppRouter() {
         <Route path="/foundation" element={<FoundationPage />} />
         <Route path="/media-speaking" element={<MediaPage />} />
         <Route path="/gallery" element={<GalleryPage />} />
-        <Route path="/contact" element={<ContactPage />} /> {/* 👈 public contact page */}
+        <Route path="/contact" element={<ContactPage />} />
+
         {/* Admin login – outside the protected group */}
         <Route path="/admin/login" element={<Login />} />
+
         {/* Protected admin routes */}
         <Route
           path="/admin"
@@ -80,43 +89,29 @@ export function AppRouter() {
           <Route path="content" element={<CmsEditor />} />
           <Route path="hero" element={<HeroEditor />} />
 
-          {/* ✅ CONTACT ROUTES MOVED INSIDE /admin */}
+          {/* Contact routes */}
           <Route path="contact" element={<ContactEditor />} />
           <Route path="contact/messages" element={<ContactMessages />} />
 
           <Route path="awards" element={<SectionPlaceholder title="Awards" />} />
           <Route path="leadership" element={<SectionPlaceholder title="Leadership" />} />
           <Route path="timeline" element={<SectionPlaceholder title="Timeline" />} />
-          <Route path="profile" element={<SectionPlaceholder title="Profile" />} />
+          <Route path="profile" element={<Navigate to="profile/journey" replace />} />
           <Route path="profile/journey" element={<JourneyEditor />} />
-          <Route path="profile/education" element={<SectionPlaceholder title="Education" />} />
-          <Route path="profile/gallery" element={<SectionPlaceholder title="Gallery" />} />
-          <Route path="ecosystem" element={<SectionPlaceholder title="Ecosystem" />} />
-          <Route
-            path="ecosystem/vision"
-            element={<SectionPlaceholder title="Ecosystem Vision" />}
-          />
-          <Route
-            path="ecosystem/breakdown"
-            element={<SectionPlaceholder title="Ecosystem Breakdown" />}
-          />
-          <Route path="impact" element={<SectionPlaceholder title="Impact" />} />
-          <Route
-            path="impact/public-service"
-            element={<SectionPlaceholder title="Public Service" />}
-          />
-          <Route path="impact/leadership" element={<SectionPlaceholder title="Leadership" />} />
-          <Route path="impact/foundation" element={<SectionPlaceholder title="Foundation" />} />
-          <Route path="achievements" element={<SectionPlaceholder title="Achievements" />} />
-          <Route
-            path="achievements/awards"
-            element={<SectionPlaceholder title="Awards & Recognition" />}
-          />
-          <Route
-            path="achievements/media"
-            element={<SectionPlaceholder title="Media & Speaking" />}
-          />
+          <Route path="profile/education" element={<EducationEditor />} />
+          <Route path="profile/gallery" element={<GalleryEditor />} />
+
+          <Route path="ecosystem" element={<EcosystemEditor />} />
+          <Route path="ecosystem/:sectionSlug" element={<EcosystemEditor />} />
+
+          {/* ✅ NEW: single dynamic route for all Impact sub‑pages */}
+          <Route path="impact/:slug" element={<ImpactEditor />} />
+
+          <Route path="achievements" element={<AchievementEditor />} />
+          <Route path="achievements/awards" element={<AchievementEditor />} />
+          <Route path="achievements/media" element={<AchievementEditor />} />
         </Route>
+
         {/* 404 catch-all */}
         <Route path="*" element={<NotFoundPage />} />
       </Routes>

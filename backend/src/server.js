@@ -16,6 +16,7 @@ const cmsRoutes = require('./routes/cms.routes')
 app.use('/api/hero', heroRoutes)
 app.use('/api/auth', authRoutes)
 app.use('/api/cms', cmsRoutes)
+app.use('/api/impact', require('./routes/impact.routes'))
 
 /* ---------------- TEST ROUTE ---------------- */
 app.get('/', (req, res) => {

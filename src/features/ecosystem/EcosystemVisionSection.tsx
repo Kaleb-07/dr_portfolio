@@ -1,15 +1,18 @@
 import { useRef } from 'react'
 import { motion, useInView } from 'framer-motion'
 import { Container } from '@/components/shared'
-
-const QUOTE =
-  'Healthcare is not a service to be bought, but a system to be built. Only through complete vertical integration can we guarantee the quality of care and the dignity of the patient.'
+import { useSiteContent } from '@/hooks/useSiteContent'
 
 export default function EcosystemVisionSection() {
   const ref = useRef<HTMLElement>(null)
   const inView = useInView(ref, { once: true, margin: '-80px' })
-
-  const words = QUOTE.split(' ')
+  const { content } = useSiteContent()
+  const section = content?.sections.liyana_framework
+  const ecosystem = (section?.metadata?.ecosystem || {}) as any
+  const vision = ecosystem.vision || {}
+  const quote = vision.quote ||
+    'Healthcare is not a service to be bought, but a system to be built. Only through complete vertical integration can we guarantee the quality of care and the dignity of the patient.'
+  const words = quote.split(' ')
 
   return (
     <section ref={ref} className="relative overflow-hidden bg-teal py-10 lg:py-14 text-center">
@@ -38,7 +41,7 @@ export default function EcosystemVisionSection() {
           className="font-serif text-8xl lg:text-9xl leading-none font-light text-gold-light select-none -mb-4"
           aria-hidden
         >
-          99
+          {vision.marker || '99'}
         </motion.p>
 
         {/* Quote — word-by-word reveal */}
@@ -49,7 +52,7 @@ export default function EcosystemVisionSection() {
             variants={{ visible: { transition: { staggerChildren: 0.025 } } }}
             className="inline"
           >
-            {words.map((word, i) => (
+            {words.map((word: string, i: number) => (
               <motion.span
                 key={i}
                 variants={{
@@ -73,7 +76,7 @@ export default function EcosystemVisionSection() {
         >
           <span className="w-10 h-px bg-gold-light" />
           <p className="font-mono text-xs tracking-[0.28em] uppercase text-white/50">
-            Dr. Girma Ababi, Founder
+            {vision.attribution || 'Dr. Girma Ababi, Founder'}
           </p>
           <span className="w-10 h-px bg-gold-light" />
         </motion.div>

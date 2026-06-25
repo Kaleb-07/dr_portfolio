@@ -9,117 +9,135 @@ datasource db {
 
 model admin {
   id       Int     @id @default(autoincrement())
-  email    String? @unique
-  password String?
+  email    String? @unique(map: "email") @db.VarChar(255)
+  password String? @db.VarChar(255)
 }
 
 model contact_messages {
   id           Int      @id @default(autoincrement())
-  name         String
-  email        String
-  organization String
-  phone        String?
-  inquiry_type String?
-  subject      String?
-  message      String?
-  is_read      Boolean  @default(false)
-  created_at   DateTime @default(now())
+  name         String   @db.VarChar(255)
+  email        String   @db.VarChar(255)
+  organization String   @db.VarChar(255)
+  phone        String?  @db.VarChar(100)
+  inquiry_type String?  @db.VarChar(255)
+  subject      String?  @db.VarChar(255)
+  message      String?  @db.Text
+  is_read      Boolean? @default(false)
+  created_at   DateTime @default(now()) @db.Timestamp(0)
 }
 
 model contact_settings {
   id            Int     @id @default(autoincrement())
-  heading       String?
-  email         String?
-  phone         String?
-  location      String?
-  image_url     String?
-  image_caption String?
+  heading       String? @db.VarChar(255)
+  email         String? @db.VarChar(255)
+  phone         String? @db.VarChar(100)
+  location      String? @db.Text
+  image_url     String? @db.Text
+  image_caption String? @db.VarChar(255)
 }
 
 model inquiry_types {
   id         Int    @id @default(autoincrement())
-  label      String
-  value      String @unique
-  sort_order Int    @default(0)
+  label      String @db.VarChar(255)
+  value      String @unique(map: "value") @db.VarChar(255)
+  sort_order Int?   @default(0)
 }
 
 model hero_section {
   id              Int     @id @default(autoincrement())
-  name            String?
-  title           String?
-  subtitle        String?
-  description     String?
-  cta_1_label     String?
-  cta_1_path      String?
-  cta_2_label     String?
-  cta_2_path      String?
-  backgroundImage String?
+  name            String? @db.VarChar(255)
+  title           String? @db.VarChar(255)
+  subtitle        String? @db.VarChar(255)
+  description     String? @db.Text
+  cta_1_label     String? @db.VarChar(255)
+  cta_1_path      String? @db.VarChar(255)
+  cta_2_label     String? @db.VarChar(255)
+  cta_2_path      String? @db.VarChar(255)
+  backgroundImage String? @db.VarChar(255)
 }
 
 model identity_items {
-  id          Int     @id @default(autoincrement())
-  label       String?
-  title       String
-  description String?
-  icon        String?
-  image_url   String?
-  sort_order  Int     @default(0)
-  is_active   Boolean @default(true)
+  id          Int      @id @default(autoincrement())
+  label       String?  @db.VarChar(40)
+  title       String   @db.VarChar(255)
+  description String?  @db.Text
+  icon        String?  @db.VarChar(120)
+  image_url   String?  @db.VarChar(500)
+  sort_order  Int      @default(0)
+  is_active   Boolean  @default(true)
+  created_at  DateTime @default(now()) @db.Timestamp(0)
+  updated_at  DateTime @default(now()) @db.Timestamp(0)
 }
 
 model navigation_items {
-  id         Int     @id @default(autoincrement())
-  parent_id  Int?
-  label      String
-  path       String?
-  target     String  @default("_self")
-  sort_order Int     @default(0)
-  is_active  Boolean @default(true)
+  id                     Int                @id @default(autoincrement())
+  parent_id              Int?
+  label                  String             @db.VarChar(255)
+  path                   String?            @db.VarChar(500)
+  target                 String?            @default("_self") @db.VarChar(40)
+  sort_order             Int                @default(0)
+  is_active              Boolean            @default(true)
+  metadata               String?            @db.LongText
+  created_at             DateTime           @default(now()) @db.Timestamp(0)
+  updated_at             DateTime           @default(now()) @db.Timestamp(0)
+  navigation_items       navigation_items?  @relation("navigation_itemsTonavigation_items", fields: [parent_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "navigation_items_parent_fk")
+  other_navigation_items navigation_items[] @relation("navigation_itemsTonavigation_items")
+
+  @@index([parent_id], map: "parent_id")
 }
 
 model timeline_events {
-  id          Int     @id @default(autoincrement())
-  slug        String? @unique
-  year        String?
-  title       String
-  subtitle    String?
-  description String?
-  category    String  @default("milestone")
-  icon        String?
-  sort_order  Int     @default(0)
-  is_active   Boolean @default(true)
+  id          Int      @id @default(autoincrement())
+  slug        String?  @unique(map: "slug") @db.VarChar(120)
+  year        String?  @db.VarChar(40)
+  title       String   @db.VarChar(255)
+  subtitle    String?  @db.VarChar(255)
+  description String?  @db.Text
+  category    String?  @default("milestone") @db.VarChar(80)
+  icon        String?  @db.VarChar(120)
+  sort_order  Int      @default(0)
+  is_active   Boolean  @default(true)
+  created_at  DateTime @default(now()) @db.Timestamp(0)
+  updated_at  DateTime @default(now()) @db.Timestamp(0)
 }
-model cms_sections {
-  id           Int      @id @default(autoincrement())
-  slug         String   @unique
-  section_type String   @default("generic")
-  eyebrow      String?
-  title        String?
-  subtitle     String?
-  description  String?
-  image_url    String?
-  image_alt    String?
-  metadata     Json?
-  sort_order   Int      @default(0)
-  is_active    Boolean  @default(true)
-  created_at   DateTime @default(now())
-  updated_at   DateTime @updatedAt
 
+model cms_sections {
+  id           Int                  @id @default(autoincrement())
+  slug         String               @unique(map: "slug") @db.VarChar(120)
+  section_type String               @default("generic") @db.VarChar(80)
+  eyebrow      String?              @db.VarChar(255)
+  title        String?              @db.Text
+  subtitle     String?              @db.Text
+  description  String?              @db.Text
+  image_url    String?              @db.VarChar(500)
+  image_alt    String?              @db.VarChar(255)
+  metadata     String?              @db.LongText
+  sort_order   Int                  @default(0)
+  is_active    Boolean              @default(true)
+  created_at   DateTime             @default(now()) @db.Timestamp(0)
+  updated_at   DateTime             @default(now()) @updatedAt @db.Timestamp(0)
   blocks       cms_section_blocks[]
 }
 
 model cms_section_blocks {
-  id          Int           @id @default(autoincrement())
-  section_id  Int
-  section     cms_sections  @relation(fields: [section_id], references: [id], onDelete: Cascade)
+  id         Int          @id @default(autoincrement())
+  section_id Int
+  block_type String       @default("content") @db.VarChar(80)
+  eyebrow    String?      @db.VarChar(255)
+  title      String?      @db.Text
+  body       String?      @db.Text
+  image_url  String?      @db.VarChar(500)
+  image_alt  String?      @db.VarChar(255)
+  metadata   String?      @db.LongText
+  sort_order Int          @default(0)
+  is_active  Boolean      @default(true)
+  section    cms_sections @relation(fields: [section_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "cms_section_blocks_section_fk")
 
-  block_type  String        @default("content")
-  eyebrow     String?
-  title       String?
-  body        String?
-  image_url   String?
-  image_alt   String?
-  metadata    Json?
-  sort_order  Int           @default(0)
-  is_active   Boolean       @default(true)
+  @@index([section_id], map: "section_id")
+}
+model impact_sections {
+  id        Int      @id @default(autoincrement())
+  slug      String   @unique @db.VarChar(120)
+  data      Json
+  updatedAt DateTime @updatedAt
 }

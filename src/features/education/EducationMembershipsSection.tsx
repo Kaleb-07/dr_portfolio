@@ -1,8 +1,25 @@
 import { AnimatedSection, Container } from '@/components/shared'
 import { professionalMemberships } from '@/data/education'
+import { useSiteContent } from '@/hooks/useSiteContent'
 import { FaMedal } from 'react-icons/fa'
 
 export default function EducationMembershipsSection() {
+  const { content } = useSiteContent()
+  const cmsMemberships = Array.isArray(content?.sections.about_education?.metadata?.memberships)
+    ? (content?.sections.about_education?.metadata?.memberships as string[])
+    : []
+  const items = cmsMemberships.length ? cmsMemberships : professionalMemberships
+  const membershipEyebrow = String(
+    content?.sections.about_education?.metadata?.membership_eyebrow || 'Affiliations',
+  )
+  const membershipTitle = content?.sections.about_education?.metadata?.membership_title
+    ? String(content.sections.about_education.metadata.membership_title)
+    : null
+  const membershipDescription = String(
+    content?.sections.about_education?.metadata?.membership_description ||
+      'Active roles across national and international professional bodies in healthcare leadership and community service.',
+  )
+
   return (
     <section className="section-padding bg-paper-warm relative overflow-hidden">
       {/* Ambient glow */}
@@ -13,19 +30,25 @@ export default function EducationMembershipsSection() {
       <Container className="relative z-10">
         <AnimatedSection>
           <div className="section-header">
-            <span className="section-tag">Affiliations</span>
+            <span className="section-tag">{membershipEyebrow}</span>
             <span className="section-rule" />
           </div>
           <h2 className="font-serif text-4xl md:text-5xl font-light text-ink mb-4">
-            Professional <em className="text-teal-mid not-italic">memberships</em>
+            {membershipTitle ? (
+              membershipTitle
+            ) : (
+              <>
+                Professional <em className="text-teal-mid not-italic">memberships</em>
+              </>
+            )}
           </h2>
           <p className="text-sm font-light text-ink-muted mb-14 max-w-2xl">
-            Active roles across national and international professional bodies in healthcare leadership and community service.
+            {membershipDescription}
           </p>
         </AnimatedSection>
 
         <div className="max-w-3xl mx-auto border-t border-rule divide-y divide-rule">
-          {professionalMemberships.map((membership, i) => (
+          {items.map((membership, i) => (
             <AnimatedSection key={membership} delay={i * 0.08}>
               <div className="flex items-center gap-5 py-6 group cursor-default hover:bg-white/60 px-4 transition-all duration-300">
                 <div className="w-9 h-9 rounded-full border border-gold/30 bg-gold-light/50 flex items-center justify-center shrink-0 group-hover:bg-gold-light group-hover:border-gold/60 transition-all duration-300">

@@ -12,8 +12,12 @@ const SECTION_SLUGS = [
   'about_vision',
   'liyana_framework',
   'foundation_story',
+  'public-service',
+  'leadership',
   'recognition_awards',
   'leadership_philosophy',
+  'about_education',
+  'about_gallery',
 ]
 
 const sectionSeeds = [
@@ -175,7 +179,164 @@ const sectionSeeds = [
     title:
       'A vertically integrated ecosystem <em class="not-italic text-teal-mid">for sovereignty and scale.</em>',
     description: '',
-    metadata: { cta: [{ label: 'Explore Ecosystem', path: '/ecosystem', variant: 'ghost' }] },
+    metadata: {
+      cta: [{ label: 'Explore Ecosystem', path: '/ecosystem', variant: 'ghost' }],
+      ecosystem: {
+        hero: {
+          tag: 'Strategic Infrastructure',
+          title: 'Most investors build one piece. He built the entire chain.',
+          description:
+            'Liyana Healthcare represents a paradigm shift in medical economics. By vertically integrating every touchpoint of the patient journey, we eliminate the friction that stalls progress in emerging markets.',
+          meta: [
+            { value: '6', label: 'Integrated Sectors' },
+            { value: '1000+', label: 'Employees' },
+            { value: '2010', label: 'Established' },
+            { value: 'Pan-African', label: 'Reach' },
+          ],
+        },
+        network: {
+          hero: {
+            tag: 'System Generated',
+            title: 'The Ecosystem Core',
+            description:
+              'Six interconnected sectors forming a single, self-sustaining healthcare chain.',
+          },
+          sectors: [
+            {
+              id: 'delivery',
+              label: 'DELIVERY',
+              angle: -90,
+              title: 'Yanct Chain of Hospitals',
+              description:
+                'A comprehensive network of tertiary care facilities providing specialized surgical, cardiac, and oncology services across East Africa.',
+              metric: '900+ Specialized Beds',
+              icon: 'hospital',
+            },
+            {
+              id: 'financing',
+              label: 'FINANCING',
+              angle: -30,
+              title: 'Micro-Financing & Insurance',
+              description:
+                'Innovative micro-insurance models tailored for the self-employed and informal sectors, closing the affordability gap in healthcare.',
+              metric: 'Pan-African Model',
+              icon: 'wallet',
+            },
+            {
+              id: 'education',
+              label: 'EDUCATION',
+              angle: 30,
+              title: 'YLC Health Sciences',
+              description:
+                'Training the next generation of medical specialists through rigorous academic programs and clinical rotation integration.',
+              metric: 'Chief Pipeline Active',
+              icon: 'graduation-cap',
+            },
+            {
+              id: 'production',
+              label: 'PRODUCTION',
+              angle: 90,
+              title: 'Pharma Manufacturing',
+              description:
+                'On-shore manufacturing of essential generic medications ensuring supply chain sovereignty and healthcare affordability.',
+              metric: 'Supply Secured',
+              icon: 'flask',
+            },
+            {
+              id: 'tech',
+              label: 'DIGITAL',
+              angle: 150,
+              title: 'Digital Platforms',
+              description:
+                'Unified EMR systems and telemedicine portals that connect rural clinics to urban specialists instantly across the region.',
+              metric: 'System Active',
+              icon: 'mobile',
+            },
+            {
+              id: 'research',
+              label: 'RESEARCH',
+              angle: 210,
+              title: 'Medical Research',
+              description:
+                'Genomic studies and epidemiological research focused on local populations, driving evidence-based regional care.',
+              metric: 'Signal Active',
+              icon: 'microscope',
+            },
+          ],
+        },
+        breakdown: {
+          tag: 'Sector Breakdown',
+          title: 'Six sectors. One vision.',
+          description:
+            'Each sector reinforces the others, creating a vertically integrated system that delivers care from lab to bedside.',
+          sectors: [
+            {
+              num: '01',
+              category: 'Delivery',
+              title: 'Yanct Chain of Hospitals',
+              description:
+                'A comprehensive network of tertiary care facilities providing specialized surgical, cardiac, and oncology services across East Africa.',
+              stats: ['900+ Specialized Beds', 'Pan-African Medical Hub'],
+              image: null,
+              accent: false,
+            },
+            {
+              num: '02',
+              category: 'Education',
+              title: 'YLC Health Sciences',
+              description:
+                'Training the next generation of medical specialists through rigorous academic programs and clinical rotation integration.',
+              stats: ['Chief Pipeline Under Development'],
+              image: null,
+              accent: false,
+            },
+            {
+              num: '03',
+              category: 'Manufacturing',
+              title: 'Pharma Production',
+              description:
+                'On-shore manufacturing of essential generic medications to ensure supply chain sovereignty and healthcare affordability.',
+              stats: [],
+              image: '/lab-connect.png',
+              accent: false,
+            },
+            {
+              num: '04',
+              category: 'Research',
+              title: 'Medical Research',
+              description:
+                'Genomic studies and epidemiological research focused on local populations, driving evidence-based regional care.',
+              stats: ['Signal Active', 'Liyana Research v3.0'],
+              image: null,
+              accent: true,
+            },
+            {
+              num: '05',
+              category: 'Technology',
+              title: 'Digital Platforms',
+              description:
+                'Unified EMR systems and telemedicine portals that connect rural clinics to urban specialists instantly.',
+              stats: ['Normal Rate'],
+              image: null,
+              accent: false,
+            },
+          ],
+          financing: {
+            num: '06',
+            category: 'Financing',
+            title: 'Micro-Financing & Insurance',
+            description:
+              'Closing the loop by making healthcare accessible. Our financing wing provides innovative micro-insurance models tailored for the self-employed and informal sectors.',
+          },
+        },
+        vision: {
+          quote:
+            'Healthcare is not a service to be bought, but a system to be built. Only through complete vertical integration can we guarantee the quality of care and the dignity of the patient.',
+          marker: '99',
+          attribution: 'Dr. Girma Ababi, Founder',
+        },
+      },
+    },
     blocks: [
       {
         block_type: 'framework_node',
@@ -263,6 +424,246 @@ const sectionSeeds = [
         sort_order: 4,
       },
     ],
+  },
+  {
+    slug: 'leadership',
+    section_type: 'impact_collection',
+    eyebrow: 'Leadership',
+    title: 'Leadership & Impact',
+    subtitle: 'Executive leadership spanning healthcare organizations, boards, and institutions.',
+    description: '',
+    metadata: {
+      overview: {
+        title: 'Leadership & Impact',
+        subtitle:
+          'Executive leadership spanning healthcare organizations, boards, and institutions.',
+        description: '',
+      },
+      executiveRoles: [
+        {
+          id: 'founder-ceo-liyana',
+          title: 'Founder & CEO',
+          organization: 'Liyana Healthcare',
+          period: '2010 – Present',
+          description:
+            'Founder and Chief Executive Officer of Liyana Healthcare, a multi-sector healthcare enterprise spanning the Yanet Chain of Hospitals, YLC Health Sciences College, pharmaceutical manufacturing, and healthcare financing. Leads a team of 1,000+ employees across the entire healthcare value chain.',
+          highlights: [
+            'Founded and scaled Liyana Healthcare from inception to 1,000+ employees',
+            'Built the Yanet Chain of Hospitals for tertiary and therapeutic care',
+            'Established YLC Health Sciences College for medical professional training',
+          ],
+          category: 'executive',
+          icon: 'FaBuilding',
+        },
+        {
+          id: 'vp-ehf',
+          title: 'Vice President',
+          organization: 'Ethiopian Healthcare Federation',
+          period: '2023 – Present',
+          description:
+            'Elected Vice President of the Ethiopian Healthcare Federation, serving in national leadership to shape policy, strategy, and regulatory frameworks for the healthcare sector. Serves on multiple Ministry of Health councils and advisory bodies.',
+          highlights: [
+            'Influences national health policy and regulatory direction',
+            'Serves on 3 Ministry of Health advisory bodies',
+            'Represents the private health sector at national level',
+          ],
+          category: 'executive',
+          icon: 'FaBuilding',
+        },
+      ],
+      governanceRoles: [
+        {
+          id: 'board-chairman',
+          title: 'Board Chairman',
+          organization: 'Multiple Private Boards',
+          period: 'Ongoing',
+          description:
+            'Serves as Board Chairman for four private boards, providing strategic governance, oversight, and leadership across healthcare and related sectors.',
+          highlights: [
+            'Chairs 4 private boards across healthcare sectors',
+            '1 Civil Society Organization Board Chairmanship',
+            'Drives governance and strategic direction for portfolio organizations',
+          ],
+          category: 'board',
+          icon: 'FaBuilding',
+        },
+        {
+          id: 'stanford-alumni',
+          title: 'Stanford GSB Alumni',
+          organization: 'Stanford Graduate School of Business',
+          period: '2019 – Present',
+          description:
+            'Alumnus of the Stanford GSB Seed Transformation Program, applying world-class organizational leadership principles to scale Liyana Healthcare and its ecosystem.',
+          highlights: [
+            'Completed Seed Transformation Program (2019-2021)',
+            'Applied Stanford frameworks to healthcare enterprise scaling',
+            'Part of a global network of emerging economy leaders',
+          ],
+          category: 'advisory',
+          icon: 'FaBuilding',
+        },
+      ],
+    },
+    blocks: [],
+  },
+  {
+    slug: 'public-service',
+    section_type: 'impact_collection',
+    eyebrow: 'Public Service',
+    title: 'Public Service & Policy Impact',
+    subtitle: 'National & Continental Leadership',
+    description:
+      'Dr. Girma Ababi serves the nation through multiple advisory and leadership roles, shaping healthcare policy, regulatory frameworks, and innovation agendas at the highest levels of government and professional bodies.',
+    metadata: {
+      overview: {
+        title: 'Public Service & Policy Impact',
+        subtitle: 'National & Continental Leadership',
+        description:
+          'Dr. Girma Ababi serves the nation through multiple advisory and leadership roles, shaping healthcare policy, regulatory frameworks, and innovation agendas at the highest levels of government and professional bodies.',
+      },
+      quickFacts: [
+        { label: 'VP, Ethiopian Healthcare Federation', value: '2023 – Present' },
+        { label: 'Ministry of Health Advisory Roles', value: '4 Positions' },
+        { label: 'Policy & Innovation Boards', value: 'Ongoing' },
+      ],
+      roles: [
+        {
+          id: 'vp-ehf',
+          title: 'Vice President',
+          organization: 'Ethiopian Healthcare Federation',
+          period: '2023 – Present',
+          description:
+            'Appointed to national leadership of the Ethiopian Healthcare Federation, driving policy, strategy, and regulatory advisory for the healthcare sector.',
+          highlights: [
+            'National leadership role in healthcare federation',
+            'Shapes sector-wide policy and strategy',
+            'Represents private healthcare providers at national level',
+          ],
+          category: 'federation',
+          icon: 'FaBuilding',
+        },
+        {
+          id: 'moh-advisory',
+          title: 'Policy, Strategy & Research Advisor',
+          organization: 'Ministry of Health Advisory Council',
+          period: 'Ongoing',
+          description:
+            'Serves as Policy, Strategy & Research Advisor to the Minister of Health, providing expert counsel on national health policy and strategic direction.',
+          highlights: [
+            'Direct advisory to the Minister of Health',
+            'Influences national health policy and strategy',
+            'Guides health research priorities',
+          ],
+          category: 'advisory',
+          icon: 'FaBuilding',
+        },
+        {
+          id: 'moh-innovation',
+          title: 'Think-Tank on Innovation & Quality',
+          organization: 'Ministry of Health Innovation',
+          period: 'Ongoing',
+          description:
+            "Member of the Ministry of Health's innovation think-tank, driving healthcare innovation and quality improvement initiatives across the sector.",
+          highlights: [
+            'Shapes healthcare innovation agenda',
+            'Drives quality improvement frameworks',
+            'Promotes adoption of innovative healthcare models',
+          ],
+          category: 'innovation',
+          icon: 'FaBuilding',
+        },
+        {
+          id: 'moh-regulation',
+          title: 'National Regulatory Committee Member',
+          organization: 'Ministry of Health Regulation',
+          period: 'Ongoing',
+          description:
+            'Serves on the National Regulatory Committee at the Ministry of Health, contributing to healthcare regulation and compliance frameworks.',
+          highlights: [
+            'Participates in regulatory policy development',
+            'Ensures quality and safety standards',
+            'Advises on healthcare compliance frameworks',
+          ],
+          category: 'policy',
+          icon: 'FaBuilding',
+        },
+        {
+          id: 'sidama-bureau',
+          title: 'Think-Tank Organizer',
+          organization: 'Sidama Regional Health Bureau',
+          period: 'Ongoing',
+          description:
+            'Organizes and leads think-tank initiatives for the Sidama Regional Health Bureau, driving regional health system improvement and innovation.',
+          highlights: [
+            'Leads regional health think-tank initiatives',
+            'Drives health system innovation at regional level',
+            'Bridges national and regional health priorities',
+          ],
+          category: 'innovation',
+          icon: 'FaBuilding',
+        },
+        {
+          id: 'professional-memberships',
+          title: 'Professional Memberships & Leadership',
+          organization: 'Multiple Professional Bodies',
+          period: 'Ongoing',
+          description:
+            'Holds leadership positions in multiple professional bodies including Regional Board Member of the Ethiopian Medical Association, member of the Ethiopian Society of Anatomical Pathologists, Vice President of the Ethiopian Private Health Facilities Association, and International Rotarian.',
+          highlights: [
+            'Regional Board Member, Ethiopian Medical Association',
+            'Member, Ethiopian Society of Anatomical Pathologists',
+            'VP, Ethiopian Private Health Facilities Association',
+            'International Rotarian – Rotary International',
+          ],
+          category: 'advisory',
+          icon: 'FaBuilding',
+        },
+      ],
+      education: [
+        {
+          id: 'edu-md',
+          degree: 'Doctor of Medicine',
+          institution: 'University of Gondar / Addis Ababa University',
+          footer: 'Distinction in Clinical Practice',
+          highlight: false,
+        },
+        {
+          id: 'edu-pathology',
+          degree: 'Pathology Specialty',
+          institution: 'Advanced diagnostic systems and laboratory management integration.',
+          footer: 'Specialized Fellowship',
+          highlight: false,
+        },
+        {
+          id: 'edu-stanford',
+          degree: 'Stanford GSB Seed',
+          institution: 'Strategic Management and Innovation program for high-growth enterprises.',
+          footer: 'Executive Leadership',
+          highlight: true,
+        },
+      ],
+      foundationItems: [
+        {
+          id: 'found-outreach',
+          title: 'Community Outreach',
+          description: 'Mobile screening units bringing diagnostics to remote regions.',
+          icon: 'FaMapMarkerAlt',
+        },
+        {
+          id: 'found-education',
+          title: 'Education Access',
+          description: 'Scholarship funds for aspiring medical technicians and clinical staff.',
+          icon: 'FaBookOpen',
+        },
+        {
+          id: 'found-advocacy',
+          title: 'Policy Advocacy',
+          description: 'Empowering patient rights and standardizing care ethics.',
+          icon: 'FaUsers',
+        },
+      ],
+    },
+    blocks: [],
   },
   {
     slug: 'recognition_awards',
@@ -580,10 +981,27 @@ async function getSections(slugs = SECTION_SLUGS) {
   return sections.reduce((acc, section) => {
     acc[section.slug] = {
       ...section,
-      blocks: blocks.filter((block) => block.section_id === section.id),
+      metadata: safeParseMetadata(section.metadata, {}),
+      blocks: blocks
+        .filter((block) => block.section_id === section.id)
+        .map((block) => ({
+          ...block,
+          metadata: safeParseMetadata(block.metadata, {}),
+        })),
     }
     return acc
   }, {})
+}
+
+function safeParseMetadata(value, fallback = {}) {
+  if (!value) return fallback
+  if (typeof value === 'object') return value
+  try {
+    return JSON.parse(value)
+  } catch (error) {
+    console.log('[cms.safeParseMetadata] invalid JSON:', error.message)
+    return fallback
+  }
 }
 
 async function getIdentityItems(includeInactive = false) {
@@ -635,8 +1053,10 @@ router.get('/site-content', async (req, res) => {
 
 router.get('/sections/:slug', async (req, res) => {
   try {
+    console.log('[cms.getSection] slug received:', req.params.slug)
     const sections = await getSections([req.params.slug])
     if (!sections[req.params.slug]) return res.status(404).json({ message: 'Section not found' })
+    console.log('[cms.getSection] response data:', sections[req.params.slug])
     res.json(sections[req.params.slug])
   } catch (error) {
     res.status(500).json({ error: error.message })
@@ -646,54 +1066,69 @@ router.get('/sections/:slug', async (req, res) => {
 router.put('/sections/:slug', verifyToken, async (req, res) => {
   try {
     const { section = {}, blocks = [] } = req.body
+    console.log('[cms.putSection] slug received:', req.params.slug)
+    console.log('[cms.putSection] payload received:', { section, blocks })
 
-    await prisma.$transaction(async (tx) => {
-      await tx.cms_sections.updateMany({
+    const storedSection = await prisma.$transaction(async (tx) => {
+      const savedSection = await tx.cms_sections.upsert({
         where: { slug: req.params.slug },
-        data: {
+        update: {
           eyebrow: section.eyebrow || null,
           title: section.title || null,
           subtitle: section.subtitle || null,
           description: section.description || null,
           image_url: section.image_url || null,
           image_alt: section.image_alt || null,
-          metadata: section.metadata || {},
+          metadata: JSON.stringify(safeParseMetadata(section.metadata, {})),
+          is_active: section.is_active === 0 ? false : true,
+        },
+        create: {
+          slug: req.params.slug,
+          section_type: section.section_type || 'generic',
+          eyebrow: section.eyebrow || null,
+          title: section.title || null,
+          subtitle: section.subtitle || null,
+          description: section.description || null,
+          image_url: section.image_url || null,
+          image_alt: section.image_alt || null,
+          metadata: JSON.stringify(safeParseMetadata(section.metadata, {})),
           is_active: section.is_active === 0 ? false : true,
         },
       })
 
-      const storedSection = await tx.cms_sections.findUnique({
-        where: { slug: req.params.slug },
-        select: { id: true },
-      })
-
-      if (!storedSection) {
-        throw new Error('Section not found')
-      }
-
       await tx.cms_section_blocks.deleteMany({
-        where: { section_id: storedSection.id },
+        where: { section_id: savedSection.id },
       })
 
       if (blocks.length > 0) {
         await tx.cms_section_blocks.createMany({
           data: blocks.map((block, index) => ({
-            section_id: storedSection.id,
+            section_id: savedSection.id,
             block_type: block.block_type || 'content',
             eyebrow: block.eyebrow || null,
             title: block.title || null,
             body: block.body || null,
             image_url: block.image_url || null,
             image_alt: block.image_alt || null,
-            metadata: block.metadata || {},
+            metadata: JSON.stringify(safeParseMetadata(block.metadata, {})),
             sort_order: block.sort_order || index + 1,
             is_active: block.is_active === 0 ? false : true,
           })),
         })
       }
+
+      return tx.cms_sections.findUnique({
+        where: { slug: req.params.slug },
+        include: {
+          blocks: {
+            orderBy: [{ sort_order: 'asc' }, { id: 'asc' }],
+          },
+        },
+      })
     })
 
-    res.json({ message: 'Section saved' })
+    console.log('[cms.putSection] prisma result:', storedSection)
+    res.json({ message: 'Section saved', data: storedSection })
   } catch (error) {
     res.status(500).json({ error: error.message })
   }

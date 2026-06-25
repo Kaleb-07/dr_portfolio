@@ -71,7 +71,7 @@ export interface SiteContent {
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api'
 
 export async function fetchSiteContent(): Promise<SiteContent> {
-  const response = await fetch(`${API_BASE}/cms/site-content`)
+  const response = await fetch(`${API_BASE}/cms/site-content`, { cache: 'no-store' })
 
   if (!response.ok) {
     throw new Error('Could not load CMS content')
