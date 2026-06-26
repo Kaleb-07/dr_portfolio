@@ -13,7 +13,7 @@ import {
   Save,
   Smartphone,
   Sparkles,
-  Syringe,
+  Hammer,
   Trash2,
   Trophy,
   Upload,
@@ -22,6 +22,7 @@ import {
   CheckCircle2,
   ChevronDown,
   Zap,
+  X,
 } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
@@ -90,9 +91,9 @@ const STORY_SECTIONS = [
 const ICON_OPTIONS = [
   { value: 'hospital', label: 'Hospital', Icon: Hospital },
   { value: 'graduation-cap', label: 'Education', Icon: GraduationCap },
-  { value: 'flask', label: 'Manufacturing', Icon: Syringe },
+  { value: 'hammer', label: 'Manufacturing', Icon: Hammer },
   { value: 'microscope', label: 'Research', Icon: Microscope },
-  { value: 'mobile', label: 'Digital Health', Icon: Smartphone },
+  { value: 'smartphone', label: 'Digital Health', Icon: Smartphone },
   { value: 'wallet', label: 'Financing', Icon: Wallet },
   { value: 'heart-pulse', label: 'Community Health', Icon: HeartPulse },
   { value: 'handshake', label: 'Mentorship', Icon: Handshake },
@@ -159,7 +160,7 @@ function Toast({ message, error }) {
   if (!message && !error) return null
   return (
     <div
-      className={`fixed bottom-6 right-6 flex items-center gap-3 rounded-lg px-5 py-3.5 text-sm font-medium shadow-lg transition-all duration-300 animate-in slide-in-from-right ${
+      className={`fixed bottom-6 right-6 flex items-center gap-3 rounded-lg px-5 py-3.5 text-sm font-medium shadow-lg transition-all duration-300 animate-in slide-in-from-right z-50 max-w-xs ${
         error ? 'bg-red-50 text-red-700' : 'bg-emerald-50 text-emerald-700'
       }`}
     >
@@ -183,7 +184,7 @@ function IconPicker({ value, onChange, allowedValues }) {
             key={optionValue}
             type="button"
             onClick={() => onChange(optionValue)}
-            className={`flex flex-col items-center justify-center gap-2 rounded-lg border-2 px-3 py-4 text-center transition-all duration-200 transform hover:scale-105 ${
+            className={`flex flex-col items-center justify-center gap-2 rounded-lg border-2 px-3 py-4 text-center transition-all duration-200 transform hover:scale-105 active:scale-95 ${
               isSelected
                 ? 'border-teal-500 bg-gradient-to-br from-teal-50 to-teal-100 text-teal-700 shadow-lg scale-105'
                 : 'border-slate-200 bg-white text-slate-600 hover:border-teal-300 hover:bg-teal-50'
@@ -194,6 +195,76 @@ function IconPicker({ value, onChange, allowedValues }) {
           </button>
         )
       })}
+    </div>
+  )
+}
+
+function ImageUploadField({ label, value, onChange, onError }) {
+  const [preview, setPreview] = useState(value)
+  const fileInputRef = useRef(null)
+
+  const handleFileSelect = (file) => {
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = () => {
+      const dataUrl = String(reader.result || '')
+      setPreview(dataUrl)
+      onChange(dataUrl)
+    }
+    reader.onerror = () => onError('Could not read image.')
+    reader.readAsDataURL(file)
+  }
+
+  const clearImage = () => {
+    setPreview('')
+    onChange('')
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }
+
+  return (
+    <div className="space-y-3">
+      <Field label={label}>
+        <div className="flex gap-2">
+          <div className="relative flex-1">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="sr-only"
+              onChange={(e) => handleFileSelect(e.target.files?.[0])}
+            />
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className={`w-full flex items-center justify-center gap-2 rounded-lg border-2 border-dashed px-4 py-6 transition-all ${
+                preview
+                  ? 'border-teal-300 bg-teal-50 text-teal-700 hover:bg-teal-100'
+                  : 'border-slate-300 bg-slate-50 text-slate-600 hover:border-teal-300 hover:bg-teal-50'
+              }`}
+            >
+              <Upload size={18} />
+              <span className="text-sm font-medium">
+                {preview ? 'Change Image' : 'Select Image'}
+              </span>
+            </button>
+          </div>
+          {preview && (
+            <button
+              type="button"
+              onClick={clearImage}
+              className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all"
+              title="Remove image"
+            >
+              <X size={20} />
+            </button>
+          )}
+        </div>
+      </Field>
+      {preview && (
+        <div className="overflow-hidden rounded-lg border border-slate-200 bg-slate-50 hover:shadow-md transition-all">
+          <img src={preview} alt="Preview" className="h-40 w-full object-cover" />
+        </div>
+      )}
     </div>
   )
 }
@@ -258,14 +329,6 @@ function buildTestimonialSectionDraft(section = {}) {
   }
 }
 
-function readLocalImage(file, onLoad, onError) {
-  if (!file) return
-  const reader = new FileReader()
-  reader.onload = () => onLoad(String(reader.result || ''))
-  reader.onerror = onError
-  reader.readAsDataURL(file)
-}
-
 // ------------------------------------------------------------------
 // STORY EDITOR COMPONENT
 // ------------------------------------------------------------------
@@ -326,10 +389,8 @@ export default function StoryEditor() {
       setIsLoading(true)
       setError('')
       try {
-        console.log('[StoryEditor] GET /cms/site-content')
         const response = await api.get('/cms/site-content')
         if (!active) return
-        console.log('[StoryEditor] GET response', response.data)
         setContent(response.data)
       } catch {
         if (!active) return
@@ -370,16 +431,13 @@ export default function StoryEditor() {
   // Scroll & focus new item
   useEffect(() => {
     if (newItemId && newItemRef.current) {
-      newItemRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' })
-      const timer = setTimeout(() => {
+      setTimeout(() => {
+        newItemRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
         const firstInput = newItemRef.current?.querySelector('input, textarea')
         firstInput?.focus()
-      }, 350)
+      }, 300)
       const reset = setTimeout(() => setNewItemId(null), 2500)
-      return () => {
-        clearTimeout(timer)
-        clearTimeout(reset)
-      }
+      return () => clearTimeout(reset)
     }
   }, [newItemId])
 
@@ -421,7 +479,7 @@ export default function StoryEditor() {
             subtitle: '',
             description: '',
             category: 'milestone',
-            icon: '',
+            icon: 'sparkles',
             sort_order: idx + 1,
           },
         ],
@@ -496,13 +554,6 @@ export default function StoryEditor() {
       }
     })
 
-  const updateIdentityImage = (index, file) =>
-    readLocalImage(
-      file,
-      (url) => updateIdentity(index, { image_url: url }),
-      () => setError('Could not read image.'),
-    )
-
   const reorderIdentities = (index, direction) => {
     setDraft((c) => {
       if (!Array.isArray(c?.identities)) return c
@@ -523,7 +574,7 @@ export default function StoryEditor() {
     })
   }
 
-  // ---------------------- Generic blocks (pillars, framework, awards, vision cards) ----------------------
+  // ---------------------- Generic blocks ----------------------
   const addBlock = () => {
     const id = `new-${Date.now()}`
     setDraft((c) => {
@@ -580,13 +631,6 @@ export default function StoryEditor() {
     })
   }
 
-  const updateBlockImage = (index, file) =>
-    readLocalImage(
-      file,
-      (url) => updateBlock(index, { image_url: url }),
-      () => setError('Could not read image.'),
-    )
-
   // ---------------------- Save section ----------------------
   const saveSection = async () => {
     if (!draft || !selectedSection) return
@@ -625,7 +669,6 @@ export default function StoryEditor() {
         const refreshed = await refreshContent()
         if (!refreshed) throw new Error('refresh failed')
       } else if (selectedSection.type === 'testimonials') {
-        // Fixed: Save section with all required fields
         const sectionPatch = {
           eyebrow: draft.eyebrow,
           title: draft.title,
@@ -673,9 +716,7 @@ export default function StoryEditor() {
 
   const refreshContent = async () => {
     try {
-      console.log('[StoryEditor] REFRESH /cms/site-content')
       const response = await api.get('/cms/site-content')
-      console.log('[StoryEditor] REFRESH response', response.data)
       setContent(response.data)
       return true
     } catch {
@@ -713,7 +754,7 @@ export default function StoryEditor() {
               <div
                 key={event.id || index}
                 ref={event.id === newItemId ? newItemRef : null}
-                className={`rounded-2xl border bg-white/80 backdrop-blur-sm shadow-sm transition-all duration-300 hover:shadow-lg hover:border-teal-300 hover:scale-[1.01] cursor-pointer ${
+                className={`rounded-2xl border bg-white/80 backdrop-blur-sm shadow-sm transition-all duration-300 hover:shadow-lg hover:border-teal-300 ${
                   event.id === newItemId
                     ? 'border-teal-400 ring-2 ring-teal-400/30 shadow-xl shadow-teal-100/50'
                     : 'border-slate-200'
@@ -722,40 +763,35 @@ export default function StoryEditor() {
                 <button
                   type="button"
                   onClick={() => toggleTimeline(index)}
-                  className="flex w-full items-center justify-between p-5 text-left"
+                  className="flex w-full items-center justify-between gap-3 p-4 sm:p-5 text-left"
                 >
-                  <div className="flex items-center gap-4">
-                    <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-teal-400 to-teal-600 text-sm font-bold text-white shadow-md">
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-teal-400 to-teal-600 text-sm font-bold text-white shadow-md">
                       {String(index + 1).padStart(2, '0')}
                     </span>
-                    <div>
+                    <div className="min-w-0 flex-1">
                       <p className="text-xs font-semibold uppercase tracking-wider text-teal-500">
                         {event.year || 'Year'}
                       </p>
-                      <h3 className="text-base font-semibold text-slate-900 line-clamp-1">
+                      <h3 className="text-sm sm:text-base font-semibold text-slate-900 line-clamp-1">
                         {event.title || 'Untitled Event'}
                       </h3>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-500">
-                      {event.category}
-                    </span>
-                    <ChevronDown
-                      size={18}
-                      className={`text-slate-400 transition-transform duration-300 ${
-                        isOpen ? 'rotate-180' : ''
-                      }`}
-                    />
-                  </div>
+                  <ChevronDown
+                    size={18}
+                    className={`flex-shrink-0 text-slate-400 transition-transform duration-300 ${
+                      isOpen ? 'rotate-180' : ''
+                    }`}
+                  />
                 </button>
                 <div
                   className={`overflow-hidden transition-all duration-500 ease-in-out ${
                     isOpen ? 'max-h-[800px] opacity-100' : 'max-h-0 opacity-0'
                   }`}
                 >
-                  <div className="border-t border-slate-100 bg-slate-50/50 p-5">
-                    <div className="grid gap-5 md:grid-cols-[120px_minmax(0,1fr)]">
+                  <div className="border-t border-slate-100 bg-slate-50/50 p-4 sm:p-5 space-y-4">
+                    <div className="grid gap-4 sm:grid-cols-2">
                       <Field label="Year">
                         <input
                           className={formInput}
@@ -792,18 +828,15 @@ export default function StoryEditor() {
                           <option value="award">Award</option>
                         </select>
                       </Field>
-                      <div className="md:col-span-2">
+                      <div className="sm:col-span-2">
                         <Field label="Icon">
                           <IconPicker
-                            value={
-                              event.icon ||
-                              (event.category === 'education' ? 'graduation-cap' : 'sparkles')
-                            }
+                            value={event.icon || 'sparkles'}
                             onChange={(v) => updateTimelineEvent(index, { icon: v })}
                           />
                         </Field>
                       </div>
-                      <div className="md:col-span-2">
+                      <div className="sm:col-span-2">
                         <Field label="Description">
                           <textarea
                             className={formInput}
@@ -817,7 +850,7 @@ export default function StoryEditor() {
                         </Field>
                       </div>
                     </div>
-                    <div className="mt-5 flex items-center justify-between gap-2 border-t border-slate-200 pt-4">
+                    <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-200 pt-4">
                       <div className="flex gap-2">
                         <IconButton
                           label="Move up"
@@ -873,7 +906,7 @@ export default function StoryEditor() {
               <div
                 key={identity.id || index}
                 ref={identity.id === newItemId ? newItemRef : null}
-                className={`rounded-2xl border bg-white/80 backdrop-blur-sm shadow-sm transition-all duration-300 hover:shadow-lg hover:border-teal-300 hover:scale-[1.01] cursor-pointer ${
+                className={`rounded-2xl border bg-white/80 backdrop-blur-sm shadow-sm transition-all duration-300 hover:shadow-lg hover:border-teal-300 ${
                   identity.id === newItemId
                     ? 'border-teal-400 ring-2 ring-teal-400/30 shadow-xl shadow-teal-100/50'
                     : 'border-slate-200'
@@ -882,24 +915,24 @@ export default function StoryEditor() {
                 <button
                   type="button"
                   onClick={() => toggleIdentity(index)}
-                  className="flex w-full items-center justify-between p-5 text-left"
+                  className="flex w-full items-center justify-between gap-3 p-4 sm:p-5 text-left"
                 >
-                  <div className="flex items-center gap-4">
-                    <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-teal-400 to-teal-600 text-sm font-bold text-white shadow-md">
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-teal-400 to-teal-600 text-sm font-bold text-white shadow-md">
                       {identity.label.padStart(2, '0')}
                     </span>
-                    <div>
+                    <div className="min-w-0 flex-1">
                       <p className="text-xs font-semibold uppercase tracking-wider text-teal-500">
                         Identity {index + 1}
                       </p>
-                      <h3 className="text-base font-semibold text-slate-900 line-clamp-1">
+                      <h3 className="text-sm sm:text-base font-semibold text-slate-900 line-clamp-1">
                         {identity.title || 'Untitled'}
                       </h3>
                     </div>
                   </div>
                   <ChevronDown
                     size={18}
-                    className={`text-slate-400 transition-transform duration-300 ${
+                    className={`flex-shrink-0 text-slate-400 transition-transform duration-300 ${
                       isOpen ? 'rotate-180' : ''
                     }`}
                   />
@@ -909,7 +942,7 @@ export default function StoryEditor() {
                     isOpen ? 'max-h-[600px] opacity-100' : 'max-h-0 opacity-0'
                   }`}
                 >
-                  <div className="border-t border-slate-100 bg-slate-50/50 p-5 space-y-4">
+                  <div className="border-t border-slate-100 bg-slate-50/50 p-4 sm:p-5 space-y-4">
                     <Field label="Label">
                       <input
                         className={formInput}
@@ -926,31 +959,13 @@ export default function StoryEditor() {
                         placeholder="Identity title"
                       />
                     </Field>
-                    <Field label="Image">
-                      <div className="flex gap-2">
-                        <input
-                          className={formInput}
-                          value={identity.image_url || ''}
-                          onChange={(e) => updateIdentity(index, { image_url: e.target.value })}
-                          placeholder="/image.png"
-                        />
-                        <label className="inline-flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-slate-200 bg-slate-100 text-slate-600 transition-all hover:bg-slate-200 hover:scale-110">
-                          <Upload size={18} />
-                          <input
-                            type="file"
-                            accept="image/*"
-                            className="sr-only"
-                            onChange={(e) => updateIdentityImage(index, e.target.files?.[0])}
-                          />
-                        </label>
-                      </div>
-                    </Field>
-                    {identity.image_url && (
-                      <div className="overflow-hidden rounded-lg border border-slate-200 bg-slate-50 hover:shadow-md transition-all">
-                        <img src={identity.image_url} alt="" className="h-40 w-full object-cover" />
-                      </div>
-                    )}
-                    <div className="mt-4 flex items-center justify-between gap-2 border-t border-slate-200 pt-4">
+                    <ImageUploadField
+                      label="Identity Image"
+                      value={identity.image_url}
+                      onChange={(url) => updateIdentity(index, { image_url: url })}
+                      onError={(err) => setError(err)}
+                    />
+                    <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-200 pt-4">
                       <div className="flex gap-2">
                         <IconButton
                           label="Move up"
@@ -978,7 +993,7 @@ export default function StoryEditor() {
           })}
         </div>
         {draft.identities.length === 0 && (
-          <div className="rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 px-8 py-12 text-center hover:border-teal-300 hover:bg-teal-50 transition-all">
+          <div className="rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 px-4 sm:px-8 py-12 text-center hover:border-teal-300 hover:bg-teal-50 transition-all">
             <p className="text-slate-600">No identity items yet. Add one to get started.</p>
           </div>
         )}
@@ -988,22 +1003,20 @@ export default function StoryEditor() {
 
   const renderTestimonialsEditor = () => {
     if (!draft) return null
-    // Only the section heading is editable – no testimonial cards
     return (
       <div className="space-y-8">
-        <div className="group rounded-2xl border border-slate-200 bg-white/80 backdrop-blur-sm p-6 sm:p-8 shadow-sm transition-all duration-300 hover:shadow-lg hover:border-teal-300">
+        <div className="group rounded-2xl border border-slate-200 bg-white/80 backdrop-blur-sm p-5 sm:p-8 shadow-sm transition-all duration-300 hover:shadow-lg hover:border-teal-300">
           <div className="mb-6 border-b border-slate-200 pb-6">
-            <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
-              <Sparkles className="text-teal-500" size={28} />
-              Testimonials Section Heading
+            <h2 className="text-xl sm:text-2xl font-bold text-slate-900 flex items-center gap-2">
+              <Sparkles className="text-teal-500 flex-shrink-0" size={28} />
+              Testimonials Section
             </h2>
             <p className="mt-2 text-sm text-slate-600">
-              Edit the tag, headline, description, and the call‑to‑action button. The actual
-              testimonials will be managed later from user submissions.
+              Edit the tag, headline, description, and the call‑to‑action button.
             </p>
           </div>
-          <div className="grid gap-6 md:grid-cols-2">
-            <Field label="Eyebrow (tag)" hint="Small label above the headline, e.g. 'Testimonials'">
+          <div className="grid gap-6 sm:grid-cols-2">
+            <Field label="Eyebrow (tag)" hint="Small label above the headline">
               <input
                 className={formInput}
                 value={draft.eyebrow || ''}
@@ -1019,7 +1032,7 @@ export default function StoryEditor() {
                 placeholder="Trusted by Leaders Across Africa"
               />
             </Field>
-            <div className="md:col-span-2">
+            <div className="sm:col-span-2">
               <Field label="Description" hint="Supporting paragraph below the headline.">
                 <textarea
                   className={formInput}
@@ -1050,14 +1063,14 @@ export default function StoryEditor() {
         </div>
 
         {/* Live Preview */}
-        <div className="rounded-2xl border border-teal-200 bg-gradient-to-br from-teal-50 to-cyan-50 p-8">
+        <div className="rounded-2xl border border-teal-200 bg-gradient-to-br from-teal-50 to-cyan-50 p-6 sm:p-8">
           <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-teal-600 mb-4">
             Preview
           </p>
           <p className="text-xs font-semibold uppercase tracking-widest text-teal-700 mb-2">
             {draft.eyebrow || 'Testimonials'}
           </p>
-          <h3 className="text-2xl font-bold text-slate-900 mb-3">
+          <h3 className="text-xl sm:text-2xl font-bold text-slate-900 mb-3">
             {draft.title || 'Trusted by Leaders Across Africa'}
           </h3>
           <p className="text-slate-600 text-sm mb-6">
@@ -1084,10 +1097,10 @@ export default function StoryEditor() {
 
     return (
       <div className="space-y-8">
-        <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
+        <div className="space-y-6 lg:space-y-0 lg:grid lg:grid-cols-[1fr_320px] lg:gap-8">
           <div className="space-y-6">
             {/* Section Heading */}
-            <div className="rounded-2xl border border-slate-200 bg-white/80 backdrop-blur-sm p-6 sm:p-8 shadow-sm transition-all duration-300 hover:shadow-lg hover:border-teal-300">
+            <div className="rounded-2xl border border-slate-200 bg-white/80 backdrop-blur-sm p-5 sm:p-8 shadow-sm transition-all duration-300 hover:shadow-lg hover:border-teal-300">
               <div className="mb-6 border-b border-slate-200 pb-6">
                 <h2 className="text-2xl font-bold text-slate-900">{selectedSection.title}</h2>
                 <p className="mt-2 text-sm text-slate-600">{selectedSection.description}</p>
@@ -1112,7 +1125,7 @@ export default function StoryEditor() {
                     />
                   </Field>
                   <Field
-                    label="Headline — Line 2, Part A (Highlighted)"
+                    label="Headline — Highlighted Text"
                     hint="This text will appear in the custom colour #0f6e56 on the site."
                   >
                     <input
@@ -1122,53 +1135,6 @@ export default function StoryEditor() {
                       placeholder="e.g., self-sufficient healthcare Africa"
                     />
                   </Field>
-                  <Field label="Headline — Line 2, Part B (Normal text)">
-                    <input
-                      className={formInput}
-                      value={draft.subtitle ?? ''}
-                      onChange={(e) => setDraft((c) => ({ ...c, subtitle: e.target.value }))}
-                      placeholder="e.g., Africa (if needed after highlight)"
-                    />
-                  </Field>
-                  <div className="border-t border-slate-200 pt-6">
-                    <Field label="Hero Image">
-                      <div className="flex gap-2">
-                        <input
-                          className={formInput}
-                          value={draft.image_url ?? ''}
-                          onChange={(e) => setDraft((c) => ({ ...c, image_url: e.target.value }))}
-                          placeholder="https://..."
-                        />
-                        <label className="inline-flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-slate-200 bg-slate-100 text-slate-600 transition-all hover:bg-slate-200 hover:scale-110">
-                          <Upload size={18} />
-                          <input
-                            type="file"
-                            accept="image/*"
-                            className="sr-only"
-                            onChange={(e) => {
-                              if (e.target.files?.[0]) {
-                                readLocalImage(
-                                  e.target.files[0],
-                                  (url) => setDraft((c) => ({ ...c, image_url: url })),
-                                  () => setError('Could not read image.'),
-                                )
-                              }
-                            }}
-                          />
-                        </label>
-                      </div>
-                    </Field>
-                    <div className="mt-4">
-                      <Field label="Image Alt Text">
-                        <input
-                          className={formInput}
-                          value={draft.image_alt ?? ''}
-                          onChange={(e) => setDraft((c) => ({ ...c, image_alt: e.target.value }))}
-                          placeholder="Describe the image"
-                        />
-                      </Field>
-                    </div>
-                  </div>
                 </div>
               )}
 
@@ -1234,7 +1200,7 @@ export default function StoryEditor() {
               )}
 
               {!isVision && !isLeadership && !isFoundation && (
-                <div className="grid gap-6 md:grid-cols-2">
+                <div className="grid gap-6 sm:grid-cols-2">
                   <Field label="Eyebrow / Section Label">
                     <input
                       className={formInput}
@@ -1243,7 +1209,7 @@ export default function StoryEditor() {
                       placeholder="e.g., The Framework"
                     />
                   </Field>
-                  <div className="md:col-span-2">
+                  <div className="sm:col-span-2">
                     <Field label="Title">
                       <textarea
                         className={formInput}
@@ -1254,7 +1220,7 @@ export default function StoryEditor() {
                       />
                     </Field>
                   </div>
-                  <div className="md:col-span-2">
+                  <div className="sm:col-span-2">
                     <Field label="Subtitle / Supporting Text">
                       <input
                         className={formInput}
@@ -1264,45 +1230,6 @@ export default function StoryEditor() {
                       />
                     </Field>
                   </div>
-                  <div className="md:col-span-2 border-t border-slate-200 pt-6">
-                    <Field label="Hero Image">
-                      <div className="flex gap-2">
-                        <input
-                          className={formInput}
-                          value={draft.image_url ?? ''}
-                          onChange={(e) => setDraft((c) => ({ ...c, image_url: e.target.value }))}
-                          placeholder="https://..."
-                        />
-                        <label className="inline-flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-slate-200 bg-slate-100 text-slate-600 transition-all hover:bg-slate-200 hover:scale-110">
-                          <Upload size={18} />
-                          <input
-                            type="file"
-                            accept="image/*"
-                            className="sr-only"
-                            onChange={(e) => {
-                              if (e.target.files?.[0]) {
-                                readLocalImage(
-                                  e.target.files[0],
-                                  (url) => setDraft((c) => ({ ...c, image_url: url })),
-                                  () => setError('Could not read image.'),
-                                )
-                              }
-                            }}
-                          />
-                        </label>
-                      </div>
-                    </Field>
-                    <div className="mt-4">
-                      <Field label="Image Alt Text">
-                        <input
-                          className={formInput}
-                          value={draft.image_alt ?? ''}
-                          onChange={(e) => setDraft((c) => ({ ...c, image_alt: e.target.value }))}
-                          placeholder="Describe the image"
-                        />
-                      </Field>
-                    </div>
-                  </div>
                 </div>
               )}
             </div>
@@ -1311,7 +1238,7 @@ export default function StoryEditor() {
             {isFoundation && (
               <>
                 {/* Stats */}
-                <div className="rounded-2xl border border-slate-200 bg-white/80 backdrop-blur-sm p-6 sm:p-8 shadow-sm transition-all duration-300 hover:shadow-lg hover:border-teal-300">
+                <div className="rounded-2xl border border-slate-200 bg-white/80 backdrop-blur-sm p-5 sm:p-8 shadow-sm transition-all duration-300 hover:shadow-lg hover:border-teal-300">
                   <div className="mb-6 flex items-center justify-between border-b border-slate-200 pb-6">
                     <div>
                       <h3 className="text-xl font-bold text-slate-900">Foundation Stats</h3>
@@ -1321,7 +1248,7 @@ export default function StoryEditor() {
                     </div>
                     <button
                       type="button"
-                      className="inline-flex items-center gap-2 rounded-xl bg-teal-500 px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-teal-600 hover:shadow-lg hover:scale-105"
+                      className="inline-flex items-center gap-2 rounded-xl bg-teal-500 px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-teal-600 hover:shadow-lg hover:scale-105 active:scale-95"
                       onClick={() =>
                         setDraft((c) => ({
                           ...c,
@@ -1332,11 +1259,11 @@ export default function StoryEditor() {
                       <Plus size={16} /> Add Stat
                     </button>
                   </div>
-                  <div className="grid gap-4 md:grid-cols-4">
+                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                     {(draft.stats || []).map((stat, index) => (
                       <div
                         key={index}
-                        className="rounded-xl border border-slate-200 bg-slate-50 p-5 hover:shadow-md hover:border-teal-300 transition-all"
+                        className="rounded-xl border border-slate-200 bg-slate-50 p-4 sm:p-5 hover:shadow-md hover:border-teal-300 transition-all"
                       >
                         <Field label="Number / Value">
                           <input
@@ -1384,7 +1311,7 @@ export default function StoryEditor() {
                 </div>
 
                 {/* Pillars – Accordion */}
-                <div className="rounded-2xl border border-slate-200 bg-white/80 backdrop-blur-sm p-6 sm:p-8 shadow-sm transition-all duration-300 hover:shadow-lg hover:border-teal-300">
+                <div className="rounded-2xl border border-slate-200 bg-white/80 backdrop-blur-sm p-5 sm:p-8 shadow-sm transition-all duration-300 hover:shadow-lg hover:border-teal-300">
                   <div className="mb-6 flex items-center justify-between border-b border-slate-200 pb-6">
                     <div>
                       <h3 className="text-xl font-bold text-slate-900">Pillars</h3>
@@ -1392,7 +1319,7 @@ export default function StoryEditor() {
                     </div>
                     <button
                       type="button"
-                      className="inline-flex items-center gap-2 rounded-xl bg-teal-500 px-4 py-2 font-semibold text-white transition-all hover:bg-teal-600 hover:shadow-lg hover:shadow-teal-500/20 hover:scale-105"
+                      className="inline-flex items-center gap-2 rounded-xl bg-teal-500 px-3 sm:px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-teal-600 hover:shadow-lg hover:scale-105 active:scale-95"
                       onClick={addBlock}
                     >
                       <Plus size={16} /> Add Pillar
@@ -1400,7 +1327,7 @@ export default function StoryEditor() {
                   </div>
                   <div className="space-y-3">
                     {blocks.length === 0 ? (
-                      <div className="rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 px-6 py-12 text-center hover:border-teal-300 hover:bg-teal-50 transition-all">
+                      <div className="rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 px-4 sm:px-6 py-12 text-center hover:border-teal-300 hover:bg-teal-50 transition-all">
                         <p className="text-slate-600">
                           No pillars yet. Click "Add Pillar" to get started.
                         </p>
@@ -1413,7 +1340,7 @@ export default function StoryEditor() {
                           <div
                             key={block.id || index}
                             ref={block.id === newItemId ? newItemRef : null}
-                            className={`rounded-2xl border bg-white/80 backdrop-blur-sm shadow-sm transition-all duration-300 hover:shadow-lg hover:border-teal-300 hover:scale-[1.01] cursor-pointer ${
+                            className={`rounded-2xl border bg-white/80 backdrop-blur-sm shadow-sm transition-all duration-300 hover:shadow-lg hover:border-teal-300 ${
                               block.id === newItemId
                                 ? 'border-teal-400 ring-2 ring-teal-400/30 shadow-xl shadow-teal-100/50'
                                 : 'border-slate-200'
@@ -1422,19 +1349,19 @@ export default function StoryEditor() {
                             <button
                               type="button"
                               onClick={() => toggleBlock(index)}
-                              className="flex w-full items-center justify-between p-5 text-left"
+                              className="flex w-full items-center justify-between gap-3 p-4 sm:p-5 text-left"
                             >
-                              <div className="flex items-center gap-4">
-                                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-teal-400 to-teal-600 text-sm font-bold text-white shadow-md">
+                              <div className="flex items-center gap-3 min-w-0 flex-1">
+                                <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-teal-400 to-teal-600 text-sm font-bold text-white shadow-md">
                                   {String(index + 1).padStart(2, '0')}
                                 </span>
-                                <div className="flex items-center gap-2">
-                                  <IconComp size={16} className="text-teal-600" />
-                                  <div>
+                                <div className="flex items-center gap-2 min-w-0 flex-1">
+                                  <IconComp size={16} className="text-teal-600 flex-shrink-0" />
+                                  <div className="min-w-0 flex-1">
                                     <p className="text-xs font-semibold uppercase tracking-wider text-teal-500">
                                       Pillar {index + 1}
                                     </p>
-                                    <h3 className="text-base font-semibold text-slate-900 line-clamp-1">
+                                    <h3 className="text-sm sm:text-base font-semibold text-slate-900 line-clamp-1">
                                       {block.title || 'Untitled Pillar'}
                                     </h3>
                                   </div>
@@ -1442,7 +1369,7 @@ export default function StoryEditor() {
                               </div>
                               <ChevronDown
                                 size={18}
-                                className={`text-slate-400 transition-transform duration-300 ${
+                                className={`flex-shrink-0 text-slate-400 transition-transform duration-300 ${
                                   isOpen ? 'rotate-180' : ''
                                 }`}
                               />
@@ -1452,7 +1379,7 @@ export default function StoryEditor() {
                                 isOpen ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'
                               }`}
                             >
-                              <div className="border-t border-slate-100 bg-slate-50/50 p-5 space-y-4">
+                              <div className="border-t border-slate-100 bg-slate-50/50 p-4 sm:p-5 space-y-4">
                                 <Field label="Pillar Title">
                                   <input
                                     className={formInput}
@@ -1470,7 +1397,7 @@ export default function StoryEditor() {
                                     />
                                   </Field>
                                 </div>
-                                <div className="flex items-center justify-between gap-2 border-t border-slate-200 pt-4">
+                                <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-200 pt-4">
                                   <div className="flex gap-2">
                                     <IconButton
                                       label="Move up"
@@ -1506,9 +1433,9 @@ export default function StoryEditor() {
               </>
             )}
 
-            {/* Generic blocks (Framework, Awards, Vision cards) – Accordion */}
+            {/* Generic blocks (Framework, Awards, etc.) – Accordion */}
             {!isLeadership && !isFoundation && (
-              <div className="rounded-2xl border border-slate-200 bg-white/80 backdrop-blur-sm p-6 sm:p-8 shadow-sm transition-all duration-300 hover:shadow-lg hover:border-teal-300">
+              <div className="rounded-2xl border border-slate-200 bg-white/80 backdrop-blur-sm p-5 sm:p-8 shadow-sm transition-all duration-300 hover:shadow-lg hover:border-teal-300">
                 <div className="mb-6 flex items-center justify-between border-b border-slate-200 pb-6">
                   <div>
                     <h3 className="text-xl font-bold text-slate-900">
@@ -1520,7 +1447,7 @@ export default function StoryEditor() {
                   </div>
                   <button
                     type="button"
-                    className="inline-flex items-center gap-2 rounded-xl bg-teal-500 px-4 py-2 font-semibold text-white transition-all hover:bg-teal-600 hover:shadow-lg hover:shadow-teal-500/20 hover:scale-105"
+                    className="inline-flex items-center gap-2 rounded-xl bg-teal-500 px-3 sm:px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-teal-600 hover:shadow-lg hover:scale-105 active:scale-95"
                     onClick={addBlock}
                   >
                     <Plus size={16} /> Add {selectedSection.blockLabel || 'Card'}
@@ -1529,7 +1456,7 @@ export default function StoryEditor() {
 
                 <div className="space-y-3">
                   {blocks.length === 0 ? (
-                    <div className="rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 px-6 py-12 text-center hover:border-teal-300 hover:bg-teal-50 transition-all">
+                    <div className="rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 px-4 sm:px-6 py-12 text-center hover:border-teal-300 hover:bg-teal-50 transition-all">
                       <p className="text-slate-600">
                         No cards yet. Click "Add {selectedSection.blockLabel || 'Card'}" to get
                         started.
@@ -1547,7 +1474,7 @@ export default function StoryEditor() {
                         <div
                           key={block.id || index}
                           ref={block.id === newItemId ? newItemRef : null}
-                          className={`rounded-2xl border bg-white/80 backdrop-blur-sm shadow-sm transition-all duration-300 hover:shadow-lg hover:border-teal-300 hover:scale-[1.01] cursor-pointer ${
+                          className={`rounded-2xl border bg-white/80 backdrop-blur-sm shadow-sm transition-all duration-300 hover:shadow-lg hover:border-teal-300 ${
                             block.id === newItemId
                               ? 'border-teal-400 ring-2 ring-teal-400/30 shadow-xl shadow-teal-100/50'
                               : 'border-slate-200'
@@ -1556,21 +1483,21 @@ export default function StoryEditor() {
                           <button
                             type="button"
                             onClick={() => toggleBlock(index)}
-                            className="flex w-full items-center justify-between p-5 text-left"
+                            className="flex w-full items-center justify-between gap-3 p-4 sm:p-5 text-left"
                           >
-                            <div className="flex items-center gap-4">
-                              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-teal-400 to-teal-600 text-sm font-bold text-white shadow-md">
+                            <div className="flex items-center gap-3 min-w-0 flex-1">
+                              <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-teal-400 to-teal-600 text-sm font-bold text-white shadow-md">
                                 {String(index + 1).padStart(2, '0')}
                               </span>
-                              <div>
+                              <div className="min-w-0 flex-1">
                                 {cardLabel && (
                                   <p className="text-xs font-semibold uppercase tracking-wider text-teal-500">
                                     {cardLabel}
                                   </p>
                                 )}
-                                <div className="flex items-center gap-2">
-                                  <IconComp size={16} className="text-teal-600" />
-                                  <h3 className="text-base font-semibold text-slate-900 line-clamp-1">
+                                <div className="flex items-center gap-2 min-w-0">
+                                  <IconComp size={16} className="text-teal-600 flex-shrink-0" />
+                                  <h3 className="text-sm sm:text-base font-semibold text-slate-900 line-clamp-1">
                                     {cardTitle}
                                   </h3>
                                 </div>
@@ -1578,7 +1505,7 @@ export default function StoryEditor() {
                             </div>
                             <ChevronDown
                               size={18}
-                              className={`text-slate-400 transition-transform duration-300 ${
+                              className={`flex-shrink-0 text-slate-400 transition-transform duration-300 ${
                                 isOpen ? 'rotate-180' : ''
                               }`}
                             />
@@ -1588,8 +1515,8 @@ export default function StoryEditor() {
                               isOpen ? 'max-h-[800px] opacity-100' : 'max-h-0 opacity-0'
                             }`}
                           >
-                            <div className="border-t border-slate-100 bg-slate-50/50 p-5">
-                              <div className="grid gap-4 md:grid-cols-2">
+                            <div className="border-t border-slate-100 bg-slate-50/50 p-4 sm:p-5">
+                              <div className="grid gap-4 sm:grid-cols-2">
                                 {isVision && (
                                   <>
                                     <Field label="Label">
@@ -1637,7 +1564,7 @@ export default function StoryEditor() {
                                         placeholder="Framework item title"
                                       />
                                     </Field>
-                                    <div className="md:col-span-2">
+                                    <div className="sm:col-span-2">
                                       <Field label="Description">
                                         <textarea
                                           className={formInput}
@@ -1652,7 +1579,7 @@ export default function StoryEditor() {
                                         />
                                       </Field>
                                     </div>
-                                    <div className="md:col-span-2">
+                                    <div className="sm:col-span-2">
                                       <Field label="Icon">
                                         <IconPicker
                                           value={block.metadata?.icon || 'sparkles'}
@@ -1665,7 +1592,7 @@ export default function StoryEditor() {
 
                                 {isRecognition && (
                                   <>
-                                    <div className="md:col-span-2">
+                                    <div className="sm:col-span-2">
                                       <Field label="Award Title">
                                         <input
                                           className={formInput}
@@ -1677,7 +1604,7 @@ export default function StoryEditor() {
                                         />
                                       </Field>
                                     </div>
-                                    <div className="md:col-span-2">
+                                    <div className="sm:col-span-2">
                                       <Field label="Description">
                                         <textarea
                                           className={formInput}
@@ -1714,7 +1641,7 @@ export default function StoryEditor() {
                                         placeholder="e.g., 2023"
                                       />
                                     </Field>
-                                    <div className="md:col-span-2">
+                                    <div className="sm:col-span-2">
                                       <Field label="Category">
                                         <input
                                           className={formInput}
@@ -1726,36 +1653,19 @@ export default function StoryEditor() {
                                         />
                                       </Field>
                                     </div>
-                                    <div className="md:col-span-2">
-                                      <Field label="Award Image / Badge">
-                                        <div className="flex gap-2">
-                                          <input
-                                            className={formInput}
-                                            value={block.image_url || ''}
-                                            onChange={(e) =>
-                                              updateBlock(index, { image_url: e.target.value })
-                                            }
-                                            placeholder="https://..."
-                                          />
-                                          <label className="inline-flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-slate-200 bg-slate-100 text-slate-600 transition-all hover:bg-slate-200 hover:scale-110">
-                                            <Upload size={18} />
-                                            <input
-                                              type="file"
-                                              accept="image/*"
-                                              className="sr-only"
-                                              onChange={(e) =>
-                                                updateBlockImage(index, e.target.files?.[0])
-                                              }
-                                            />
-                                          </label>
-                                        </div>
-                                      </Field>
+                                    <div className="sm:col-span-2">
+                                      <ImageUploadField
+                                        label="Award Image / Badge"
+                                        value={block.image_url}
+                                        onChange={(url) => updateBlock(index, { image_url: url })}
+                                        onError={(err) => setError(err)}
+                                      />
                                     </div>
                                   </>
                                 )}
                               </div>
 
-                              <div className="mt-4 flex items-center justify-between gap-2 border-t border-slate-200 pt-4">
+                              <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-slate-200 pt-4">
                                 <div className="flex gap-2">
                                   <IconButton
                                     label="Move up"
@@ -1791,8 +1701,8 @@ export default function StoryEditor() {
             )}
           </div>
 
-          {/* Live Preview Sidebar */}
-          <aside className="space-y-6">
+          {/* Live Preview Sidebar - Hidden on mobile, visible on lg */}
+          <aside className="hidden lg:block space-y-6">
             <div className="sticky top-8 space-y-6">
               <div className="rounded-2xl border border-slate-200 bg-white/80 backdrop-blur-md p-6 shadow-sm hover:shadow-lg transition-all">
                 <h3 className="mb-4 text-xs font-bold uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2">
@@ -1812,14 +1722,8 @@ export default function StoryEditor() {
                         </span>
                       ) : (
                         <span className="text-slate-300">Highlighted text</span>
-                      )}{' '}
-                      <span>{draft.subtitle || ''}</span>
+                      )}
                     </h4>
-                    {draft.image_url && (
-                      <div className="mt-4 overflow-hidden rounded-lg border border-slate-200 hover:shadow-md transition-all">
-                        <img src={draft.image_url} alt="" className="h-32 w-full object-cover" />
-                      </div>
-                    )}
                   </div>
                 )}
                 {isLeadership && (
@@ -1865,11 +1769,6 @@ export default function StoryEditor() {
                     {draft.subtitle && (
                       <p className="mt-1 text-sm text-slate-500">{draft.subtitle}</p>
                     )}
-                    {draft.image_url && (
-                      <div className="mt-4 overflow-hidden rounded-lg border border-slate-200 hover:shadow-md transition-all">
-                        <img src={draft.image_url} alt="" className="h-28 w-full object-cover" />
-                      </div>
-                    )}
                   </div>
                 )}
               </div>
@@ -1905,22 +1804,24 @@ export default function StoryEditor() {
 
   return (
     <section className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100/60">
-      <div className="mx-auto max-w-7xl px-6 py-10">
-        <div className="mb-10 flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
-          <div>
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 py-6 sm:py-10">
+        <div className="mb-8 sm:mb-10 flex flex-col items-start justify-between gap-4 sm:gap-6">
+          <div className="w-full">
             <p className="text-xs font-bold uppercase tracking-widest text-teal-600 flex items-center gap-2">
               <Zap size={14} /> Story Editor
             </p>
-            <h1 className="mt-3 text-4xl font-bold text-slate-900 sm:text-5xl">
+            <h1 className="mt-3 text-3xl sm:text-4xl md:text-5xl font-bold text-slate-900">
               {selectedSection.title}
             </h1>
-            <p className="mt-3 max-w-3xl text-slate-600">{selectedSection.description}</p>
+            <p className="mt-3 max-w-3xl text-sm sm:text-base text-slate-600">
+              {selectedSection.description}
+            </p>
           </div>
           <button
             type="button"
             onClick={saveSection}
             disabled={isSaving}
-            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-teal-500 to-teal-600 px-6 py-3 font-semibold text-white transition-all hover:shadow-xl hover:shadow-teal-500/30 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 duration-200"
+            className="w-full sm:w-auto inline-flex items-center justify-center sm:justify-start gap-2 rounded-xl bg-gradient-to-r from-teal-500 to-teal-600 px-6 py-3 font-semibold text-white transition-all hover:shadow-xl hover:shadow-teal-500/30 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 duration-200"
           >
             {isSaving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
             <span>{isSaving ? 'Saving...' : 'Save Changes'}</span>

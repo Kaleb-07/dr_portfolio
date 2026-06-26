@@ -3,6 +3,7 @@ import api from '../api'
 import {
   Loader2,
   Trash2,
+  ArrowLeft,
   Mail,
   Phone,
   Calendar,
@@ -63,7 +64,7 @@ const LuxuryContactMessages = () => {
 
   if (loading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-gradient-to-br from-slate-50 via-white to-slate-50">
+      <div className="flex h-full items-center justify-center bg-gradient-to-br from-slate-50 via-white to-slate-50">
         <div className="flex flex-col items-center gap-4">
           <Loader2 size={40} className="animate-spin text-emerald-500" />
           <p className="text-sm text-slate-600 font-semibold">Loading your messages</p>
@@ -73,11 +74,16 @@ const LuxuryContactMessages = () => {
   }
 
   return (
-    <div className="flex h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 font-sans">
-      {/* Sidebar */}
-      <div className="w-96 border-r border-slate-200/60 bg-white/40 backdrop-blur-xl flex flex-col">
-        {/* Header */}
-        <div className="px-6 py-8 border-b border-slate-200/60">
+    <div className="flex h-full bg-gradient-to-br from-slate-50 via-white to-slate-50 font-sans">
+      <div
+        className={`
+          ${selected ? 'hidden' : 'flex'} 
+          md:flex md:w-96 md:border-r md:border-slate-200/60 md:bg-white/40 md:backdrop-blur-xl md:flex-col
+          w-full absolute md:relative h-full md:h-auto z-40 md:z-auto
+          bg-white
+        `}
+      >
+        <div className="px-4 md:px-6 py-6 md:py-8 border-b border-slate-200/60">
           <div className="flex items-baseline gap-3">
             <h1 className="text-3xl font-black text-slate-900 font-serif tracking-tight">
               Messages
@@ -91,7 +97,6 @@ const LuxuryContactMessages = () => {
           <p className="text-sm font-semibold text-slate-600 mt-2">{messages.length} total</p>
         </div>
 
-        {/* Messages List */}
         <div className="flex-1 overflow-y-auto scroll-smooth">
           {messages.length === 0 ? (
             <div className="flex items-center justify-center h-full px-6">
@@ -116,13 +121,11 @@ const LuxuryContactMessages = () => {
                         : 'hover:bg-slate-100/60 active:bg-slate-100'
                     }`}
                   >
-                    {/* Unread indicator line – now RED */}
                     {!isRead && (
                       <div className="absolute left-0 top-0 bottom-0 w-1 bg-rose-500 transition-opacity duration-300" />
                     )}
 
                     <div className="flex items-center gap-3">
-                      {/* Avatar */}
                       <div
                         className={`h-12 w-12 rounded-full flex items-center justify-center font-semibold text-white transition-all duration-200 flex-shrink-0 ${
                           isSelected
@@ -133,7 +136,6 @@ const LuxuryContactMessages = () => {
                         {message.name.charAt(0).toUpperCase()}
                       </div>
 
-                      {/* Content */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-baseline gap-2">
                           <p
@@ -143,7 +145,6 @@ const LuxuryContactMessages = () => {
                           >
                             {message.name}
                           </p>
-                          {/* Unread dot – now RED */}
                           {!isRead && (
                             <span className="h-2.5 w-2.5 rounded-full bg-rose-500 flex-shrink-0" />
                           )}
@@ -164,21 +165,26 @@ const LuxuryContactMessages = () => {
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col bg-white/30 backdrop-blur-sm">
+      <div className="flex-1 flex flex-col bg-white/30 md:bg-white/30 backdrop-blur-sm w-full">
         {selected ? (
           <>
-            {/* Header */}
-            <div className="border-b border-slate-200/40 px-8 py-6 flex items-center justify-between bg-white/20 backdrop-blur-sm">
-              <div className="flex items-center gap-4">
-                <div className="h-14 w-14 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-white font-black shadow-md text-lg">
+            <div className="border-b border-slate-200/40 px-4 md:px-8 py-4 md:py-6 flex items-center justify-between bg-white/20 md:bg-white/20 backdrop-blur-sm">
+              <div className="flex items-center gap-3 md:gap-4 min-w-0">
+                <button
+                  onClick={() => setSelected(null)}
+                  className="md:hidden flex-shrink-0 p-2 hover:bg-emerald-50 text-emerald-600 rounded-lg transition-colors"
+                >
+                  <ArrowLeft size={20} />
+                </button>
+
+                <div className="h-12 md:h-14 w-12 md:w-14 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-white font-black shadow-md text-lg flex-shrink-0">
                   {selected.name.charAt(0).toUpperCase()}
                 </div>
-                <div>
-                  <h2 className="text-2xl font-black text-slate-900 font-serif">
+                <div className="flex-1 min-w-0">
+                  <h2 className="text-lg md:text-2xl font-black text-slate-900 font-serif truncate">
                     {selected.subject}
                   </h2>
-                  <p className="text-sm font-bold text-slate-700 mt-0.5 flex items-center gap-2">
+                  <p className="text-xs md:text-sm font-bold text-slate-700 mt-0.5 flex items-center gap-2">
                     {selected.name}
                     <span className="flex items-center gap-1 text-emerald-600 font-bold">
                       <CheckCheck size={14} />
@@ -189,48 +195,52 @@ const LuxuryContactMessages = () => {
               </div>
               <button
                 onClick={() => deleteMessage(selected.id)}
-                className="p-2.5 hover:bg-red-50 text-red-600 rounded-xl transition-colors duration-200 active:scale-95"
+                className="p-2 md:p-2.5 hover:bg-red-50 text-red-600 rounded-xl transition-colors duration-200 active:scale-95 flex-shrink-0"
                 title="Delete message"
               >
                 <Trash2 size={20} />
               </button>
             </div>
 
-            {/* Content */}
-            <div className="flex-1 overflow-y-auto px-8 py-8">
-              <div className="max-w-3xl space-y-8">
-                {/* Info Grid */}
-                <div className="grid grid-cols-2 gap-6">
-                  <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-5 border border-slate-200/40">
+            <div className="flex-1 overflow-y-auto px-4 md:px-8 py-6 md:py-8">
+              <div className="max-w-3xl space-y-6 md:space-y-8">
+                <div className="grid grid-cols-2 gap-3 md:gap-6">
+                  <div className="bg-white/60 backdrop-blur-sm rounded-xl md:rounded-2xl p-3 md:p-5 border border-slate-200/40">
                     <p className="text-xs font-black uppercase tracking-wider text-emerald-600 mb-2">
                       Email
                     </p>
-                    <p className="text-slate-900 font-bold break-all">{selected.email}</p>
+                    <p className="text-slate-900 font-bold text-xs md:text-base break-all">
+                      {selected.email}
+                    </p>
                   </div>
 
                   {selected.phone && (
-                    <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-5 border border-slate-200/40">
+                    <div className="bg-white/60 backdrop-blur-sm rounded-xl md:rounded-2xl p-3 md:p-5 border border-slate-200/40">
                       <p className="text-xs font-black uppercase tracking-wider text-emerald-600 mb-2">
                         Phone
                       </p>
-                      <p className="text-slate-900 font-bold">{selected.phone}</p>
+                      <p className="text-slate-900 font-bold text-xs md:text-base">
+                        {selected.phone}
+                      </p>
                     </div>
                   )}
 
                   {selected.organization && (
-                    <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-5 border border-slate-200/40">
+                    <div className="bg-white/60 backdrop-blur-sm rounded-xl md:rounded-2xl p-3 md:p-5 border border-slate-200/40">
                       <p className="text-xs font-black uppercase tracking-wider text-emerald-600 mb-2">
                         Organization
                       </p>
-                      <p className="text-slate-900 font-bold">{selected.organization}</p>
+                      <p className="text-slate-900 font-bold text-xs md:text-base">
+                        {selected.organization}
+                      </p>
                     </div>
                   )}
 
-                  <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-5 border border-slate-200/40">
+                  <div className="bg-white/60 backdrop-blur-sm rounded-xl md:rounded-2xl p-3 md:p-5 border border-slate-200/40">
                     <p className="text-xs font-black uppercase tracking-wider text-emerald-600 mb-2">
                       Received
                     </p>
-                    <p className="text-slate-900 font-bold">
+                    <p className="text-slate-900 font-bold text-xs md:text-base">
                       {new Date(selected.created_at).toLocaleDateString('en-US', {
                         month: 'short',
                         day: 'numeric',
@@ -240,25 +250,23 @@ const LuxuryContactMessages = () => {
                   </div>
                 </div>
 
-                {/* Type Badge */}
                 <div>
                   <p className="text-xs font-black uppercase tracking-wider text-emerald-600 mb-3">
                     Inquiry Type
                   </p>
                   <div className="inline-block">
-                    <span className="px-4 py-2 bg-emerald-100 text-emerald-900 rounded-full text-sm font-black border border-emerald-300">
+                    <span className="px-3 md:px-4 py-1.5 md:py-2 bg-emerald-100 text-emerald-900 rounded-full text-xs md:text-sm font-black border border-emerald-300">
                       {selected.inquiry_type}
                     </span>
                   </div>
                 </div>
 
-                {/* Message */}
                 <div>
                   <p className="text-xs font-black uppercase tracking-wider text-emerald-600 mb-3">
                     Message
                   </p>
-                  <div className="bg-gradient-to-br from-slate-50 to-slate-100/50 rounded-2xl p-6 border border-slate-200/40 backdrop-blur-sm">
-                    <p className="text-slate-800 leading-relaxed whitespace-pre-wrap text-base font-medium">
+                  <div className="bg-gradient-to-br from-slate-50 to-slate-100/50 rounded-xl md:rounded-2xl p-4 md:p-6 border border-slate-200/40 backdrop-blur-sm">
+                    <p className="text-slate-800 leading-relaxed whitespace-pre-wrap text-xs md:text-base font-medium">
                       {selected.message}
                     </p>
                   </div>
@@ -267,13 +275,13 @@ const LuxuryContactMessages = () => {
             </div>
           </>
         ) : (
-          <div className="flex items-center justify-center h-full px-8">
+          <div className="flex items-center justify-center h-full px-4 md:px-8">
             <div className="text-center">
               <MessageSquare size={56} className="mx-auto text-slate-300 mb-4" />
-              <p className="text-slate-700 text-lg font-bold font-serif">
+              <p className="text-slate-700 text-lg md:text-lg font-bold font-serif">
                 Select a message to read
               </p>
-              <p className="text-slate-500 text-sm mt-2 font-semibold">
+              <p className="text-slate-500 text-xs md:text-sm mt-2 font-semibold">
                 Messages will appear as read once selected
               </p>
             </div>
