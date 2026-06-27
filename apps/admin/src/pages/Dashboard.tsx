@@ -60,7 +60,7 @@ export default function Dashboard() {
               <div>
                 <p className="text-xs font-bold uppercase tracking-widest text-indigo-600 mb-1">Contact Inbox</p>
                 <h3 className="text-2xl font-semibold text-slate-900">Messages</h3>
-                <p className="text-sm text-slate-600 mt-1">{messageError ? 'Could not load count' : messageCount === null ? 'Loading...' : `${messageCount} total`}</p>
+                <p className="text-sm text-slate-600 mt-1">{messageError ? 'Could not load count' : messageCount === null ? 'Loading…' : `${messageCount} total`}</p>
               </div>
             </div>
             <ArrowUpRight className="text-indigo-400 group-hover:translate-x-1 transition-transform" size={20} />
@@ -76,7 +76,7 @@ export default function Dashboard() {
               <div>
                 <p className="text-xs font-bold uppercase tracking-widest text-rose-600 mb-1">Visual Archive</p>
                 <h3 className="text-2xl font-semibold text-slate-900">Gallery</h3>
-                <p className="text-sm text-slate-600 mt-1">{galleryError ? 'Could not load count' : galleryCount === null ? 'Loading...' : `${galleryCount} image(s) uploaded`}</p>
+                <p className="text-sm text-slate-600 mt-1">{galleryError ? 'Could not load count' : galleryCount === null ? 'Loading…' : `${galleryCount} image${galleryCount !== 1 ? 's' : ''} uploaded`}</p>
               </div>
             </div>
             <ArrowUpRight className="text-rose-400 group-hover:translate-x-1 transition-transform" size={20} />
@@ -97,6 +97,9 @@ export default function Dashboard() {
                   </div>
                   <h3 className="text-lg font-semibold text-slate-900 mb-1">{card.title}</h3>
                   <p className="text-sm text-slate-600">{card.description}</p>
+                  <div className="mt-4 flex justify-end">
+                    <ArrowUpRight className="text-slate-400 group-hover:text-slate-600 transition-colors" size={18} />
+                  </div>
                 </div>
               </Link>
             )
@@ -109,9 +112,7 @@ export default function Dashboard() {
           <Zap className="h-6 w-6 text-emerald-600 flex-shrink-0 mt-1" />
           <div>
             <h3 className="text-lg font-semibold text-slate-900 mb-2">Pro Tip</h3>
-            <p className="text-sm font-light text-slate-600 leading-relaxed">
-              Use the editors to manage the CMS content that feeds the public site.
-            </p>
+            <p className="text-sm font-light text-slate-600 leading-relaxed">Use the editors to manage the CMS content that feeds the public site.</p>
           </div>
         </div>
       </div>

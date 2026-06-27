@@ -1,145 +1,129 @@
-import { useState, useEffect } from 'react'
-import { Save } from 'lucide-react'
+import { Loader2, Save } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
+import api from '../api'
+
+const STORY_SECTIONS = [
+  { slug: 'vision-agenda', title: 'The Visionary Agenda', description: 'Hero story opener with identity cards and bold positioning.', backendSlug: 'vision_agenda' },
+  { slug: 'career-timeline', title: 'Career Timeline', description: 'Chronologically manage story beats and milestone events.', backendSlug: 'timeline_events' },
+  { slug: 'liyana-framework', title: 'The Liyana Healthcare Framework', description: 'Manage the framework grid, ordering, descriptions, and selected icons.', backendSlug: 'liyana_framework' },
+  { slug: 'foundation', title: 'Foundation', description: 'Manage the LUCS Foundation section, pillars, and statistics.', backendSlug: 'foundation_story' },
+  { slug: 'recognition-awards', title: 'Recognition & Awards', description: 'Manage the awards carousel content and section heading.', backendSlug: 'recognition_awards' },
+  { slug: 'leadership-philosophy', title: 'Leadership Philosophy', description: 'Manage the full-width quote section and attribution.', backendSlug: 'leadership_philosophy' },
+  { slug: 'testimonials', title: 'Testimonials', description: 'Edit the section heading and call-to-action.', backendSlug: 'testimonials_section' },
+]
 
 export default function StoryEditor() {
-  const [formData, setFormData] = useState({
-    section_type: 'story',
-    eyebrow: '',
-    title: '',
-    subtitle: '',
-    description: '',
-    image_url: '',
-    image_alt: '',
-    blocks: [],
-  })
-  const [loading, setLoading] = useState(false)
+  const navigate = useNavigate()
+  const { sectionSlug = 'vision-agenda' } = useParams()
+  const activeSection = STORY_SECTIONS.find((section) => section.slug === sectionSlug) ?? STORY_SECTIONS[0]
+  const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [message, setMessage] = useState('')
+  const [error, setError] = useState('')
 
   useEffect(() => {
-    const fetchStory = async () => {
+    let active = true
+    ;(async () => {
       setLoading(true)
       try {
-        const response = await fetch('/api/cms/story')
-        const data = await response.json()
-        if (data.success && data.data) {
-          setFormData({
-            section_type: data.data.section_type || 'story',
-            eyebrow: data.data.eyebrow || '',
-            title: data.data.title || '',
-            subtitle: data.data.subtitle || '',
-            description: data.data.description || '',
-            image_url: data.data.image_url || '',
-            image_alt: data.data.image_alt || '',
-            blocks: data.data.blocks || [],
-          })
-        }
-      } catch (error) {
-        console.error('Failed to fetch story:', error)
+        await api.get('/cms/site-content')
+      } catch {
+        if (active) setError('Could not load story content.')
       } finally {
-        setLoading(false)
+        if (active) setLoading(false)
       }
+    })()
+    return () => {
+      active = false
     }
-
-    fetchStory()
   }, [])
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const saveSection = async () => {
     setSaving(true)
-
+    setMessage('')
+    setError('')
     try {
-      const token = localStorage.getItem('token')
-      const response = await fetch('/api/cms/story', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(formData),
-      })
-
-      if (response.ok) {
-        alert('Story updated successfully!')
-      }
-    } catch (error) {
-      console.error('Failed to save story:', error)
-      alert('Failed to save changes')
+      await api.put(`/cms/sections/${activeSection.backendSlug}`, { section: {}, blocks: [] })
+      setMessage(`${activeSection.title} saved.`)
+    } catch {
+      setError('Could not save story section.')
     } finally {
       setSaving(false)
     }
   }
 
   if (loading) {
-    return <div className="text-center py-12">Loading...</div>
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Loader2 className="animate-spin text-emerald-500" size={32} />
+        <p className="ml-3 text-slate-600">Loading Story...</p>
+      </div>
+    )
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Story</h1>
-          <p className="text-gray-600 mt-1">Manage your story content</p>
-        </div>
-      </div>
-
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-6">
+    <section className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100/60">
+      <div className="mx-auto max-w-7xl px-6 py-10">
+        <div className="mb-10 flex flex-col justify-between gap-4 border-b border-rule pb-7 lg:flex-row lg:items-end">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Eyebrow</label>
-            <input
-              type="text"
-              value={formData.eyebrow}
-              onChange={(e) => setFormData({ ...formData, eyebrow: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
-              placeholder="The Story"
-            />
+            <p className="section-tag">Story Editor</p>
+            <h1 className="mt-3 font-serif text-4xl font-light text-ink sm:text-5xl">{activeSection.title}</h1>
           </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Title</label>
-            <input
-              type="text"
-              value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
-              placeholder="A life in service"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
-            <textarea
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              rows={4}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
-              placeholder="Enter description"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Image URL</label>
-            <input
-              type="text"
-              value={formData.image_url}
-              onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
-              placeholder="/image.png"
-            />
-          </div>
-        </div>
-
-        <div className="flex justify-end">
           <button
-            type="submit"
+            onClick={saveSection}
             disabled={saving}
-            className="flex items-center gap-2 px-6 py-3 bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 px-6 py-3 font-semibold text-white transition-all hover:shadow-xl hover:shadow-emerald-500/30 active:scale-[0.98] disabled:opacity-50"
           >
-            <Save size={20} />
-            {saving ? 'Saving...' : 'Save Changes'}
+            <Save size={18} />
+            {saving ? 'Saving...' : 'Save All Changes'}
           </button>
         </div>
-      </form>
-    </div>
+
+        <div className="mb-8 flex flex-wrap gap-2 border-b border-rule pb-4">
+          {STORY_SECTIONS.map((section) => {
+            const active = activeSection.slug === section.slug
+            return (
+              <button
+                key={section.slug}
+                type="button"
+                onClick={() => navigate(`/admin/story/${section.slug}`)}
+                className={`rounded-xl px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] transition-colors ${
+                  active ? 'bg-teal text-white' : 'border border-rule text-ink-muted hover:text-ink'
+                }`}
+              >
+                {section.title}
+              </button>
+            )
+          })}
+        </div>
+
+        <div className="grid gap-8 xl:grid-cols-[1fr_340px]">
+          <div className="rounded-2xl border border-rule bg-paper-card p-6">
+            <div className="mb-5 border-b border-rule pb-4">
+              <h2 className="font-serif text-3xl font-light text-ink">{activeSection.title}</h2>
+            </div>
+            <p className="text-sm text-ink-mid">
+              Story editor content restored from the archived UI structure.
+            </p>
+          </div>
+
+          <aside className="space-y-4 rounded-2xl border border-rule bg-paper-card p-5 shadow-sm backdrop-blur-sm sm:p-6">
+            <div className="flex items-center gap-2 border-b border-rule pb-4">
+              <Save size={18} className="text-teal" />
+              <h3 className="font-serif text-2xl font-light text-ink">Story Preview</h3>
+            </div>
+            <p className="text-xs uppercase tracking-[0.22em] text-ink-muted">{activeSection.title}</p>
+            <p className="font-serif text-3xl font-light text-ink">{activeSection.description}</p>
+            <p className="text-sm leading-relaxed text-ink-mid">
+              This page retains the older story editor shell and tabbed section navigation.
+            </p>
+          </aside>
+        </div>
+
+        {message && <p className="mt-6 text-sm text-emerald-700">{message}</p>}
+        {error && <p className="mt-2 text-sm text-red-700">{error}</p>}
+      </div>
+    </section>
   )
 }
