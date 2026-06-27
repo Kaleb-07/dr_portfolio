@@ -2,6 +2,7 @@ const express = require('express')
 const router = express.Router()
 const prisma = require('../prisma')
 const jwt = require('jsonwebtoken')
+const bcrypt = require('bcrypt')
 const SECRET = 'mysecretkey'
 
 router.post('/login', async (req, res) => {
@@ -13,11 +14,16 @@ router.post('/login', async (req, res) => {
     const admin = await prisma.admin.findFirst({
       where: {
         email,
-        password,
       },
     })
 
-    if (!admin) {
+    if (!admin || !admin.password) {
+      return res.status(401).json({ message: 'Invalid credentials' })
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, admin.password)
+
+    if (!isPasswordValid) {
       return res.status(401).json({ message: 'Invalid credentials' })
     }
 

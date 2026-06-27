@@ -1,39 +1,37 @@
 const express = require('express')
 const cors = require('cors')
-const contactRoutes = require('./routes/contact.routes')
+const cmsRoutes = require('./cms/routes')
+const authRoutes = require('./routes/auth.routes')
 
 const app = express()
 
 app.use(cors())
 app.use(express.json({ limit: '25mb' }))
-app.use('/api/contact', contactRoutes)
 
-/* ---------------- ROUTES ---------------- */
-const heroRoutes = require('./routes/hero.routes')
-const authRoutes = require('./routes/auth.routes')
-const cmsRoutes = require('./routes/cms.routes')
-
-app.use('/api/hero', heroRoutes)
-app.use('/api/auth', authRoutes)
+// Mount CMS routes
 app.use('/api/cms', cmsRoutes)
-app.use('/api/impact', require('./routes/impact.routes'))
 
-/* ---------------- TEST ROUTE ---------------- */
+// Mount auth routes
+app.use('/api/auth', authRoutes)
+
+// Health check
 app.get('/', (req, res) => {
-  res.send('CMS Backend Running 🚀')
+  res.json({ status: 'ok', message: 'CMS Backend Running 🚀' })
 })
 
-/* ---------------- START SERVER ---------------- */
-const PORT = 5000
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack)
+  res.status(500).json({
+    success: false,
+    message: 'Internal server error',
+    error: process.env.NODE_ENV === 'development' ? err.message : undefined,
+  })
+})
 
-cmsRoutes
-  .initCmsSchema()
-  .then(() => {
-    app.listen(PORT, () => {
-      console.log(`Server running on http://localhost:${PORT}`)
-    })
-  })
-  .catch((error) => {
-    console.error('CMS schema initialization failed:', error)
-    process.exit(1)
-  })
+const PORT = process.env.PORT || 5000
+const HOST = process.env.HOST || '127.0.0.1'
+
+app.listen(PORT, HOST, () => {
+  console.log(`Server running on http://${HOST}:${PORT}`)
+})

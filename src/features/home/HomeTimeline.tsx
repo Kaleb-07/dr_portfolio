@@ -3,6 +3,7 @@ import { motion, useInView } from 'framer-motion'
 import { FaGraduationCap, FaBriefcase, FaStar, FaTrophy, FaHospital, FaMicroscope } from 'react-icons/fa'
 import type { IconType } from 'react-icons'
 import { Container } from '@/components/shared'
+import { timeline as fallbackTimeline } from '@/data/timeline'
 import { useSiteContent } from '@/hooks/useSiteContent'
 import type { TimelineEvent } from '@/services/cms'
 
@@ -131,9 +132,18 @@ export default function HomeTimeline() {
   const headerRef  = useRef<HTMLDivElement>(null)
   const headerInView = useInView(headerRef, { once: true })
   const { content } = useSiteContent()
-  const timeline = content?.timelineEvents || []
-
-  if (timeline.length === 0) return null
+  const timeline = content?.timelineEvents?.length
+    ? content.timelineEvents
+    : fallbackTimeline.map((item, index) => ({
+        id: index + 1,
+        slug: item.id,
+        year: String(item.year),
+        title: item.title,
+        subtitle: item.subtitle,
+        description: item.description,
+        category: item.category as TimelineEvent['category'],
+        sort_order: index,
+      }))
 
   return (
     <section className="section-padding bg-paper-warm">

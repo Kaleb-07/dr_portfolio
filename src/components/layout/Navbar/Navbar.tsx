@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Menu, X, ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { LanguageSelector } from '@/components/ui/LanguageSelector'
+import { mainNavigation } from '@/constants/navigation'
 import { useSiteContent } from '@/hooks/useSiteContent'
 import type { NavigationItem } from '@/services/cms'
 
@@ -11,7 +12,12 @@ import type { NavigationItem } from '@/services/cms'
 export default function Navbar() {
   const { pathname } = useLocation()
   const { content } = useSiteContent()
-  const navLinks = content?.navigation || []
+  const navLinks = content?.navigation?.length ? content.navigation : mainNavigation.map((item, index) => ({
+    id: index + 1,
+    label: item.label,
+    path: item.path,
+    sort_order: index,
+  }))
   const contactLink = navLinks.find((link) => link.path === '/contact' || link.label.toLowerCase() === 'contact')
   const primaryNavLinks = contactLink ? navLinks.filter((link) => link.id !== contactLink.id) : navLinks
   const [mobileOpen, setMobileOpen] = useState(false)

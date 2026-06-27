@@ -1,6 +1,5 @@
 import { lazy, Suspense } from 'react'
-import type { ReactNode } from 'react'
-import { Navigate, Routes, Route } from 'react-router-dom'
+import { Routes, Route } from 'react-router-dom'
 import { PageLoader } from '@/components/shared/PageLoader'
 
 const HomePage = lazy(() => import('@/pages/HomePage'))
@@ -15,44 +14,10 @@ const MediaPage = lazy(() => import('@/pages/MediaPage'))
 const GalleryPage = lazy(() => import('@/pages/GalleryPage'))
 const ContactPage = lazy(() => import('@/pages/ContactPage'))
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'))
-const Login = lazy(() => import('@/admin/pages/Login.jsx'))
-const Dashboard = lazy(() => import('@/admin/pages/Dashboard.jsx'))
-const HeroEditor = lazy(() => import('@/admin/pages/HeroEditor.jsx'))
-const CmsEditor = lazy(() => import('@/admin/pages/CmsEditor.jsx'))
-const StoryEditor = lazy(() => import('@/admin/pages/StoryEditor.jsx'))
-const JourneyEditor = lazy(() => import('@/admin/pages/JourneyEditor.jsx'))
-const EducationEditor = lazy(() => import('@/admin/pages/EducationEditor.jsx'))
-const GalleryEditor = lazy(() => import('@/admin/pages/GalleryEditor.jsx'))
-const EcosystemEditor = lazy(() => import('@/admin/pages/EcosystemEditor.jsx'))
-const AdminLayout = lazy(() => import('@/admin/layout/AdminLayout.jsx'))
-const ContactEditor = lazy(() => import('@/admin/pages/ContactEditor.jsx'))
-const ContactMessages = lazy(() => import('@/admin/pages/ContactMessages.jsx'))
-const AchievementEditor = lazy(() => import('@/admin/pages/AchievementEditor.jsx'))
 
-// ✅ NEW: dynamic block‑based Impact editor
-const ImpactEditor = lazy(() => import('@/admin/pages/ImpactEditor.jsx'))
+// Old admin routes removed - using new separate admin panel at apps/admin/
 
-function RequireAdmin({ children }: { children: ReactNode }) {
-  const token = localStorage.getItem('token')
-
-  if (!token) {
-    return <Navigate to="/admin/login" replace />
-  }
-
-  return children
-}
-
-function SectionPlaceholder({ title }: { title: string }) {
-  return (
-    <section className="mx-auto max-w-4xl border border-rule bg-paper-card p-6 sm:p-8">
-      <p className="section-tag">Editor</p>
-      <h1 className="mt-3 font-serif text-4xl font-light text-ink">{title}</h1>
-      <p className="mt-4 max-w-2xl text-sm font-light leading-relaxed text-ink-mid">
-        This editor shell is ready for the next CMS phase.
-      </p>
-    </section>
-  )
-}
+// Old admin components removed - using new separate admin panel at apps/admin/
 
 export function AppRouter() {
   return (
@@ -71,46 +36,7 @@ export function AppRouter() {
         <Route path="/gallery" element={<GalleryPage />} />
         <Route path="/contact" element={<ContactPage />} />
 
-        {/* Admin login – outside the protected group */}
-        <Route path="/admin/login" element={<Login />} />
-
-        {/* Protected admin routes */}
-        <Route
-          path="/admin"
-          element={
-            <RequireAdmin>
-              <AdminLayout />
-            </RequireAdmin>
-          }
-        >
-          <Route index element={<Dashboard />} />
-          <Route path="story" element={<StoryEditor />} />
-          <Route path="story/:sectionSlug" element={<StoryEditor />} />
-          <Route path="content" element={<CmsEditor />} />
-          <Route path="hero" element={<HeroEditor />} />
-
-          {/* Contact routes */}
-          <Route path="contact" element={<ContactEditor />} />
-          <Route path="contact/messages" element={<ContactMessages />} />
-
-          <Route path="awards" element={<SectionPlaceholder title="Awards" />} />
-          <Route path="leadership" element={<SectionPlaceholder title="Leadership" />} />
-          <Route path="timeline" element={<SectionPlaceholder title="Timeline" />} />
-          <Route path="profile" element={<Navigate to="profile/journey" replace />} />
-          <Route path="profile/journey" element={<JourneyEditor />} />
-          <Route path="profile/education" element={<EducationEditor />} />
-          <Route path="profile/gallery" element={<GalleryEditor />} />
-
-          <Route path="ecosystem" element={<EcosystemEditor />} />
-          <Route path="ecosystem/:sectionSlug" element={<EcosystemEditor />} />
-
-          {/* ✅ NEW: single dynamic route for all Impact sub‑pages */}
-          <Route path="impact/:slug" element={<ImpactEditor />} />
-
-          <Route path="achievements" element={<AchievementEditor />} />
-          <Route path="achievements/awards" element={<AchievementEditor />} />
-          <Route path="achievements/media" element={<AchievementEditor />} />
-        </Route>
+        {/* Old admin routes removed - use new admin panel at http://localhost:3001 */}
 
         {/* 404 catch-all */}
         <Route path="*" element={<NotFoundPage />} />

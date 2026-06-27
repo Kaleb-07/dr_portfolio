@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
-import { fetchSiteContent, type SiteContent } from '@/services/cms'
+import { defaultContent, fetchSiteContent, type SiteContent } from '@/services/cms'
 
 export function useSiteContent() {
-  const [content, setContent] = useState<SiteContent | null>(null)
+  const [content, setContent] = useState<SiteContent>(defaultContent)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
 
