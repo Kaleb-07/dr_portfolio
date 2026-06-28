@@ -18,6 +18,7 @@ const SECTION_SLUGS = [
   'leadership_philosophy',
   'about_education',
   'about_gallery',
+  'footer_settings',
 ]
 
 const sectionSeeds = [
@@ -730,6 +731,30 @@ const sectionSeeds = [
     metadata: {},
     blocks: [],
   },
+  {
+    slug: 'footer_settings',
+    section_type: 'site_footer',
+    eyebrow: 'Footer',
+    title: 'Footer & Social Media',
+    description: 'Manage footer contact details and social media links.',
+    metadata: {
+      contact: {
+        heading: "Let's Connect",
+        email: 'contact@liyanahealthcare.com',
+        phone: '+251-XXX-XXXXXX',
+        location: 'Addis Ababa, Ethiopia',
+        image_url: '',
+        image_caption: '',
+      },
+      socialLinks: [
+        { label: 'LinkedIn', href: 'https://linkedin.com/in/', icon: 'linkedin' },
+        { label: 'X / Twitter', href: 'https://twitter.com/', icon: 'x' },
+        { label: 'Instagram', href: 'https://instagram.com/', icon: 'instagram' },
+        { label: 'Facebook', href: 'https://facebook.com/', icon: 'facebook' },
+      ],
+    },
+    blocks: [],
+  },
 ]
 
 const identitySeeds = [
@@ -1038,14 +1063,15 @@ async function getNavigation(includeInactive = false) {
 
 router.get('/site-content', async (req, res) => {
   try {
-    const [sections, identityItems, timelineEvents, navigation] = await Promise.all([
+    const [sections, identityItems, timelineEvents, navigation, contact] = await Promise.all([
       getSections(),
       getIdentityItems(),
       getTimelineEvents(),
       getNavigation(),
+      prisma.contact_settings.findFirst(),
     ])
 
-    res.json({ sections, identityItems, timelineEvents, navigation })
+    res.json({ sections, identityItems, timelineEvents, navigation, contact })
   } catch (error) {
     res.status(500).json({ error: error.message })
   }

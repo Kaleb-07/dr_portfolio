@@ -5,14 +5,16 @@ import { foundationOverview } from '@/data/foundation'
 import { useSiteContent } from '@/hooks/useSiteContent'
 import { mapCmsHtml } from '@/lib/html'
 
-const stats = [
+const defaultStats = [
   { value: '5+', label: 'Impact Pillars' },
   { value: '4',  label: 'Board Chairmanships' },
   { value: '1',  label: 'CSO Board Chair' },
   { value: '1000+', label: 'Lives Impacted' },
 ]
 
-function StatBlock({ stat, index }: { stat: typeof stats[0]; index: number }) {
+type Stat = { value: string; label: string }
+
+function StatBlock({ stat, index }: { stat: Stat; index: number }) {
   const ref = useRef<HTMLDivElement>(null)
   const inView = useInView(ref, { once: true, margin: '-60px' })
 
@@ -52,22 +54,31 @@ export default function FoundationOverviewSection() {
   const leftRef = useRef<HTMLDivElement>(null)
   const leftInView = useInView(leftRef, { once: true, margin: '-60px' })
   const { content } = useSiteContent()
-  const section = content?.sections.foundation || content?.sections.foundation_story
+  const section = content?.sections.foundation_story || content?.sections.foundation
   const overview = (section?.metadata?.overview || {}) as {
     title?: string
     description?: string
     vision?: string
     mission?: string
   }
-  const stats =
+  const statsSource: Stat[] =
     Array.isArray(section?.metadata?.stats) && section.metadata.stats.length > 0
       ? section.metadata.stats
-      : [
-          { value: '5+', label: 'Impact Pillars' },
-          { value: '4', label: 'Board Chairmanships' },
-          { value: '1', label: 'CSO Board Chair' },
-          { value: '1000+', label: 'Lives Impacted' },
-        ]
+      : Array.isArray((section?.metadata as Record<string, unknown> | undefined)?.foundationStats) &&
+          ((section?.metadata as Record<string, unknown> | undefined)?.foundationStats as unknown[]).length >
+            0
+        ? ((section?.metadata as Record<string, unknown> | undefined)?.foundationStats as {
+            value?: string
+            label?: string
+          }[])
+        : [
+            ...defaultStats,
+          ]
+
+  const stats = statsSource.map((stat) => ({
+    value: stat.value || '',
+    label: stat.label || '',
+  }))
 
   return (
     <section className="section-padding bg-paper relative overflow-hidden">

@@ -58,6 +58,7 @@ const navItems = [
     label: 'Contact',
     icon: Mail,
     children: [
+      { label: 'Footer & Social', path: '/footer' },
       { label: 'Contact Details', path: '/contact' },
       { label: 'Messages', path: '/contact-messages' },
     ],

@@ -10,6 +10,7 @@ import EcosystemEditor from './pages/EcosystemEditor'
 import EducationEditor from './pages/EducationEditor'
 import AwardsEditor from './pages/AwardsEditor'
 import ContactEditor from './pages/ContactEditor'
+import FooterEditor from './pages/FooterEditor'
 import GalleryEditor from './pages/GalleryEditor'
 import JourneyEditor from './pages/JourneyEditor'
 import MediaEditor from './pages/MediaEditor'
@@ -37,6 +38,7 @@ function App() {
               <Route path="/achievements" element={<AwardsEditor />} />
               <Route path="/impact/:slug" element={<ImpactEditor />} />
               <Route path="/contact" element={<ContactEditor />} />
+              <Route path="/footer" element={<FooterEditor />} />
               <Route path="/contact-messages" element={<ContactMessages />} />
               <Route path="/leadership" element={<LeadershipEditor />} />
               <Route path="*" element={<Navigate to="/" replace />} />

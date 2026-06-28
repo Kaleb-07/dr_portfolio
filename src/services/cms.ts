@@ -141,6 +141,23 @@ const defaultSections: Record<string, CmsSection> = {
     description: siteConfig.philosophy.quote,
     blocks: [],
   },
+  footer_settings: {
+    id: 0,
+    slug: 'footer_settings',
+    section_type: 'site_footer',
+    eyebrow: 'Footer',
+    title: 'Footer & Social Media',
+    description: 'Manage footer contact details and social media links.',
+    metadata: {
+      socialLinks: [
+        { label: 'LinkedIn', href: siteConfig.social.linkedin, icon: 'linkedin' },
+        { label: 'X / Twitter', href: siteConfig.social.twitter, icon: 'x' },
+        { label: 'Instagram', href: siteConfig.social.instagram, icon: 'instagram' },
+        { label: 'Facebook', href: siteConfig.social.facebook, icon: 'facebook' },
+      ],
+    },
+    blocks: [],
+  },
 }
 
 export const defaultContent: SiteContent = {

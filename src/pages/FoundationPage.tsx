@@ -3,6 +3,7 @@ import PageBanner from '@/components/layout/PageBanner'
 import { seoPages } from '@/lib/seo'
 import {
   FoundationOverviewSection,
+  FoundationPillarsSection,
   FoundationProgramsSection,
   FoundationStoriesSection,
   FoundationFutureSection,
@@ -20,10 +21,10 @@ export default function FoundationPage() {
         description="Building healthier communities through strategic philanthropy."
       />
       <FoundationOverviewSection />
+      <FoundationPillarsSection />
       <FoundationProgramsSection />
       <FoundationStoriesSection />
       <FoundationFutureSection />
     </>
   )
 }
-

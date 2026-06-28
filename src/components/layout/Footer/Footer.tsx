@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useMemo, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, useInView } from 'framer-motion'
 import {
@@ -12,26 +12,61 @@ import {
 } from 'react-icons/fa6'
 import { footerSections } from '@/constants/navigation'
 import { Container } from '@/components/shared'
+import { useSiteContent } from '@/hooks/useSiteContent'
+import { siteConfig } from '@/constants/site'
 
 const TAGLINE = 'Physician · Entrepreneur · Nation Builder · Philanthropist'
 
-const socialLinks = [
-  { icon: FaLinkedinIn, label: 'LinkedIn',    href: '#' },
-  { icon: FaXTwitter,   label: 'X / Twitter', href: '#' },
-  { icon: FaInstagram,  label: 'Instagram',   href: '#' },
-  { icon: FaFacebook,   label: 'Facebook',    href: '#' },
+const defaultContact = {
+  heading: "Let's Connect",
+  email: siteConfig.contact.email,
+  phone: siteConfig.contact.phone,
+  location: siteConfig.contact.location,
+}
+
+const defaultSocialLinks = [
+  { icon: FaLinkedinIn, label: 'LinkedIn', href: siteConfig.social.linkedin },
+  { icon: FaXTwitter, label: 'X / Twitter', href: siteConfig.social.twitter },
+  { icon: FaInstagram, label: 'Instagram', href: siteConfig.social.instagram },
+  { icon: FaFacebook, label: 'Facebook', href: siteConfig.social.facebook },
 ]
 
-const contactInfo = [
-  { icon: FaLocationDot, text: 'Addis Ababa, Ethiopia' },
-  { icon: FaPhone,       text: '+251 911 000 000' },
-  { icon: FaEnvelope,    text: 'info@liyanahealthcare.com' },
-]
+const socialIconMap = {
+  linkedin: FaLinkedinIn,
+  x: FaXTwitter,
+  twitter: FaXTwitter,
+  instagram: FaInstagram,
+  facebook: FaFacebook,
+} as const
 
 export default function Footer() {
   const ref = useRef<HTMLElement>(null)
   const inView = useInView(ref, { once: true, margin: '-60px' })
   const year = new Date().getFullYear()
+  const { content } = useSiteContent()
+
+  const footerSettings = content?.sections.footer_settings
+  const footerContact = content?.contact || defaultContact
+  const socialLinks = useMemo(() => {
+    const cmsLinks = Array.isArray(footerSettings?.metadata?.socialLinks)
+      ? (footerSettings?.metadata?.socialLinks as Array<{
+          label?: string
+          href?: string
+          icon?: string
+        }>)
+      : []
+
+    return cmsLinks.length > 0
+      ? cmsLinks.map((link) => ({
+          label: link.label || 'Social Link',
+          href: link.href || '#',
+          icon:
+            socialIconMap[
+              (link.icon as keyof typeof socialIconMap) || 'linkedin'
+            ] || FaLinkedinIn,
+        }))
+      : defaultSocialLinks
+  }, [footerSettings?.metadata?.socialLinks])
 
   return (
     <footer ref={ref} className="bg-ink text-white relative overflow-hidden">
@@ -94,7 +129,8 @@ export default function Footer() {
               transition={{ duration: 0.6, delay: 0.28 }}
               className="text-sm font-light text-white/45 max-w-md mx-auto mb-8 leading-relaxed"
             >
-              Open to partnerships, speaking engagements, media collaborations, and foundation inquiries.
+              {footerContact.heading ||
+                'Open to partnerships, speaking engagements, media collaborations, and foundation inquiries.'}
             </motion.p>
 
             <motion.div
@@ -159,7 +195,11 @@ export default function Footer() {
                 {/* Contact info — appended only under the Connect column */}
                 {section.title === 'Connect' && (
                   <ul className="mt-6 space-y-3 border-t border-white/8 pt-5">
-                    {contactInfo.map(({ icon: Icon, text }, i) => (
+                    {[
+                      { icon: FaLocationDot, text: footerContact.location },
+                      { icon: FaPhone, text: footerContact.phone },
+                      { icon: FaEnvelope, text: footerContact.email },
+                    ].map(({ icon: Icon, text }, i) => (
                       <motion.li
                         key={i}
                         initial={{ opacity: 0, x: -8 }}
@@ -210,13 +250,13 @@ export default function Footer() {
             <div className="flex items-center gap-3">
               {socialLinks.map(({ icon: Icon, label, href }) => (
                 <a
-                  key={label}
-                  href={href}
-                  aria-label={label}
+                key={label}
+                href={href}
+                aria-label={label}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-8 h-8 border border-white/10 flex items-center justify-center text-white/30 hover:border-teal hover:text-teal hover:bg-teal/5 active:border-teal active:text-teal active:bg-teal/10 active:scale-90 transition-all duration-300"
-                >
+                className="w-8 h-8 border border-white/10 flex items-center justify-center text-white/30 hover:border-teal hover:text-teal hover:bg-teal/5 active:border-teal active:text-teal active:bg-teal/10 active:scale-90 transition-all duration-300"
+              >
                   <Icon size={13} />
                 </a>
               ))}

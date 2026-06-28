@@ -13,6 +13,8 @@ export const siteConfig = {
   social: {
     linkedin: 'https://linkedin.com/in/',
     twitter: 'https://twitter.com/',
+    instagram: 'https://instagram.com/',
+    facebook: 'https://facebook.com/',
   },
   contact: {
     email: 'contact@liyanahealthcare.com',
