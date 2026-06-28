@@ -15,6 +15,8 @@ import {
   Zap,
 } from 'lucide-react'
 import api from '../api'
+import ConfirmDialog from '../components/ConfirmDialog'
+import UndoButton from '../components/UndoButton'
 
 // ------------------------------------------------------------------
 // Helpers
@@ -88,6 +90,7 @@ function EditorShell({
   title,
   saving,
   onSave,
+  onUndo,
   message,
   error,
   children,
@@ -95,6 +98,7 @@ function EditorShell({
   title: string
   saving: boolean
   onSave: () => void
+  onUndo?: () => void
   message: string
   error: string
   children: React.ReactNode
@@ -109,14 +113,17 @@ function EditorShell({
             </p>
             <h1 className="mt-3 text-4xl font-bold text-slate-900">{title}</h1>
           </div>
-          <button
-            onClick={onSave}
-            disabled={saving}
-            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 px-6 py-3 font-semibold text-white transition-all hover:shadow-xl hover:shadow-emerald-500/30 active:scale-[0.98] disabled:opacity-50"
-          >
-            {saving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
-            <span>{saving ? 'Saving...' : 'Save All Changes'}</span>
-          </button>
+          <div className="flex items-center gap-4">
+            {onUndo && <UndoButton onClick={onUndo} />}
+            <button
+              onClick={onSave}
+              disabled={saving}
+              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 px-6 py-3 font-semibold text-white transition-all hover:shadow-xl hover:shadow-emerald-500/30 active:scale-[0.98] disabled:opacity-50"
+            >
+              {saving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
+              <span>{saving ? 'Saving...' : 'Save All Changes'}</span>
+            </button>
+          </div>
         </div>
 
         <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
@@ -335,9 +342,24 @@ export default function GalleryEditor() {
     items: [],
   })
 
+  // Keep a pristine copy for undo
+  const backupRef = useRef<GalleryDraft | null>(null)
+
   const [expandedItems, setExpandedItems] = useState<string[]>([])
   const newRef = useRef<HTMLDivElement | null>(null)
   const [focusId, setFocusId] = useState<string | null>(null)
+
+  // Confirm dialog state
+  const [confirm, setConfirm] = useState<{
+    open: boolean
+    title?: string
+    message?: string
+    onConfirm?: () => void
+  }>({ open: false })
+
+  const askConfirm = (title: string, message: string, onConfirm: () => void) => {
+    setConfirm({ open: true, title, message, onConfirm })
+  }
 
   // Focus effect
   useEffect(() => {
@@ -353,32 +375,44 @@ export default function GalleryEditor() {
     return () => clearTimeout(reset)
   }, [focusId])
 
-  // Fetch data
+  // Fetch data helper
+  const fetchData = async () => {
+    try {
+      const response = await api.get('/cms/site-content')
+      const aboutGallery = response.data?.sections?.about_gallery || {}
+      const fresh: GalleryDraft = {
+        eyebrow: aboutGallery.eyebrow || section.eyebrow,
+        title: aboutGallery.title || section.title,
+        description: aboutGallery.description || section.description,
+        items:
+          Array.isArray(aboutGallery.blocks) && aboutGallery.blocks.length > 0
+            ? aboutGallery.blocks.map((block: any) => ({
+                id: String(block.id),
+                src: block.image_url || '',
+                alt: block.image_alt || block.title || '',
+                caption: block.body || '',
+                category: String(block.metadata?.category || 'community'),
+                date: String(block.metadata?.date || ''),
+                location: String(block.metadata?.location || ''),
+              }))
+            : section.items,
+      }
+      setSection(fresh)
+      backupRef.current = structuredClone(fresh)
+      return fresh
+    } catch (err) {
+      console.error('Failed to fetch gallery data', err)
+      throw err
+    }
+  }
+
+  // Initial load
   useEffect(() => {
     let active = true
     const load = async () => {
       setLoading(true)
       try {
-        const response = await api.get('/cms/site-content')
-        if (!active) return
-        const aboutGallery = response.data?.sections?.about_gallery || {}
-        setSection((current) => ({
-          eyebrow: aboutGallery.eyebrow || current.eyebrow,
-          title: aboutGallery.title || current.title,
-          description: aboutGallery.description || current.description,
-          items:
-            Array.isArray(aboutGallery.blocks) && aboutGallery.blocks.length > 0
-              ? aboutGallery.blocks.map((block: any) => ({
-                  id: String(block.id),
-                  src: block.image_url || '',
-                  alt: block.image_alt || block.title || '',
-                  caption: block.body || '',
-                  category: String(block.metadata?.category || 'community'),
-                  date: String(block.metadata?.date || ''),
-                  location: String(block.metadata?.location || ''),
-                }))
-              : current.items,
-        }))
+        await fetchData()
       } catch {
         if (active) setError('Could not load gallery content. Using defaults.')
       } finally {
@@ -389,7 +423,17 @@ export default function GalleryEditor() {
     return () => {
       active = false
     }
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Undo to last saved state
+  const handleUndo = () => {
+    if (backupRef.current) {
+      setSection(structuredClone(backupRef.current))
+      setExpandedItems([])
+      setMessage('↩ Reverted to last saved version')
+      setTimeout(() => setMessage(''), 3000)
+    }
+  }
 
   // Save
   const save = async () => {
@@ -415,6 +459,8 @@ export default function GalleryEditor() {
           },
         })),
       })
+      // Refresh to get the latest state and update backup
+      await fetchData()
       setMessage('✨ Gallery saved successfully!')
       setTimeout(() => setMessage(''), 3000)
     } catch {
@@ -442,12 +488,19 @@ export default function GalleryEditor() {
     }))
   }
 
-  const deleteItem = (index: number) => {
-    setSection((prev) => ({
-      ...prev,
-      items: prev.items.filter((_, i) => i !== index),
-    }))
-    setExpandedItems((prev) => prev.filter((id) => id !== String(index)))
+  const confirmDeleteItem = (index: number) => {
+    askConfirm(
+      'Delete gallery item?',
+      'This cannot be undone. Are you sure you want to remove this item from the gallery?',
+      () => {
+        setSection((prev) => ({
+          ...prev,
+          items: prev.items.filter((_, i) => i !== index),
+        }))
+        setExpandedItems((prev) => prev.filter((id) => id !== String(index)))
+        setConfirm({ open: false })
+      },
+    )
   }
 
   const reorderItem = (index: number, direction: number) => {
@@ -470,122 +523,142 @@ export default function GalleryEditor() {
   }
 
   return (
-    <EditorShell title="Gallery" saving={saving} onSave={save} message={message} error={error}>
-      {/* Hero Card */}
-      <Card title="Gallery Hero" description="Top section of the Gallery page.">
-        <div className="grid gap-6 md:grid-cols-2">
-          <Field label="Eyebrow">
-            <input
-              className={formInput}
-              value={section.eyebrow}
-              onChange={(e) => setSection((prev) => ({ ...prev, eyebrow: e.target.value }))}
-            />
-          </Field>
-          <Field label="Title">
-            <input
-              className={formInput}
-              value={section.title}
-              onChange={(e) => setSection((prev) => ({ ...prev, title: e.target.value }))}
-            />
-          </Field>
-          <div className="md:col-span-2">
-            <Field label="Description">
-              <textarea
+    <>
+      <EditorShell
+        title="Gallery"
+        saving={saving}
+        onSave={save}
+        onUndo={handleUndo}
+        message={message}
+        error={error}
+      >
+        {/* Hero Card */}
+        <Card title="Gallery Hero" description="Top section of the Gallery page.">
+          <div className="grid gap-6 md:grid-cols-2">
+            <Field label="Eyebrow">
+              <input
                 className={formInput}
-                rows={4}
-                value={section.description}
-                onChange={(e) => setSection((prev) => ({ ...prev, description: e.target.value }))}
+                value={section.eyebrow}
+                onChange={(e) => setSection((prev) => ({ ...prev, eyebrow: e.target.value }))}
               />
             </Field>
+            <Field label="Title">
+              <input
+                className={formInput}
+                value={section.title}
+                onChange={(e) => setSection((prev) => ({ ...prev, title: e.target.value }))}
+              />
+            </Field>
+            <div className="md:col-span-2">
+              <Field label="Description">
+                <textarea
+                  className={formInput}
+                  rows={4}
+                  value={section.description}
+                  onChange={(e) =>
+                    setSection((prev) => ({ ...prev, description: e.target.value }))
+                  }
+                />
+              </Field>
+            </div>
           </div>
-        </div>
-      </Card>
+        </Card>
 
-      {/* Gallery Entries Card */}
-      <Card title="Gallery Entries" description="Image cards displayed publicly." onAdd={addItem}>
-        {section.items.length === 0 ? (
-          <EmptyState message="No gallery items yet. Add one to get started." />
-        ) : (
-          section.items.map((item, idx) => (
-            <ExpandableItem
-              key={item.id}
-              idx={idx}
-              expanded={expandedItems}
-              setExpanded={setExpandedItems}
-              headerLabel={item.category}
-              headerValue={item.caption || item.alt || 'Untitled'}
-              isFocused={item.id === focusId}
-              refProp={newRef}
-              onUp={() => reorderItem(idx, -1)}
-              onDown={() => reorderItem(idx, 1)}
-              onDelete={() => deleteItem(idx)}
-              upDisabled={idx === 0}
-              downDisabled={idx === section.items.length - 1}
-            >
-              <div className="grid gap-4 md:grid-cols-2">
-                <Field label="Image URL">
-                  <input
-                    className={formInput}
-                    value={item.src}
-                    onChange={(e) => updateItem(idx, { src: e.target.value })}
-                  />
-                </Field>
-                <Field label="Alt Text">
-                  <input
-                    className={formInput}
-                    value={item.alt}
-                    onChange={(e) => updateItem(idx, { alt: e.target.value })}
-                  />
-                </Field>
-                <Field label="Category">
-                  <select
-                    className={formInput}
-                    value={item.category}
-                    onChange={(e) => updateItem(idx, { category: e.target.value })}
-                  >
-                    {[
-                      'leadership',
-                      'healthcare',
-                      'education',
-                      'awards',
-                      'community',
-                      'conferences',
-                    ].map((cat) => (
-                      <option key={cat} value={cat}>
-                        {cat}
-                      </option>
-                    ))}
-                  </select>
-                </Field>
-                <Field label="Date">
-                  <input
-                    className={formInput}
-                    value={item.date}
-                    onChange={(e) => updateItem(idx, { date: e.target.value })}
-                  />
-                </Field>
-                <Field label="Location">
-                  <input
-                    className={formInput}
-                    value={item.location}
-                    onChange={(e) => updateItem(idx, { location: e.target.value })}
-                  />
-                </Field>
-                <div className="md:col-span-2">
-                  <Field label="Caption">
-                    <textarea
+        {/* Gallery Entries Card */}
+        <Card title="Gallery Entries" description="Image cards displayed publicly." onAdd={addItem}>
+          {section.items.length === 0 ? (
+            <EmptyState message="No gallery items yet. Add one to get started." />
+          ) : (
+            section.items.map((item, idx) => (
+              <ExpandableItem
+                key={item.id}
+                idx={idx}
+                expanded={expandedItems}
+                setExpanded={setExpandedItems}
+                headerLabel={item.category}
+                headerValue={item.caption || item.alt || 'Untitled'}
+                isFocused={item.id === focusId}
+                refProp={newRef}
+                onUp={() => reorderItem(idx, -1)}
+                onDown={() => reorderItem(idx, 1)}
+                onDelete={() => confirmDeleteItem(idx)}
+                upDisabled={idx === 0}
+                downDisabled={idx === section.items.length - 1}
+              >
+                <div className="grid gap-4 md:grid-cols-2">
+                  <Field label="Image URL">
+                    <input
                       className={formInput}
-                      rows={3}
-                      value={item.caption}
-                      onChange={(e) => updateItem(idx, { caption: e.target.value })}
+                      value={item.src}
+                      onChange={(e) => updateItem(idx, { src: e.target.value })}
                     />
                   </Field>
+                  <Field label="Alt Text">
+                    <input
+                      className={formInput}
+                      value={item.alt}
+                      onChange={(e) => updateItem(idx, { alt: e.target.value })}
+                    />
+                  </Field>
+                  <Field label="Category">
+                    <select
+                      className={formInput}
+                      value={item.category}
+                      onChange={(e) => updateItem(idx, { category: e.target.value })}
+                    >
+                      {[
+                        'leadership',
+                        'healthcare',
+                        'education',
+                        'awards',
+                        'community',
+                        'conferences',
+                      ].map((cat) => (
+                        <option key={cat} value={cat}>
+                          {cat}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
+                  <Field label="Date">
+                    <input
+                      className={formInput}
+                      value={item.date}
+                      onChange={(e) => updateItem(idx, { date: e.target.value })}
+                    />
+                  </Field>
+                  <Field label="Location">
+                    <input
+                      className={formInput}
+                      value={item.location}
+                      onChange={(e) => updateItem(idx, { location: e.target.value })}
+                    />
+                  </Field>
+                  <div className="md:col-span-2">
+                    <Field label="Caption">
+                      <textarea
+                        className={formInput}
+                        rows={3}
+                        value={item.caption}
+                        onChange={(e) => updateItem(idx, { caption: e.target.value })}
+                      />
+                    </Field>
+                  </div>
                 </div>
-              </div>
-            </ExpandableItem>
-          ))
-        )}
-      </Card>
-    </EditorShell>
+              </ExpandableItem>
+            ))
+          )}
+        </Card>
+      </EditorShell>
+
+      {/* Confirm Dialog */}
+      <ConfirmDialog
+        open={confirm.open}
+        title={confirm.title || 'Confirm'}
+        message={confirm.message || ''}
+        onConfirm={() => confirm.onConfirm?.()}
+        onCancel={() => setConfirm({ open: false })}
+      />
+    </>
   )
 }

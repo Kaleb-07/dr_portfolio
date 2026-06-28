@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils'
 import { staggerContainer, staggerItem } from '@/lib/animations'
-import { motion, AnimatePresence } from 'framer-motion'
-import { useState } from 'react'
+import { motion, AnimatePresence, useInView } from 'framer-motion'
+import { useState, useRef } from 'react'
 import { X, ChevronLeft, ChevronRight } from 'lucide-react'
 import type { GalleryItem } from '@/types'
 
@@ -36,6 +36,19 @@ function GalleryCard({
   onClick: () => void
 }) {
   const [imgError, setImgError] = useState(false)
+
+  if (!item.src) {
+    return (
+      <motion.div
+        variants={staggerItem}
+        className="group relative cursor-pointer overflow-hidden border border-rule"
+        style={{ aspectRatio: '4/3' }}
+        onClick={onClick}
+      >
+        <GalleryPlaceholder item={item} />
+      </motion.div>
+    )
+  }
 
   return (
     <motion.div
@@ -83,6 +96,9 @@ const ImageGallery = ({ items, columns = 3 }: ImageGalleryProps) => {
   const [activeCategory, setActiveCategory] = useState<string>(allCategoriesLabel)
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
 
+  const containerRef = useRef<HTMLDivElement>(null)
+  const isInView = useInView(containerRef, { once: true, amount: 0.1 })
+
   const categories = [
     allCategoriesLabel,
     ...new Set(items.map((item) => item.category)),
@@ -122,17 +138,17 @@ const ImageGallery = ({ items, columns = 3 }: ImageGalleryProps) => {
       {/* Grid */}
       <motion.div
         key={activeCategory}
+        ref={containerRef}
         variants={staggerContainer}
         initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, amount: 0.1 }}
+        animate={isInView ? 'visible' : 'hidden'}
         className={cn('grid gap-4', gridCols[columns])}
       >
-        {filtered.map((item, index) => (
+        {filtered.map((item) => (
           <GalleryCard
             key={item.id}
             item={item}
-            onClick={() => setLightboxIndex(index)}
+            onClick={() => setLightboxIndex(filtered.indexOf(item))}
           />
         ))}
       </motion.div>
