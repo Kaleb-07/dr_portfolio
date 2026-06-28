@@ -15,6 +15,8 @@ import {
   Zap,
 } from 'lucide-react'
 import api from '../api'
+import ConfirmDialog from '../components/ConfirmDialog'
+import UndoButton from '../components/UndoButton'
 
 // ------------------------------------------------------------------
 // Helpers
@@ -88,6 +90,7 @@ function EditorShell({
   title,
   saving,
   onSave,
+  onUndo,
   message,
   error,
   children,
@@ -95,6 +98,7 @@ function EditorShell({
   title: string
   saving: boolean
   onSave: () => void
+  onUndo?: () => void
   message: string
   error: string
   children: React.ReactNode
@@ -109,14 +113,17 @@ function EditorShell({
             </p>
             <h1 className="mt-3 text-4xl font-bold text-slate-900">{title}</h1>
           </div>
-          <button
-            onClick={onSave}
-            disabled={saving}
-            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 px-6 py-3 font-semibold text-white transition-all hover:shadow-xl hover:shadow-emerald-500/30 active:scale-[0.98] disabled:opacity-50"
-          >
-            {saving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
-            <span>{saving ? 'Saving...' : 'Save All Changes'}</span>
-          </button>
+          <div className="flex items-center gap-4">
+            {onUndo && <UndoButton onClick={onUndo} />}
+            <button
+              onClick={onSave}
+              disabled={saving}
+              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 px-6 py-3 font-semibold text-white transition-all hover:shadow-xl hover:shadow-emerald-500/30 active:scale-[0.98] disabled:opacity-50"
+            >
+              {saving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
+              <span>{saving ? 'Saving...' : 'Save All Changes'}</span>
+            </button>
+          </div>
         </div>
 
         <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
@@ -343,9 +350,24 @@ export default function EducationEditor() {
     memberships: [],
   })
 
+  // Keep a pristine copy for undo
+  const backupRef = useRef<EducationDraft | null>(null)
+
   const [expandedEducation, setExpandedEducation] = useState<string[]>([])
   const newRef = useRef<HTMLDivElement | null>(null)
   const [focusId, setFocusId] = useState<string | null>(null)
+
+  // Confirm dialog state
+  const [confirm, setConfirm] = useState<{
+    open: boolean
+    title?: string
+    message?: string
+    onConfirm?: () => void
+  }>({ open: false })
+
+  const askConfirm = (title: string, message: string, onConfirm: () => void) => {
+    setConfirm({ open: true, title, message, onConfirm })
+  }
 
   // Focus effect
   useEffect(() => {
@@ -361,46 +383,58 @@ export default function EducationEditor() {
     return () => clearTimeout(reset)
   }, [focusId])
 
-  // Fetch data
+  // Fetch data helper
+  const fetchData = async () => {
+    try {
+      const response = await api.get('/cms/site-content')
+      const aboutEducation = response.data?.sections?.about_education || {}
+      const fresh: EducationDraft = {
+        eyebrow: aboutEducation.eyebrow || section.eyebrow,
+        title: aboutEducation.title || section.title,
+        description: aboutEducation.description || section.description,
+        membershipsEyebrow: String(
+          aboutEducation.metadata?.membership_eyebrow || section.membershipsEyebrow,
+        ),
+        membershipsTitle: String(
+          aboutEducation.metadata?.membership_title || section.membershipsTitle,
+        ),
+        membershipsDescription: String(
+          aboutEducation.metadata?.membership_description || section.membershipsDescription,
+        ),
+        education:
+          Array.isArray(aboutEducation.blocks) && aboutEducation.blocks.length > 0
+            ? aboutEducation.blocks.map((block: any) => ({
+                id: String(block.id),
+                institution: block.title || '',
+                degree: String(block.metadata?.degree || ''),
+                field: String(block.metadata?.field || ''),
+                year: Number(block.metadata?.year || new Date().getFullYear()),
+                description: block.body || '',
+                highlights: Array.isArray(block.metadata?.highlights)
+                  ? block.metadata.highlights
+                  : [],
+              }))
+            : section.education,
+        memberships: Array.isArray(aboutEducation.metadata?.memberships)
+          ? aboutEducation.metadata.memberships
+          : section.memberships,
+      }
+      setSection(fresh)
+      backupRef.current = structuredClone(fresh)
+      return fresh
+    } catch (err) {
+      console.error('Failed to fetch education data', err)
+      throw err
+    }
+  }
+
+  // Initial load
   useEffect(() => {
     let active = true
     const load = async () => {
       setLoading(true)
       try {
-        const response = await api.get('/cms/site-content')
-        if (!active) return
-        const aboutEducation = response.data?.sections?.about_education || {}
-        setSection((current) => ({
-          eyebrow: aboutEducation.eyebrow || current.eyebrow,
-          title: aboutEducation.title || current.title,
-          description: aboutEducation.description || current.description,
-          membershipsEyebrow: String(
-            aboutEducation.metadata?.membership_eyebrow || current.membershipsEyebrow,
-          ),
-          membershipsTitle: String(
-            aboutEducation.metadata?.membership_title || current.membershipsTitle,
-          ),
-          membershipsDescription: String(
-            aboutEducation.metadata?.membership_description || current.membershipsDescription,
-          ),
-          education:
-            Array.isArray(aboutEducation.blocks) && aboutEducation.blocks.length > 0
-              ? aboutEducation.blocks.map((block: any) => ({
-                  id: String(block.id),
-                  institution: block.title || '',
-                  degree: String(block.metadata?.degree || ''),
-                  field: String(block.metadata?.field || ''),
-                  year: Number(block.metadata?.year || new Date().getFullYear()),
-                  description: block.body || '',
-                  highlights: Array.isArray(block.metadata?.highlights)
-                    ? block.metadata.highlights
-                    : [],
-                }))
-              : current.education,
-          memberships: Array.isArray(aboutEducation.metadata?.memberships)
-            ? aboutEducation.metadata.memberships
-            : current.memberships,
-        }))
+        await fetchData()
       } catch {
         if (active) setError('Could not load education content. Using defaults.')
       } finally {
@@ -411,7 +445,17 @@ export default function EducationEditor() {
     return () => {
       active = false
     }
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Undo to last saved state
+  const handleUndo = () => {
+    if (backupRef.current) {
+      setSection(structuredClone(backupRef.current))
+      setExpandedEducation([])
+      setMessage('↩ Reverted to last saved version')
+      setTimeout(() => setMessage(''), 3000)
+    }
+  }
 
   // Save
   const save = async () => {
@@ -442,6 +486,8 @@ export default function EducationEditor() {
           },
         })),
       })
+      // Refresh to get the latest state and update backup
+      await fetchData()
       setMessage('✨ Education saved successfully!')
       setTimeout(() => setMessage(''), 3000)
     } catch {
@@ -469,12 +515,19 @@ export default function EducationEditor() {
     }))
   }
 
-  const deleteEducation = (index: number) => {
-    setSection((prev) => ({
-      ...prev,
-      education: prev.education.filter((_, i) => i !== index),
-    }))
-    setExpandedEducation((prev) => prev.filter((id) => id !== String(index)))
+  const confirmDeleteEducation = (index: number) => {
+    askConfirm(
+      'Delete education entry?',
+      'This cannot be undone. Are you sure you want to remove this education entry?',
+      () => {
+        setSection((prev) => ({
+          ...prev,
+          education: prev.education.filter((_, i) => i !== index),
+        }))
+        setExpandedEducation((prev) => prev.filter((id) => id !== String(index)))
+        setConfirm({ open: false })
+      },
+    )
   }
 
   const reorderEducation = (index: number, direction: number) => {
@@ -499,11 +552,18 @@ export default function EducationEditor() {
     }))
   }
 
-  const deleteMembership = (index: number) => {
-    setSection((prev) => ({
-      ...prev,
-      memberships: prev.memberships.filter((_, i) => i !== index),
-    }))
+  const confirmDeleteMembership = (index: number) => {
+    askConfirm(
+      'Delete membership?',
+      'Are you sure you want to remove this membership from the list?',
+      () => {
+        setSection((prev) => ({
+          ...prev,
+          memberships: prev.memberships.filter((_, i) => i !== index),
+        }))
+        setConfirm({ open: false })
+      },
+    )
   }
 
   if (loading) {
@@ -516,177 +576,199 @@ export default function EducationEditor() {
   }
 
   return (
-    <EditorShell title="Education" saving={saving} onSave={save} message={message} error={error}>
-      {/* Hero Card */}
-      <Card title="Education Hero" description="Top section of the Education page.">
-        <div className="grid gap-6 md:grid-cols-2">
-          <Field label="Eyebrow">
-            <input
-              className={formInput}
-              value={section.eyebrow}
-              onChange={(e) => setSection((prev) => ({ ...prev, eyebrow: e.target.value }))}
-            />
-          </Field>
-          <Field label="Title">
-            <input
-              className={formInput}
-              value={section.title}
-              onChange={(e) => setSection((prev) => ({ ...prev, title: e.target.value }))}
-            />
-          </Field>
-          <div className="md:col-span-2">
-            <Field label="Description">
-              <textarea
+    <>
+      <EditorShell
+        title="Education"
+        saving={saving}
+        onSave={save}
+        onUndo={handleUndo}
+        message={message}
+        error={error}
+      >
+        {/* Hero Card */}
+        <Card title="Education Hero" description="Top section of the Education page.">
+          <div className="grid gap-6 md:grid-cols-2">
+            <Field label="Eyebrow">
+              <input
                 className={formInput}
-                rows={4}
-                value={section.description}
-                onChange={(e) => setSection((prev) => ({ ...prev, description: e.target.value }))}
+                value={section.eyebrow}
+                onChange={(e) => setSection((prev) => ({ ...prev, eyebrow: e.target.value }))}
               />
             </Field>
-          </div>
-        </div>
-      </Card>
-
-      {/* Education Entries Card */}
-      <Card
-        title="Education Entries"
-        description="Degree cards shown on the site."
-        onAdd={addEducation}
-      >
-        {section.education.length === 0 ? (
-          <EmptyState message="No education entries yet. Add one to get started." />
-        ) : (
-          section.education.map((item, idx) => (
-            <ExpandableItem
-              key={item.id}
-              idx={idx}
-              expanded={expandedEducation}
-              setExpanded={setExpandedEducation}
-              headerLabel={item.institution || 'Institution'}
-              headerValue={item.degree || 'Degree'}
-              isFocused={item.id === focusId}
-              refProp={newRef}
-              onUp={() => reorderEducation(idx, -1)}
-              onDown={() => reorderEducation(idx, 1)}
-              onDelete={() => deleteEducation(idx)}
-              upDisabled={idx === 0}
-              downDisabled={idx === section.education.length - 1}
-            >
-              <div className="grid gap-4 md:grid-cols-2">
-                <Field label="Institution">
-                  <input
-                    className={formInput}
-                    value={item.institution}
-                    onChange={(e) => updateEducation(idx, { institution: e.target.value })}
-                  />
-                </Field>
-                <Field label="Degree">
-                  <input
-                    className={formInput}
-                    value={item.degree}
-                    onChange={(e) => updateEducation(idx, { degree: e.target.value })}
-                  />
-                </Field>
-                <Field label="Field">
-                  <input
-                    className={formInput}
-                    value={item.field}
-                    onChange={(e) => updateEducation(idx, { field: e.target.value })}
-                  />
-                </Field>
-                <Field label="Year">
-                  <input
-                    className={formInput}
-                    type="number"
-                    value={item.year}
-                    onChange={(e) => updateEducation(idx, { year: Number(e.target.value) })}
-                  />
-                </Field>
-                <div className="md:col-span-2">
-                  <Field label="Description">
-                    <textarea
-                      className={formInput}
-                      rows={4}
-                      value={item.description}
-                      onChange={(e) => updateEducation(idx, { description: e.target.value })}
-                    />
-                  </Field>
-                </div>
-                <div className="md:col-span-2">
-                  <Field label="Highlights (one per line)">
-                    <textarea
-                      className={formInput}
-                      rows={3}
-                      value={item.highlights.join('\n')}
-                      onChange={(e) =>
-                        updateEducation(idx, { highlights: e.target.value.split('\n') })
-                      }
-                    />
-                  </Field>
-                </div>
-              </div>
-            </ExpandableItem>
-          ))
-        )}
-      </Card>
-
-      {/* Memberships Card */}
-      <Card title="Professional Memberships" description="Manage the membership list.">
-        <div className="grid gap-6 md:grid-cols-2 mb-6">
-          <Field label="Eyebrow">
-            <input
-              className={formInput}
-              value={section.membershipsEyebrow}
-              onChange={(e) =>
-                setSection((prev) => ({ ...prev, membershipsEyebrow: e.target.value }))
-              }
-            />
-          </Field>
-          <Field label="Title">
-            <input
-              className={formInput}
-              value={section.membershipsTitle}
-              onChange={(e) =>
-                setSection((prev) => ({ ...prev, membershipsTitle: e.target.value }))
-              }
-            />
-          </Field>
-          <div className="md:col-span-2">
-            <Field label="Description">
-              <textarea
+            <Field label="Title">
+              <input
                 className={formInput}
-                rows={4}
-                value={section.membershipsDescription}
+                value={section.title}
+                onChange={(e) => setSection((prev) => ({ ...prev, title: e.target.value }))}
+              />
+            </Field>
+            <div className="md:col-span-2">
+              <Field label="Description">
+                <textarea
+                  className={formInput}
+                  rows={4}
+                  value={section.description}
+                  onChange={(e) => setSection((prev) => ({ ...prev, description: e.target.value }))}
+                />
+              </Field>
+            </div>
+          </div>
+        </Card>
+
+        {/* Education Entries Card */}
+        <Card
+          title="Education Entries"
+          description="Degree cards shown on the site."
+          onAdd={addEducation}
+        >
+          {section.education.length === 0 ? (
+            <EmptyState message="No education entries yet. Add one to get started." />
+          ) : (
+            section.education.map((item, idx) => (
+              <ExpandableItem
+                key={item.id}
+                idx={idx}
+                expanded={expandedEducation}
+                setExpanded={setExpandedEducation}
+                headerLabel={item.institution || 'Institution'}
+                headerValue={item.degree || 'Degree'}
+                isFocused={item.id === focusId}
+                refProp={newRef}
+                onUp={() => reorderEducation(idx, -1)}
+                onDown={() => reorderEducation(idx, 1)}
+                onDelete={() => confirmDeleteEducation(idx)}
+                upDisabled={idx === 0}
+                downDisabled={idx === section.education.length - 1}
+              >
+                <div className="grid gap-4 md:grid-cols-2">
+                  <Field label="Institution">
+                    <input
+                      className={formInput}
+                      value={item.institution}
+                      onChange={(e) => updateEducation(idx, { institution: e.target.value })}
+                    />
+                  </Field>
+                  <Field label="Degree">
+                    <input
+                      className={formInput}
+                      value={item.degree}
+                      onChange={(e) => updateEducation(idx, { degree: e.target.value })}
+                    />
+                  </Field>
+                  <Field label="Field">
+                    <input
+                      className={formInput}
+                      value={item.field}
+                      onChange={(e) => updateEducation(idx, { field: e.target.value })}
+                    />
+                  </Field>
+                  <Field label="Year">
+                    <input
+                      className={formInput}
+                      type="number"
+                      value={item.year}
+                      onChange={(e) => updateEducation(idx, { year: Number(e.target.value) })}
+                    />
+                  </Field>
+                  <div className="md:col-span-2">
+                    <Field label="Description">
+                      <textarea
+                        className={formInput}
+                        rows={4}
+                        value={item.description}
+                        onChange={(e) => updateEducation(idx, { description: e.target.value })}
+                      />
+                    </Field>
+                  </div>
+                  <div className="md:col-span-2">
+                    <Field label="Highlights (one per line)">
+                      <textarea
+                        className={formInput}
+                        rows={3}
+                        value={item.highlights.join('\n')}
+                        onChange={(e) =>
+                          updateEducation(idx, { highlights: e.target.value.split('\n') })
+                        }
+                      />
+                    </Field>
+                  </div>
+                </div>
+              </ExpandableItem>
+            ))
+          )}
+        </Card>
+
+        {/* Memberships Card */}
+        <Card title="Professional Memberships" description="Manage the membership list.">
+          <div className="grid gap-6 md:grid-cols-2 mb-6">
+            <Field label="Eyebrow">
+              <input
+                className={formInput}
+                value={section.membershipsEyebrow}
                 onChange={(e) =>
-                  setSection((prev) => ({ ...prev, membershipsDescription: e.target.value }))
+                  setSection((prev) => ({ ...prev, membershipsEyebrow: e.target.value }))
                 }
               />
             </Field>
+            <Field label="Title">
+              <input
+                className={formInput}
+                value={section.membershipsTitle}
+                onChange={(e) =>
+                  setSection((prev) => ({ ...prev, membershipsTitle: e.target.value }))
+                }
+              />
+            </Field>
+            <div className="md:col-span-2">
+              <Field label="Description">
+                <textarea
+                  className={formInput}
+                  rows={4}
+                  value={section.membershipsDescription}
+                  onChange={(e) =>
+                    setSection((prev) => ({ ...prev, membershipsDescription: e.target.value }))
+                  }
+                />
+              </Field>
+            </div>
           </div>
-        </div>
-        <div className="flex items-center justify-between mb-3">
-          <p className="text-sm font-semibold text-slate-700">Membership List</p>
-          <button
-            onClick={addMembership}
-            className="inline-flex items-center gap-1 rounded-lg bg-emerald-500 px-3 py-1.5 text-xs font-semibold text-white"
-          >
-            <Plus size={14} /> Add
-          </button>
-        </div>
-        {section.memberships.map((mem, idx) => (
-          <div key={idx} className="flex gap-2 mb-2">
-            <input
-              className={formInput}
-              value={mem}
-              onChange={(e) => updateMembership(idx, e.target.value)}
-              placeholder="Organization name"
-            />
-            <IconButton label="Delete" danger onClick={() => deleteMembership(idx)}>
-              <Trash2 size={14} />
-            </IconButton>
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-sm font-semibold text-slate-700">Membership List</p>
+            <button
+              onClick={addMembership}
+              className="inline-flex items-center gap-1 rounded-lg bg-emerald-500 px-3 py-1.5 text-xs font-semibold text-white"
+            >
+              <Plus size={14} /> Add
+            </button>
           </div>
-        ))}
-      </Card>
-    </EditorShell>
+          {section.memberships.map((mem, idx) => (
+            <div key={idx} className="flex gap-2 mb-2">
+              <input
+                className={formInput}
+                value={mem}
+                onChange={(e) => updateMembership(idx, e.target.value)}
+                placeholder="Organization name"
+              />
+              <IconButton
+                label="Delete"
+                danger
+                onClick={() => confirmDeleteMembership(idx)}
+              >
+                <Trash2 size={14} />
+              </IconButton>
+            </div>
+          ))}
+        </Card>
+      </EditorShell>
+
+      {/* Confirm Dialog */}
+      <ConfirmDialog
+        open={confirm.open}
+        title={confirm.title || 'Confirm'}
+        message={confirm.message || ''}
+        onConfirm={() => confirm.onConfirm?.()}
+        onCancel={() => setConfirm({ open: false })}
+      />
+    </>
   )
 }
