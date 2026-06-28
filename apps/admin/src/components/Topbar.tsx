@@ -1,23 +1,45 @@
 import { Bell, Moon, Sun, ChevronDown } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useNotifications } from './NotificationContext'
 import ProfileModal from './ProfileModal'
+import api from '../api'
 
 export function Topbar() {
   const [darkMode, setDarkMode] = useState(false)
   const [showUserMenu, setShowUserMenu] = useState(false)
   const [profileModalOpen, setProfileModalOpen] = useState(false)
 
-  const [adminName, setAdminName] = useState(
-    () => localStorage.getItem('adminName') || 'Admin User',
-  )
-  const [adminEmail, setAdminEmail] = useState(
-    () => localStorage.getItem('adminEmail') || 'admin@example.com',
-  )
+  const [adminName, setAdminName] = useState('Admin User')
+  const [adminEmail, setAdminEmail] = useState('admin@example.com')
 
   const navigate = useNavigate()
   const { unreadCount } = useNotifications()
+
+  // Load admin data from backend on mount
+  useEffect(() => {
+    let active = true
+    const fetchProfile = async () => {
+      try {
+        const res = await api.get('/auth/profile')
+        if (active && res.data) {
+          setAdminName(res.data.name || res.data.email || 'Admin User')
+          setAdminEmail(res.data.email || 'admin@example.com')
+        }
+      } catch {
+        // keep current state
+      }
+    }
+    fetchProfile()
+    return () => {
+      active = false
+    }
+  }, [])
+
+  const handleProfileUpdate = (name: string, email: string) => {
+    setAdminName(name)
+    setAdminEmail(email)
+  }
 
   return (
     <>
@@ -89,12 +111,7 @@ export function Topbar() {
         onClose={() => setProfileModalOpen(false)}
         currentName={adminName}
         currentEmail={adminEmail}
-        onProfileUpdate={(name, email) => {
-          setAdminName(name)
-          setAdminEmail(email)
-          localStorage.setItem('adminName', name)
-          localStorage.setItem('adminEmail', email)
-        }}
+        onProfileUpdate={handleProfileUpdate}
       />
     </>
   )

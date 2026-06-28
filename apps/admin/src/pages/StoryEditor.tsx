@@ -697,13 +697,16 @@ export default function StoryEditor() {
         setExpandedBlock((prev) => [...prev, String(idx)])
         setNewItemId(id)
       }, 0)
+      // Determine the correct block type for the current section
+      const defaultBlockType =
+        c.blocks.length > 0 ? c.blocks[0].block_type : isVision ? 'identity_card' : 'content'
       return {
         ...c,
         blocks: [
           ...c.blocks,
           {
             id,
-            block_type: c.blocks[0]?.block_type || 'content',
+            block_type: defaultBlockType,
             eyebrow: '',
             title: '',
             body: '',
@@ -759,8 +762,7 @@ export default function StoryEditor() {
             await api.put(`/cms/timeline-events/${event.id}`, payload)
           } else {
             // Remove temporary id before POST
-            const { id: _, ...p } = payload
-            void _ // eslint-disable-line @typescript-eslint/no-unused-vars
+            const { id, ...p } = payload
             await api.post('/cms/timeline-events', p)
           }
         }
@@ -768,8 +770,7 @@ export default function StoryEditor() {
       } else if ('blocks' in draft && selectedSection.backendSlug) {
         const cleanBlocks = draft.blocks.map((b) => {
           if (typeof b.id === 'string') {
-            const { id: _, ...rest } = b
-            void _ // eslint-disable-line @typescript-eslint/no-unused-vars
+            const { id, ...rest } = b
             return rest
           }
           return b
@@ -1169,8 +1170,9 @@ export default function StoryEditor() {
                   const cardTitle = block.title || 'Untitled'
                   // Only compute icon for sections that actually display one
                   const showIcon = isLiyana || isRecognition || isFoundation
-                  const iconValue = block.metadata?.icon || 'sparkles'
-                  const IconComp = showIcon ? getIconComponent(iconValue) : null
+                  const IconComp = showIcon
+                    ? getIconComponent(block.metadata?.icon || 'sparkles')
+                    : null
 
                   return (
                     <ExpandableItem
@@ -1178,7 +1180,13 @@ export default function StoryEditor() {
                       idx={index}
                       expanded={expandedBlock}
                       setExpanded={setExpandedBlock}
-                      headerLabel={isFoundation ? `Pillar ${index + 1}` : cardLabel || 'Item'}
+                      headerLabel={
+                        isFoundation
+                          ? `Pillar ${index + 1}`
+                          : isVision
+                            ? `Identity ${index + 1}`
+                            : cardLabel || 'Item'
+                      }
                       headerValue={cardTitle}
                       isFocused={block.id === newItemId}
                       refProp={newItemRef}
@@ -1324,14 +1332,20 @@ export default function StoryEditor() {
                           </>
                         )}
 
-                        {/* Identity cards (Vision Agenda) – only Title */}
+                        {/* Identity cards (Vision Agenda) – only Title, forced block_type */}
                         {!isLiyana && !isRecognition && !isFoundation && (
                           <div className="sm:col-span-2">
                             <Field label="Title">
                               <input
                                 className={formInput}
                                 value={block.title || ''}
-                                onChange={(e) => updateBlock(index, { title: e.target.value })}
+                                onChange={(e) => {
+                                  // Ensure block_type stays identity_card
+                                  updateBlock(index, {
+                                    title: e.target.value,
+                                    block_type: 'identity_card',
+                                  })
+                                }}
                                 placeholder="Identity card title"
                               />
                             </Field>

@@ -26,25 +26,29 @@ export default function ContactMessages() {
   const { refreshUnreadCount } = useNotifications()
   const STORAGE_KEY = 'luxury_messages_read_status'
 
-  const fetchMessages = async () => {
-    try {
-      const res = await api.get('/contact/messages')
-      setMessages(res.data)
-      const saved = localStorage.getItem(STORAGE_KEY)
-      if (saved) {
-        setReadMessages(new Set(JSON.parse(saved)))
-      }
-    } catch (error) {
-      console.error('Failed to load messages:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
   useEffect(() => {
-    ;(async () => {
-      await fetchMessages()
-    })()
+    let active = true
+    const load = async () => {
+      try {
+        const res = await api.get('/contact/messages')
+        if (!active) return
+        setMessages(res.data)
+        const saved = localStorage.getItem(STORAGE_KEY)
+        if (saved) {
+          setReadMessages(new Set(JSON.parse(saved)))
+        }
+      } catch (error) {
+        console.error('Failed to load messages:', error)
+      } finally {
+        if (active) setLoading(false)
+      }
+    }
+    load()
+    const interval = setInterval(load, 5000)
+    return () => {
+      active = false
+      clearInterval(interval)
+    }
   }, [])
 
   const confirmDelete = async () => {
