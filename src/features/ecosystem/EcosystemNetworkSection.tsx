@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useRef, useState, useMemo } from 'react'
 import { motion, useInView, AnimatePresence } from 'framer-motion'
 import { AnimatedSection, Container } from '@/components/shared'
 import { useSiteContent } from '@/hooks/useSiteContent'
@@ -6,95 +6,120 @@ import { useSiteContent } from '@/hooks/useSiteContent'
 /* ── Diagram constants ─────────────────────────────────────── */
 const CX = 260, CY = 260, ORBIT = 172, NODE_R = 36, HUB_R = 66
 
+/* ── Category → icon mapping ───────────────────────────────── */
+const categoryIcons: Record<string, React.JSX.Element> = {
+  hospital: (
+    <>
+      <path d="M-6,-4 L0,-10 L6,-4 L6,7 L-6,7 Z" fill="none" stroke="white" strokeWidth="1.3" opacity="0.8" />
+      <rect x="-2" y="1" width="4" height="6" fill="white" opacity="0.55" />
+    </>
+  ),
+  education: (
+    <>
+      <rect x="-8" y="-7" width="16" height="11" rx="1" fill="none" stroke="white" strokeWidth="1.3" opacity="0.8" />
+      <line x1="0" y1="4" x2="0" y2="8" stroke="white" strokeWidth="1.3" opacity="0.8" />
+      <line x1="-4" y1="8" x2="4" y2="8" stroke="white" strokeWidth="1.3" opacity="0.8" />
+    </>
+  ),
+  manufacturing: (
+    <>
+      <rect x="-8" y="0" width="5" height="8" fill="white" opacity="0.4" />
+      <rect x="-2" y="-7" width="5" height="15" fill="white" opacity="0.75" />
+      <rect x="5" y="-3" width="5" height="11" fill="white" opacity="0.4" />
+    </>
+  ),
+  research: (
+    <>
+      <circle cx="0" cy="-6" r="4" fill="none" stroke="white" strokeWidth="1.3" opacity="0.8" />
+      <path d="M-7,8 C-7,1 -3,-1 0,-1 C3,-1 7,1 7,8" fill="none" stroke="white" strokeWidth="1.3" opacity="0.8" />
+    </>
+  ),
+  'digital-health': (
+    <>
+      <rect x="-9" y="-6" width="18" height="12" rx="1" fill="none" stroke="white" strokeWidth="1.3" opacity="0.8" />
+      <circle cx="0" cy="0" r="2.5" fill="white" opacity="0.65" />
+    </>
+  ),
+  insurance: (
+    <polyline points="-8,6 -3,-5 3,1 8,-8" fill="none" stroke="white" strokeWidth="1.5" opacity="0.8" />
+  ),
+  _default: (
+    <circle cx="0" cy="0" r="8" fill="none" stroke="white" strokeWidth="1.3" opacity="0.8" />
+  ),
+}
+
+/* ── Map a CMS sector (from the editor) to a map node ──────── */
+const mapSectorToNode = (sector: any, index: number, total: number) => {
+  const angle = (index / total) * 360 - 90 // first sector at top
+  const cat = sector.category || ''
+  const icon = categoryIcons[cat] ?? categoryIcons._default
+
+  return {
+    id: sector.label || String(index),
+    label: sector.label || '',
+    title: sector.title || '',
+    description: sector.description || '',
+    metric: sector.metric || '',
+    angle,
+    icon,
+  }
+}
+
+/* ── Hardcoded fallback (used when no CMS data) ─────────────── */
 const SECTORS = [
   {
     id: 'delivery',
     label: 'DELIVERY',
     angle: -90,
     title: 'Yanct Chain of Hospitals',
-    description:
-      'A comprehensive network of tertiary care facilities providing specialized surgical, cardiac, and oncology services across East Africa.',
+    description: 'A comprehensive network of tertiary care facilities…',
     metric: '900+ Specialized Beds',
-    icon: (
-      <>
-        <path d="M-6,-4 L0,-10 L6,-4 L6,7 L-6,7 Z" fill="none" stroke="white" strokeWidth="1.3" opacity="0.8" />
-        <rect x="-2" y="1" width="4" height="6" fill="white" opacity="0.55" />
-      </>
-    ),
+    icon: categoryIcons.hospital,
   },
   {
     id: 'financing',
     label: 'FINANCING',
     angle: -30,
     title: 'Micro-Financing & Insurance',
-    description:
-      'Innovative micro-insurance models tailored for the self-employed and informal sectors, closing the affordability gap in healthcare.',
+    description: 'Innovative micro-insurance models…',
     metric: 'Pan-African Model',
-    icon: (
-      <polyline points="-8,6 -3,-5 3,1 8,-8" fill="none" stroke="white" strokeWidth="1.5" opacity="0.8" />
-    ),
+    icon: categoryIcons.insurance,
   },
   {
     id: 'education',
     label: 'EDUCATION',
     angle: 30,
     title: 'YLC Health Sciences',
-    description:
-      'Training the next generation of medical specialists through rigorous academic programs and clinical rotation integration.',
+    description: 'Training the next generation of medical specialists…',
     metric: 'Chief Pipeline Active',
-    icon: (
-      <>
-        <rect x="-8" y="-7" width="16" height="11" rx="1" fill="none" stroke="white" strokeWidth="1.3" opacity="0.8" />
-        <line x1="0" y1="4" x2="0" y2="8" stroke="white" strokeWidth="1.3" opacity="0.8" />
-        <line x1="-4" y1="8" x2="4" y2="8" stroke="white" strokeWidth="1.3" opacity="0.8" />
-      </>
-    ),
+    icon: categoryIcons.education,
   },
   {
     id: 'production',
     label: 'PRODUCTION',
     angle: 90,
     title: 'Pharma Manufacturing',
-    description:
-      'On-shore manufacturing of essential generic medications ensuring supply chain sovereignty and healthcare affordability.',
+    description: 'On-shore manufacturing of essential generic medications…',
     metric: 'Supply Secured',
-    icon: (
-      <>
-        <rect x="-8" y="0" width="5" height="8" fill="white" opacity="0.4" />
-        <rect x="-2" y="-7" width="5" height="15" fill="white" opacity="0.75" />
-        <rect x="5" y="-3" width="5" height="11" fill="white" opacity="0.4" />
-      </>
-    ),
+    icon: categoryIcons.manufacturing,
   },
   {
     id: 'tech',
     label: 'DIGITAL',
     angle: 150,
     title: 'Digital Platforms',
-    description:
-      'Unified EMR systems and telemedicine portals that connect rural clinics to urban specialists instantly across the region.',
+    description: 'Unified EMR systems and telemedicine portals…',
     metric: 'System Active',
-    icon: (
-      <>
-        <rect x="-9" y="-6" width="18" height="12" rx="1" fill="none" stroke="white" strokeWidth="1.3" opacity="0.8" />
-        <circle cx="0" cy="0" r="2.5" fill="white" opacity="0.65" />
-      </>
-    ),
+    icon: categoryIcons['digital-health'],
   },
   {
     id: 'research',
     label: 'RESEARCH',
     angle: 210,
     title: 'Medical Research',
-    description:
-      'Genomic studies and epidemiological research focused on local populations, driving evidence-based regional care.',
+    description: 'Genomic studies and epidemiological research…',
     metric: 'Signal Active',
-    icon: (
-      <>
-        <circle cx="0" cy="-6" r="4" fill="none" stroke="white" strokeWidth="1.3" opacity="0.8" />
-        <path d="M-7,8 C-7,1 -3,-1 0,-1 C3,-1 7,1 7,8" fill="none" stroke="white" strokeWidth="1.3" opacity="0.8" />
-      </>
-    ),
+    icon: categoryIcons.research,
   },
 ]
 
@@ -102,13 +127,28 @@ const SECTORS = [
 export default function EcosystemNetworkSection() {
   const ref = useRef<HTMLElement>(null)
   const inView = useInView(ref, { once: true, margin: '-80px' })
-  const [activeId, setActiveId] = useState<string>(SECTORS[0]!.id)
+  const [activeId, setActiveId] = useState<string>('')
   const { content } = useSiteContent()
   const section = content?.sections.liyana_framework
   const ecosystem = (section?.metadata?.ecosystem || {}) as any
   const network = ecosystem.network || {}
   const hero = network.hero || {}
-  const sectors: any[] = Array.isArray(network.sectors) && network.sectors.length > 0 ? network.sectors : SECTORS
+  const cmsSectors: any[] = Array.isArray(network.sectors) && network.sectors.length > 0 ? network.sectors : []
+
+  // Choose sectors: CMS data if present, otherwise fallback
+  const sectors = useMemo(() => {
+    if (cmsSectors.length > 0) {
+      return cmsSectors.map((s, i) => mapSectorToNode(s, i, cmsSectors.length))
+    }
+    return SECTORS
+  }, [cmsSectors])
+
+  // Ensure an active node is selected
+  const firstId = sectors[0]?.id
+  if (!activeId && firstId) {
+    setActiveId(firstId) // harmless during render (controlled)
+  }
+
   const nodes = sectors.map((s: any) => ({
     ...s,
     x: CX + ORBIT * Math.cos((s.angle * Math.PI) / 180),

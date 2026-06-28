@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-explicit-any, react-hooks/set-state-in-effect */
 import { useEffect, useRef, useState } from 'react'
 import {
   AlertCircle,
@@ -15,6 +15,8 @@ import {
   Zap,
 } from 'lucide-react'
 import api from '../api'
+import ConfirmDialog from '../components/ConfirmDialog'
+import UndoButton from '../components/UndoButton'
 
 // ------------------------------------------------------------------
 // Constants & Helpers
@@ -79,12 +81,13 @@ const Toast = ({ message, error }: ToastProps) => {
 }
 
 // ------------------------------------------------------------------
-// Reusable sub‑components
+// Reusable sub‑components (EditorShell with onUndo added)
 // ------------------------------------------------------------------
 function EditorShell({
   title,
   saving,
   onSave,
+  onUndo,
   message,
   error,
   preview,
@@ -93,6 +96,7 @@ function EditorShell({
   title: string
   saving: boolean
   onSave: () => void
+  onUndo?: () => void
   message: string
   error: string
   preview?: React.ReactNode
@@ -108,14 +112,17 @@ function EditorShell({
             </p>
             <h1 className="mt-3 text-4xl font-bold text-slate-900">{title}</h1>
           </div>
-          <button
-            onClick={onSave}
-            disabled={saving}
-            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 px-6 py-3 font-semibold text-white transition-all hover:shadow-xl hover:shadow-emerald-500/30 active:scale-[0.98] disabled:opacity-50"
-          >
-            {saving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
-            <span>{saving ? 'Saving...' : 'Save All Changes'}</span>
-          </button>
+          <div className="flex items-center gap-4">
+            {onUndo && <UndoButton onClick={onUndo} />}
+            <button
+              onClick={onSave}
+              disabled={saving}
+              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 px-6 py-3 font-semibold text-white transition-all hover:shadow-xl hover:shadow-emerald-500/30 active:scale-[0.98] disabled:opacity-50"
+            >
+              {saving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
+              <span>{saving ? 'Saving...' : 'Save All Changes'}</span>
+            </button>
+          </div>
         </div>
 
         <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
@@ -387,6 +394,41 @@ export default function EcosystemEditor() {
   const newRef = useRef<HTMLDivElement | null>(null)
   const [focusId, setFocusId] = useState<string | null>(null)
 
+  // Backup for undo
+  const backupRef = useRef<{
+    heroTag: string
+    heroTitle: string
+    heroDescription: string
+    heroMeta: EcoMetaStat[]
+    networkTag: string
+    networkTitle: string
+    networkDescription: string
+    networkSectors: NetworkSector[]
+    visionQuote: string
+    visionAttribution: string
+    visionMarker: string
+    breakdownTag: string
+    breakdownTitle: string
+    breakdownDescription: string
+    breakdownSectors: BreakdownSector[]
+    financingNum: string
+    financingCategory: string
+    financingTitle: string
+    financingDescription: string
+  } | null>(null)
+
+  // Confirm dialog state
+  const [confirm, setConfirm] = useState<{
+    open: boolean
+    title?: string
+    message?: string
+    onConfirm?: () => void
+  }>({ open: false })
+
+  const askConfirm = (title: string, message: string, onConfirm: () => void) => {
+    setConfirm({ open: true, title, message, onConfirm })
+  }
+
   // Focus helper
   useEffect(() => {
     if (focusId && newRef.current) {
@@ -401,44 +443,150 @@ export default function EcosystemEditor() {
     return () => clearTimeout(reset)
   }, [focusId])
 
-  // --------------- Load data from API ---------------
+  // --------------- Fetch data helper ---------------
+  const fetchData = async () => {
+  try {
+    const res = await api.get('/cms/site-content')
+    const section = res.data?.sections?.liyana_framework
+
+    // If the section hasn't been created yet, just use defaults (no error)
+    if (!section) {
+      const defaults = {
+        heroTag: 'Strategic Infrastructure',
+        heroTitle: '',
+        heroDescription: '',
+        heroMeta: [] as EcoMetaStat[],
+        networkTag: 'System Generated',
+        networkTitle: '',
+        networkDescription: '',
+        networkSectors: [] as NetworkSector[],
+        visionQuote: '',
+        visionAttribution: '',
+        visionMarker: '99',
+        breakdownTag: 'Sector Breakdown',
+        breakdownTitle: '',
+        breakdownDescription: '',
+        breakdownSectors: [] as BreakdownSector[],
+        financingNum: '06',
+        financingCategory: 'Financing',
+        financingTitle: '',
+        financingDescription: '',
+      }
+      // Set all states to defaults
+      setHeroTag(defaults.heroTag)
+      setHeroTitle(defaults.heroTitle)
+      setHeroDescription(defaults.heroDescription)
+      setHeroMeta(defaults.heroMeta)
+      setNetworkTag(defaults.networkTag)
+      setNetworkTitle(defaults.networkTitle)
+      setNetworkDescription(defaults.networkDescription)
+      setNetworkSectors(defaults.networkSectors)
+      setVisionQuote(defaults.visionQuote)
+      setVisionAttribution(defaults.visionAttribution)
+      setVisionMarker(defaults.visionMarker)
+      setBreakdownTag(defaults.breakdownTag)
+      setBreakdownTitle(defaults.breakdownTitle)
+      setBreakdownDescription(defaults.breakdownDescription)
+      setBreakdownSectors(defaults.breakdownSectors)
+      setFinancingNum(defaults.financingNum)
+      setFinancingCategory(defaults.financingCategory)
+      setFinancingTitle(defaults.financingTitle)
+      setFinancingDescription(defaults.financingDescription)
+      backupRef.current = defaults
+      setError('')
+      return defaults
+    }
+
+    // Parse metadata – the aggregated endpoint already returns it as an object,
+    // but if for some reason it's still a string, we handle both.
+    let metadata = section.metadata
+    if (typeof metadata === 'string') {
+      try {
+        metadata = JSON.parse(metadata)
+      } catch {
+        metadata = {}
+      }
+    }
+    const eco: any = metadata?.ecosystem || {}
+
+    const fresh = {
+      heroTag: eco.hero?.tag || 'Strategic Infrastructure',
+      heroTitle: eco.hero?.title || '',
+      heroDescription: eco.hero?.description || '',
+      heroMeta: eco.hero?.meta || [],
+
+      networkTag: eco.network?.hero?.tag || 'System Generated',
+      networkTitle: eco.network?.hero?.title || '',
+      networkDescription: eco.network?.hero?.description || '',
+      networkSectors: eco.network?.sectors || [],
+
+      visionQuote: eco.vision?.quote || '',
+      visionAttribution: eco.vision?.attribution || '',
+      visionMarker: eco.vision?.marker || '99',
+
+      breakdownTag: eco.breakdown?.tag || 'Sector Breakdown',
+      breakdownTitle: eco.breakdown?.title || '',
+      breakdownDescription: eco.breakdown?.description || '',
+      breakdownSectors: eco.breakdown?.sectors || [],
+      financingNum: eco.breakdown?.financing?.num || '06',
+      financingCategory: eco.breakdown?.financing?.category || 'Financing',
+      financingTitle: eco.breakdown?.financing?.title || '',
+      financingDescription: eco.breakdown?.financing?.description || '',
+    }
+
+    setHeroTag(fresh.heroTag)
+    setHeroTitle(fresh.heroTitle)
+    setHeroDescription(fresh.heroDescription)
+    setHeroMeta(fresh.heroMeta)
+    setNetworkTag(fresh.networkTag)
+    setNetworkTitle(fresh.networkTitle)
+    setNetworkDescription(fresh.networkDescription)
+    setNetworkSectors(fresh.networkSectors)
+    setVisionQuote(fresh.visionQuote)
+    setVisionAttribution(fresh.visionAttribution)
+    setVisionMarker(fresh.visionMarker)
+    setBreakdownTag(fresh.breakdownTag)
+    setBreakdownTitle(fresh.breakdownTitle)
+    setBreakdownDescription(fresh.breakdownDescription)
+    setBreakdownSectors(fresh.breakdownSectors)
+    setFinancingNum(fresh.financingNum)
+    setFinancingCategory(fresh.financingCategory)
+    setFinancingTitle(fresh.financingTitle)
+    setFinancingDescription(fresh.financingDescription)
+
+    backupRef.current = fresh
+    setError('')
+    return fresh
+  } catch (err: any) {
+    console.error('Failed to fetch ecosystem data', err)
+    throw err
+  }
+}
+
+// Initial load
+useEffect(() => {
+  let active = true
+  const load = async () => {
+    setLoading(true)
+    try {
+      if (active) await fetchData()
+    } catch {
+      if (active) setError('Could not load ecosystem content. Using defaults.')
+    } finally {
+      if (active) setLoading(false)
+    }
+  }
+  load()
+  return () => { active = false }
+}, []) // eslint-disable-line react-hooks/exhaustive-deps
+  // Initial load
   useEffect(() => {
     let active = true
     const load = async () => {
       setLoading(true)
       try {
-        const res = await api.get('/cms/sections/liyana_framework')
-        const eco: any = res.data?.metadata?.ecosystem || {}
-
         if (active) {
-          // Hero
-          setHeroTag(eco.hero?.tag || 'Strategic Infrastructure')
-          setHeroTitle(eco.hero?.title || '')
-          setHeroDescription(eco.hero?.description || '')
-          setHeroMeta(eco.hero?.meta || [])
-
-          // Network
-          const net = eco.network || {}
-          setNetworkTag(net.hero?.tag || 'System Generated')
-          setNetworkTitle(net.hero?.title || '')
-          setNetworkDescription(net.hero?.description || '')
-          setNetworkSectors(net.sectors || [])
-
-          // Vision
-          setVisionQuote(eco.vision?.quote || '')
-          setVisionAttribution(eco.vision?.attribution || '')
-          setVisionMarker(eco.vision?.marker || '99')
-
-          // Breakdown
-          const bd = eco.breakdown || {}
-          setBreakdownTag(bd.tag || 'Sector Breakdown')
-          setBreakdownTitle(bd.title || '')
-          setBreakdownDescription(bd.description || '')
-          setBreakdownSectors(bd.sectors || [])
-          setFinancingNum(bd.financing?.num || '06')
-          setFinancingCategory(bd.financing?.category || 'Financing')
-          setFinancingTitle(bd.financing?.title || '')
-          setFinancingDescription(bd.financing?.description || '')
+          await fetchData()
         }
       } catch {
         if (active) setError('Could not load ecosystem content. Using defaults.')
@@ -450,7 +598,37 @@ export default function EcosystemEditor() {
     return () => {
       active = false
     }
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Undo
+  const handleUndo = () => {
+    if (backupRef.current) {
+      const b = backupRef.current
+      setHeroTag(b.heroTag)
+      setHeroTitle(b.heroTitle)
+      setHeroDescription(b.heroDescription)
+      setHeroMeta(b.heroMeta)
+      setNetworkTag(b.networkTag)
+      setNetworkTitle(b.networkTitle)
+      setNetworkDescription(b.networkDescription)
+      setNetworkSectors(b.networkSectors)
+      setVisionQuote(b.visionQuote)
+      setVisionAttribution(b.visionAttribution)
+      setVisionMarker(b.visionMarker)
+      setBreakdownTag(b.breakdownTag)
+      setBreakdownTitle(b.breakdownTitle)
+      setBreakdownDescription(b.breakdownDescription)
+      setBreakdownSectors(b.breakdownSectors)
+      setFinancingNum(b.financingNum)
+      setFinancingCategory(b.financingCategory)
+      setFinancingTitle(b.financingTitle)
+      setFinancingDescription(b.financingDescription)
+      setExpandedNetwork([])
+      setExpandedBreakdown([])
+      setMessage('↩ Reverted to last saved version')
+      setTimeout(() => setMessage(''), 3000)
+    }
+  }
 
   // --------------- Save ---------------
   const handleSave = async () => {
@@ -490,6 +668,8 @@ export default function EcosystemEditor() {
         },
       }
       await api.put('/cms/sections/liyana_framework', payload)
+      // Refresh to get the latest state and update backup
+      await fetchData()
       setMessage('✨ Ecosystem saved successfully!')
       setTimeout(() => setMessage(''), 3000)
     } catch {
@@ -529,448 +709,469 @@ export default function EcosystemEditor() {
   }
 
   return (
-    <EditorShell
-      title="Ecosystem"
-      saving={saving}
-      onSave={handleSave}
-      message={message}
-      error={error}
-      preview={previewContent}
-    >
-      {/* 1. Hero Section */}
-      <Card title="Hero Section" description="Top section of the Ecosystem page.">
-        <div className="grid gap-6 md:grid-cols-2">
-          <Field label="Tag">
-            <input
-              className={formInput}
-              value={heroTag}
-              onChange={(e) => setHeroTag(e.target.value)}
-            />
-          </Field>
-          <Field label="Title">
-            <input
-              className={formInput}
-              value={heroTitle}
-              onChange={(e) => setHeroTitle(e.target.value)}
-            />
-          </Field>
-          <div className="md:col-span-2">
-            <Field label="Description">
-              <textarea
-                className={formInput}
-                rows={4}
-                value={heroDescription}
-                onChange={(e) => setHeroDescription(e.target.value)}
-              />
-            </Field>
-          </div>
-        </div>
-
-        <div className="mt-6">
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-sm font-semibold text-slate-700">Stats Grid</p>
-            <button
-              onClick={() => {
-                const s = emptyMetaStat()
-                setHeroMeta((prev) => [...prev, s])
-                setFocusId(s.value)
-              }}
-              className="inline-flex items-center gap-1 rounded-lg bg-emerald-500 px-3 py-1.5 text-xs font-semibold text-white"
-            >
-              <Plus size={14} /> Add Stat
-            </button>
-          </div>
-          {heroMeta.map((stat, idx) => (
-            <div key={idx} className="flex gap-3 items-center mb-2">
-              <Field label="Value">
-                <input
-                  className={formInput}
-                  value={stat.value}
-                  onChange={(e) => {
-                    const updated = [...heroMeta]
-                    updated[idx] = { ...updated[idx], value: e.target.value }
-                    setHeroMeta(updated)
-                  }}
-                />
-              </Field>
-              <Field label="Label">
-                <input
-                  className={formInput}
-                  value={stat.label}
-                  onChange={(e) => {
-                    const updated = [...heroMeta]
-                    updated[idx] = { ...updated[idx], label: e.target.value }
-                    setHeroMeta(updated)
-                  }}
-                />
-              </Field>
-              <IconButton
-                label="Delete"
-                danger
-                onClick={() => setHeroMeta((prev) => prev.filter((_, i) => i !== idx))}
-              >
-                <Trash2 size={14} />
-              </IconButton>
-            </div>
-          ))}
-          {heroMeta.length === 0 && <EmptyState message="No stats yet. Add one to start." />}
-        </div>
-      </Card>
-
-      {/* 2. Network Diagram */}
-      <Card
-        title="Network Diagram"
-        description="'System Generated' section with interactive sectors."
+    <>
+      <EditorShell
+        title="Ecosystem"
+        saving={saving}
+        onSave={handleSave}
+        onUndo={handleUndo}
+        message={message}
+        error={error}
+        preview={previewContent}
       >
-        <div className="grid gap-6 md:grid-cols-2 mb-6">
-          <Field label="Tag">
-            <input
-              className={formInput}
-              value={networkTag}
-              onChange={(e) => setNetworkTag(e.target.value)}
-            />
-          </Field>
-          <Field label="Title">
-            <input
-              className={formInput}
-              value={networkTitle}
-              onChange={(e) => setNetworkTitle(e.target.value)}
-            />
-          </Field>
-          <div className="md:col-span-2">
-            <Field label="Description">
-              <textarea
+        {/* 1. Hero Section */}
+        <Card title="Hero Section" description="Top section of the Ecosystem page.">
+          <div className="grid gap-6 md:grid-cols-2">
+            <Field label="Tag">
+              <input
                 className={formInput}
-                rows={3}
-                value={networkDescription}
-                onChange={(e) => setNetworkDescription(e.target.value)}
+                value={heroTag}
+                onChange={(e) => setHeroTag(e.target.value)}
               />
             </Field>
+            <Field label="Title">
+              <input
+                className={formInput}
+                value={heroTitle}
+                onChange={(e) => setHeroTitle(e.target.value)}
+              />
+            </Field>
+            <div className="md:col-span-2">
+              <Field label="Description">
+                <textarea
+                  className={formInput}
+                  rows={4}
+                  value={heroDescription}
+                  onChange={(e) => setHeroDescription(e.target.value)}
+                />
+              </Field>
+            </div>
           </div>
-        </div>
-        <div className="flex items-center justify-between mb-4">
-          <p className="text-sm font-semibold text-slate-700">Sectors ({networkSectors.length})</p>
-          <button
-            onClick={() => {
-              const s = emptyNetworkSector()
-              setNetworkSectors((prev) => [...prev, s])
-              setExpandedNetwork((prev) => [...prev, String(networkSectors.length)])
-              setFocusId(s.label)
-            }}
-            className="inline-flex items-center gap-1 rounded-lg bg-emerald-500 px-3 py-1.5 text-xs font-semibold text-white"
-          >
-            <Plus size={14} /> Add Sector
-          </button>
-        </div>
-        {networkSectors.length === 0 ? (
-          <EmptyState message="No sectors yet. Add one to start." />
-        ) : (
-          networkSectors.map((sector, idx) => (
-            <ExpandableItem
-              key={idx}
-              idx={idx}
-              expanded={expandedNetwork}
-              setExpanded={setExpandedNetwork}
-              headerLabel={sector.label}
-              headerValue={sector.title}
-              isFocused={focusId === sector.label}
-              refProp={newRef}
-              onUp={() => setNetworkSectors((prev) => reorderArray(prev, idx, -1))}
-              onDown={() => setNetworkSectors((prev) => reorderArray(prev, idx, 1))}
-              onDelete={() => {
-                setNetworkSectors((prev) => prev.filter((_, i) => i !== idx))
-                setExpandedNetwork((prev) => prev.filter((id) => id !== String(idx)))
-              }}
-              upDisabled={idx === 0}
-              downDisabled={idx === networkSectors.length - 1}
-            >
-              <Field label="Label (short code)">
-                <input
-                  className={formInput}
-                  value={sector.label}
-                  onChange={(e) => {
-                    const updated = [...networkSectors]
-                    updated[idx] = { ...updated[idx], label: e.target.value }
-                    setNetworkSectors(updated)
-                  }}
-                />
-              </Field>
-              <Field label="Title">
-                <input
-                  className={formInput}
-                  value={sector.title}
-                  onChange={(e) => {
-                    const updated = [...networkSectors]
-                    updated[idx] = { ...updated[idx], title: e.target.value }
-                    setNetworkSectors(updated)
-                  }}
-                />
-              </Field>
+
+          <div className="mt-6">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-sm font-semibold text-slate-700">Stats Grid</p>
+              <button
+                onClick={() => {
+                  const s = emptyMetaStat()
+                  setHeroMeta((prev) => [...prev, s])
+                  setFocusId(s.value)
+                }}
+                className="inline-flex items-center gap-1 rounded-lg bg-emerald-500 px-3 py-1.5 text-xs font-semibold text-white"
+              >
+                <Plus size={14} /> Add Stat
+              </button>
+            </div>
+            {heroMeta.map((stat, idx) => (
+              <div key={idx} className="flex gap-3 items-center mb-2">
+                <Field label="Value">
+                  <input
+                    className={formInput}
+                    value={stat.value}
+                    onChange={(e) => {
+                      const updated = [...heroMeta]
+                      updated[idx] = { ...updated[idx], value: e.target.value }
+                      setHeroMeta(updated)
+                    }}
+                  />
+                </Field>
+                <Field label="Label">
+                  <input
+                    className={formInput}
+                    value={stat.label}
+                    onChange={(e) => {
+                      const updated = [...heroMeta]
+                      updated[idx] = { ...updated[idx], label: e.target.value }
+                      setHeroMeta(updated)
+                    }}
+                  />
+                </Field>
+                <IconButton
+                  label="Delete"
+                  danger
+                  onClick={() =>
+                    askConfirm('Delete stat?', 'This cannot be undone.', () =>
+                      setHeroMeta((prev) => prev.filter((_, i) => i !== idx))
+                    )
+                  }
+                >
+                  <Trash2 size={14} />
+                </IconButton>
+              </div>
+            ))}
+            {heroMeta.length === 0 && <EmptyState message="No stats yet. Add one to start." />}
+          </div>
+        </Card>
+
+        {/* 2. Network Diagram */}
+        <Card
+          title="Network Diagram"
+          description="'System Generated' section with interactive sectors."
+        >
+          <div className="grid gap-6 md:grid-cols-2 mb-6">
+            <Field label="Tag">
+              <input
+                className={formInput}
+                value={networkTag}
+                onChange={(e) => setNetworkTag(e.target.value)}
+              />
+            </Field>
+            <Field label="Title">
+              <input
+                className={formInput}
+                value={networkTitle}
+                onChange={(e) => setNetworkTitle(e.target.value)}
+              />
+            </Field>
+            <div className="md:col-span-2">
               <Field label="Description">
                 <textarea
                   className={formInput}
                   rows={3}
-                  value={sector.description}
-                  onChange={(e) => {
-                    const updated = [...networkSectors]
-                    updated[idx] = { ...updated[idx], description: e.target.value }
-                    setNetworkSectors(updated)
-                  }}
+                  value={networkDescription}
+                  onChange={(e) => setNetworkDescription(e.target.value)}
                 />
               </Field>
-              <Field label="Metric">
-                <input
-                  className={formInput}
-                  value={sector.metric}
-                  onChange={(e) => {
-                    const updated = [...networkSectors]
-                    updated[idx] = { ...updated[idx], metric: e.target.value }
-                    setNetworkSectors(updated)
-                  }}
-                />
-              </Field>
-              <Field label="Category (icon)">
-                <select
-                  className={formInput}
-                  value={sector.category}
-                  onChange={(e) => {
-                    const updated = [...networkSectors]
-                    updated[idx] = { ...updated[idx], category: e.target.value }
-                    setNetworkSectors(updated)
-                  }}
-                >
-                  <option value="hospital">Hospital</option>
-                  <option value="education">Education</option>
-                  <option value="manufacturing">Manufacturing</option>
-                  <option value="research">Research</option>
-                  <option value="digital-health">Digital Health</option>
-                  <option value="insurance">Insurance</option>
-                </select>
-              </Field>
-            </ExpandableItem>
-          ))
-        )}
-      </Card>
+            </div>
+          </div>
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-sm font-semibold text-slate-700">Sectors ({networkSectors.length})</p>
+            <button
+              onClick={() => {
+                const s = emptyNetworkSector()
+                setNetworkSectors((prev) => [...prev, s])
+                setExpandedNetwork((prev) => [...prev, String(networkSectors.length)])
+                setFocusId(s.label)
+              }}
+              className="inline-flex items-center gap-1 rounded-lg bg-emerald-500 px-3 py-1.5 text-xs font-semibold text-white"
+            >
+              <Plus size={14} /> Add Sector
+            </button>
+          </div>
+          {networkSectors.length === 0 ? (
+            <EmptyState message="No sectors yet. Add one to start." />
+          ) : (
+            networkSectors.map((sector, idx) => (
+              <ExpandableItem
+                key={idx}
+                idx={idx}
+                expanded={expandedNetwork}
+                setExpanded={setExpandedNetwork}
+                headerLabel={sector.label}
+                headerValue={sector.title}
+                isFocused={focusId === sector.label}
+                refProp={newRef}
+                onUp={() => setNetworkSectors((prev) => reorderArray(prev, idx, -1))}
+                onDown={() => setNetworkSectors((prev) => reorderArray(prev, idx, 1))}
+                onDelete={() =>
+                  askConfirm('Delete sector?', 'This cannot be undone.', () => {
+                    setNetworkSectors((prev) => prev.filter((_, i) => i !== idx))
+                    setExpandedNetwork((prev) => prev.filter((id) => id !== String(idx)))
+                  })
+                }
+                upDisabled={idx === 0}
+                downDisabled={idx === networkSectors.length - 1}
+              >
+                <Field label="Label (short code)">
+                  <input
+                    className={formInput}
+                    value={sector.label}
+                    onChange={(e) => {
+                      const updated = [...networkSectors]
+                      updated[idx] = { ...updated[idx], label: e.target.value }
+                      setNetworkSectors(updated)
+                    }}
+                  />
+                </Field>
+                <Field label="Title">
+                  <input
+                    className={formInput}
+                    value={sector.title}
+                    onChange={(e) => {
+                      const updated = [...networkSectors]
+                      updated[idx] = { ...updated[idx], title: e.target.value }
+                      setNetworkSectors(updated)
+                    }}
+                  />
+                </Field>
+                <Field label="Description">
+                  <textarea
+                    className={formInput}
+                    rows={3}
+                    value={sector.description}
+                    onChange={(e) => {
+                      const updated = [...networkSectors]
+                      updated[idx] = { ...updated[idx], description: e.target.value }
+                      setNetworkSectors(updated)
+                    }}
+                  />
+                </Field>
+                <Field label="Metric">
+                  <input
+                    className={formInput}
+                    value={sector.metric}
+                    onChange={(e) => {
+                      const updated = [...networkSectors]
+                      updated[idx] = { ...updated[idx], metric: e.target.value }
+                      setNetworkSectors(updated)
+                    }}
+                  />
+                </Field>
+                <Field label="Category (icon)">
+                  <select
+                    className={formInput}
+                    value={sector.category}
+                    onChange={(e) => {
+                      const updated = [...networkSectors]
+                      updated[idx] = { ...updated[idx], category: e.target.value }
+                      setNetworkSectors(updated)
+                    }}
+                  >
+                    <option value="hospital">Hospital</option>
+                    <option value="education">Education</option>
+                    <option value="manufacturing">Manufacturing</option>
+                    <option value="research">Research</option>
+                    <option value="digital-health">Digital Health</option>
+                    <option value="insurance">Insurance</option>
+                  </select>
+                </Field>
+              </ExpandableItem>
+            ))
+          )}
+        </Card>
 
-      {/* 3. Vision Quote */}
-      <Card title="Vision Quote" description="Full‑width quote section.">
-        <Field label="Quote Text">
-          <textarea
-            className={formInput}
-            rows={5}
-            value={visionQuote}
-            onChange={(e) => setVisionQuote(e.target.value)}
-          />
-        </Field>
-        <div className="grid gap-4 md:grid-cols-2 mt-4">
-          <Field label="Attribution">
-            <input
-              className={formInput}
-              value={visionAttribution}
-              onChange={(e) => setVisionAttribution(e.target.value)}
-            />
-          </Field>
-          <Field label="Marker (large number)">
-            <input
-              className={formInput}
-              value={visionMarker}
-              onChange={(e) => setVisionMarker(e.target.value)}
-            />
-          </Field>
-        </div>
-      </Card>
-
-      {/* 4. Sector Breakdown */}
-      <Card title="Sector Breakdown">
-        <div className="grid gap-6 md:grid-cols-2 mb-6">
-          <Field label="Tag">
-            <input
-              className={formInput}
-              value={breakdownTag}
-              onChange={(e) => setBreakdownTag(e.target.value)}
-            />
-          </Field>
-          <Field label="Title">
-            <input
-              className={formInput}
-              value={breakdownTitle}
-              onChange={(e) => setBreakdownTitle(e.target.value)}
-            />
-          </Field>
-          <div className="md:col-span-2">
-            <Field label="Description">
-              <textarea
+        {/* 4. Sector Breakdown */}
+        <Card title="Sector Breakdown">
+          <div className="grid gap-6 md:grid-cols-2 mb-6">
+            <Field label="Tag">
+              <input
                 className={formInput}
-                rows={3}
-                value={breakdownDescription}
-                onChange={(e) => setBreakdownDescription(e.target.value)}
+                value={breakdownTag}
+                onChange={(e) => setBreakdownTag(e.target.value)}
               />
             </Field>
+            <Field label="Title">
+              <input
+                className={formInput}
+                value={breakdownTitle}
+                onChange={(e) => setBreakdownTitle(e.target.value)}
+              />
+            </Field>
+            <div className="md:col-span-2">
+              <Field label="Description">
+                <textarea
+                  className={formInput}
+                  rows={3}
+                  value={breakdownDescription}
+                  onChange={(e) => setBreakdownDescription(e.target.value)}
+                />
+              </Field>
+            </div>
           </div>
-        </div>
-        <div className="flex items-center justify-between mb-4">
-          <p className="text-sm font-semibold text-slate-700">
-            Sectors ({breakdownSectors.length})
-          </p>
-          <button
-            onClick={() => {
-              const s = emptyBreakdownSector()
-              setBreakdownSectors((prev) => [...prev, s])
-              setExpandedBreakdown((prev) => [...prev, String(breakdownSectors.length)])
-              setFocusId(s.num)
-            }}
-            className="inline-flex items-center gap-1 rounded-lg bg-emerald-500 px-3 py-1.5 text-xs font-semibold text-white"
-          >
-            <Plus size={14} /> Add Sector
-          </button>
-        </div>
-        {breakdownSectors.length === 0 ? (
-          <EmptyState message="No breakdown sectors yet. Add one to start." />
-        ) : (
-          breakdownSectors.map((sec, idx) => (
-            <ExpandableItem
-              key={idx}
-              idx={idx}
-              expanded={expandedBreakdown}
-              setExpanded={setExpandedBreakdown}
-              headerLabel={sec.num}
-              headerValue={sec.title}
-              isFocused={focusId === sec.num}
-              refProp={newRef}
-              onUp={() => setBreakdownSectors((prev) => reorderArray(prev, idx, -1))}
-              onDown={() => setBreakdownSectors((prev) => reorderArray(prev, idx, 1))}
-              onDelete={() => {
-                setBreakdownSectors((prev) => prev.filter((_, i) => i !== idx))
-                setExpandedBreakdown((prev) => prev.filter((id) => id !== String(idx)))
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-sm font-semibold text-slate-700">
+              Sectors ({breakdownSectors.length})
+            </p>
+            <button
+              onClick={() => {
+                const s = emptyBreakdownSector()
+                setBreakdownSectors((prev) => [...prev, s])
+                setExpandedBreakdown((prev) => [...prev, String(breakdownSectors.length)])
+                setFocusId(s.num)
               }}
-              upDisabled={idx === 0}
-              downDisabled={idx === breakdownSectors.length - 1}
+              className="inline-flex items-center gap-1 rounded-lg bg-emerald-500 px-3 py-1.5 text-xs font-semibold text-white"
             >
-              <div className="grid gap-4 md:grid-cols-2">
-                <Field label="Number (e.g., 01)">
+              <Plus size={14} /> Add Sector
+            </button>
+          </div>
+          {breakdownSectors.length === 0 ? (
+            <EmptyState message="No breakdown sectors yet. Add one to start." />
+          ) : (
+            breakdownSectors.map((sec, idx) => (
+              <ExpandableItem
+                key={idx}
+                idx={idx}
+                expanded={expandedBreakdown}
+                setExpanded={setExpandedBreakdown}
+                headerLabel={sec.num}
+                headerValue={sec.title}
+                isFocused={focusId === sec.num}
+                refProp={newRef}
+                onUp={() => setBreakdownSectors((prev) => reorderArray(prev, idx, -1))}
+                onDown={() => setBreakdownSectors((prev) => reorderArray(prev, idx, 1))}
+                onDelete={() =>
+                  askConfirm('Delete sector?', 'This cannot be undone.', () => {
+                    setBreakdownSectors((prev) => prev.filter((_, i) => i !== idx))
+                    setExpandedBreakdown((prev) => prev.filter((id) => id !== String(idx)))
+                  })
+                }
+                upDisabled={idx === 0}
+                downDisabled={idx === breakdownSectors.length - 1}
+              >
+                <div className="grid gap-4 md:grid-cols-2">
+                  <Field label="Number (e.g., 01)">
+                    <input
+                      className={formInput}
+                      value={sec.num}
+                      onChange={(e) => {
+                        const updated = [...breakdownSectors]
+                        updated[idx] = { ...updated[idx], num: e.target.value }
+                        setBreakdownSectors(updated)
+                      }}
+                    />
+                  </Field>
+                  <Field label="Category">
+                    <input
+                      className={formInput}
+                      value={sec.category}
+                      onChange={(e) => {
+                        const updated = [...breakdownSectors]
+                        updated[idx] = { ...updated[idx], category: e.target.value }
+                        setBreakdownSectors(updated)
+                      }}
+                    />
+                  </Field>
+                </div>
+                <Field label="Title">
                   <input
                     className={formInput}
-                    value={sec.num}
+                    value={sec.title}
                     onChange={(e) => {
                       const updated = [...breakdownSectors]
-                      updated[idx] = { ...updated[idx], num: e.target.value }
+                      updated[idx] = { ...updated[idx], title: e.target.value }
                       setBreakdownSectors(updated)
                     }}
                   />
                 </Field>
-                <Field label="Category">
-                  <input
+                <Field label="Description">
+                  <textarea
                     className={formInput}
-                    value={sec.category}
+                    rows={4}
+                    value={sec.description}
                     onChange={(e) => {
                       const updated = [...breakdownSectors]
-                      updated[idx] = { ...updated[idx], category: e.target.value }
+                      updated[idx] = { ...updated[idx], description: e.target.value }
                       setBreakdownSectors(updated)
                     }}
                   />
                 </Field>
-              </div>
+                <Field label="Stats (one per line)">
+                  <textarea
+                    className={formInput}
+                    rows={2}
+                    value={sec.stats.join('\n')}
+                    onChange={(e) => {
+                      const updated = [...breakdownSectors]
+                      updated[idx] = { ...updated[idx], stats: e.target.value.split('\n') }
+                      setBreakdownSectors(updated)
+                    }}
+                  />
+                </Field>
+                <Field label="Image URL (optional)">
+                  <input
+                    className={formInput}
+                    value={sec.image || ''}
+                    onChange={(e) => {
+                      const updated = [...breakdownSectors]
+                      updated[idx] = { ...updated[idx], image: e.target.value || null }
+                      setBreakdownSectors(updated)
+                    }}
+                  />
+                </Field>
+                <label className="flex items-center gap-2 mt-2">
+                  <input
+                    type="checkbox"
+                    checked={sec.accent}
+                    onChange={(e) => {
+                      const updated = [...breakdownSectors]
+                      updated[idx] = { ...updated[idx], accent: e.target.checked }
+                      setBreakdownSectors(updated)
+                    }}
+                  />
+                  <span className="text-sm text-slate-600">
+                    Accent background (highlight this sector)
+                  </span>
+                </label>
+              </ExpandableItem>
+            ))
+          )}
+        </Card>
+
+        {/* 5. Financing Callout */}
+        <Card title="Financing Callout" description="Dark featured block at the bottom.">
+          <div className="grid gap-4 md:grid-cols-2">
+            <Field label="Number">
+              <input
+                className={formInput}
+                value={financingNum}
+                onChange={(e) => setFinancingNum(e.target.value)}
+              />
+            </Field>
+            <Field label="Category">
+              <input
+                className={formInput}
+                value={financingCategory}
+                onChange={(e) => setFinancingCategory(e.target.value)}
+              />
+            </Field>
+            <div className="md:col-span-2">
               <Field label="Title">
                 <input
                   className={formInput}
-                  value={sec.title}
-                  onChange={(e) => {
-                    const updated = [...breakdownSectors]
-                    updated[idx] = { ...updated[idx], title: e.target.value }
-                    setBreakdownSectors(updated)
-                  }}
+                  value={financingTitle}
+                  onChange={(e) => setFinancingTitle(e.target.value)}
                 />
               </Field>
               <Field label="Description">
                 <textarea
                   className={formInput}
                   rows={4}
-                  value={sec.description}
-                  onChange={(e) => {
-                    const updated = [...breakdownSectors]
-                    updated[idx] = { ...updated[idx], description: e.target.value }
-                    setBreakdownSectors(updated)
-                  }}
+                  value={financingDescription}
+                  onChange={(e) => setFinancingDescription(e.target.value)}
                 />
               </Field>
-              <Field label="Stats (one per line)">
-                <textarea
-                  className={formInput}
-                  rows={2}
-                  value={sec.stats.join('\n')}
-                  onChange={(e) => {
-                    const updated = [...breakdownSectors]
-                    updated[idx] = { ...updated[idx], stats: e.target.value.split('\n') }
-                    setBreakdownSectors(updated)
-                  }}
-                />
-              </Field>
-              <Field label="Image URL (optional)">
-                <input
-                  className={formInput}
-                  value={sec.image || ''}
-                  onChange={(e) => {
-                    const updated = [...breakdownSectors]
-                    updated[idx] = { ...updated[idx], image: e.target.value || null }
-                    setBreakdownSectors(updated)
-                  }}
-                />
-              </Field>
-              <label className="flex items-center gap-2 mt-2">
-                <input
-                  type="checkbox"
-                  checked={sec.accent}
-                  onChange={(e) => {
-                    const updated = [...breakdownSectors]
-                    updated[idx] = { ...updated[idx], accent: e.target.checked }
-                    setBreakdownSectors(updated)
-                  }}
-                />
-                <span className="text-sm text-slate-600">
-                  Accent background (highlight this sector)
-                </span>
-              </label>
-            </ExpandableItem>
-          ))
-        )}
-      </Card>
+            </div>
+          </div>
+        </Card>
 
-      {/* 5. Financing Callout */}
-      <Card title="Financing Callout" description="Dark featured block at the bottom.">
-        <div className="grid gap-4 md:grid-cols-2">
-          <Field label="Number">
-            <input
+        {/* 3. Vision Quote */}
+        <Card title="Vision Quote" description="Full‑width quote section.">
+          <Field label="Quote Text">
+            <textarea
               className={formInput}
-              value={financingNum}
-              onChange={(e) => setFinancingNum(e.target.value)}
+              rows={5}
+              value={visionQuote}
+              onChange={(e) => setVisionQuote(e.target.value)}
             />
           </Field>
-          <Field label="Category">
-            <input
-              className={formInput}
-              value={financingCategory}
-              onChange={(e) => setFinancingCategory(e.target.value)}
-            />
-          </Field>
-          <div className="md:col-span-2">
-            <Field label="Title">
+          <div className="grid gap-4 md:grid-cols-2 mt-4">
+            <Field label="Attribution">
               <input
                 className={formInput}
-                value={financingTitle}
-                onChange={(e) => setFinancingTitle(e.target.value)}
+                value={visionAttribution}
+                onChange={(e) => setVisionAttribution(e.target.value)}
               />
             </Field>
-            <Field label="Description">
-              <textarea
+            <Field label="Marker (large number)">
+              <input
                 className={formInput}
-                rows={4}
-                value={financingDescription}
-                onChange={(e) => setFinancingDescription(e.target.value)}
+                value={visionMarker}
+                onChange={(e) => setVisionMarker(e.target.value)}
               />
             </Field>
           </div>
-        </div>
-      </Card>
-    </EditorShell>
+        </Card>
+
+      </EditorShell>
+
+      {/* Confirm Dialog */}
+      <ConfirmDialog
+        open={confirm.open}
+        title={confirm.title || 'Confirm'}
+        message={confirm.message || ''}
+        onConfirm={() => confirm.onConfirm?.()}
+        onCancel={() => setConfirm({ open: false })}
+      />
+    </>
   )
 }
