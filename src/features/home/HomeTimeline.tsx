@@ -1,34 +1,28 @@
 import { useRef } from 'react'
 import { motion, useInView } from 'framer-motion'
-import { FaGraduationCap, FaBriefcase, FaStar, FaTrophy, FaHospital, FaMicroscope } from 'react-icons/fa'
+import { FaGraduationCap, FaBriefcase, FaStar } from 'react-icons/fa'
 import type { IconType } from 'react-icons'
 import { Container } from '@/components/shared'
-import { timeline as fallbackTimeline } from '@/data/timeline'
-import { useSiteContent } from '@/hooks/useSiteContent'
-import type { TimelineEvent } from '@/services/cms'
+import { timeline } from '@/data/timeline'
 
 /* ── Icon map per category ─────────────────────────────────────────────── */
 const categoryIcon: Record<string, IconType> = {
   education: FaGraduationCap,
-  career:    FaBriefcase,
+  career: FaBriefcase,
   milestone: FaStar,
-  award: FaTrophy,
-  'graduation-cap': FaGraduationCap,
-  briefcase: FaBriefcase,
-  sparkles: FaStar,
-  trophy: FaTrophy,
-  hospital: FaHospital,
-  microscope: FaMicroscope,
 }
 
 const categoryLabel: Record<string, string> = {
   education: 'Education',
-  career:    'Career',
+  career: 'Career',
   milestone: 'Milestone',
 }
 
 /* ── Palette ───────────────────────────────────────────────────────────── */
-interface Palette { bg: string; iconBg: string }
+interface Palette {
+  bg: string
+  iconBg: string
+}
 
 const PALETTES: Palette[] = [
   { bg: 'from-[#0F6E56] to-[#1D9E75]', iconBg: '#0F6E56' },
@@ -45,19 +39,17 @@ function BubbleCard({
   item,
   index,
   isLast,
-  totalItems,
 }: {
-  item: TimelineEvent
+  item: (typeof timeline)[0]
   index: number
   isLast: boolean
-  totalItems: number
 }) {
   const ref = useRef<HTMLDivElement>(null)
   const inView = useInView(ref, { once: true, margin: '-60px' })
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  const palette  = PALETTES[index % PALETTES.length]!
-  const IconComp = categoryIcon[item.icon || item.category] ?? FaStar
-  const delay    = index * 0.12
+  const palette = PALETTES[index % PALETTES.length]!
+  const IconComp = categoryIcon[item.category] ?? FaStar
+  const delay = index * 0.12
 
   return (
     <motion.div
@@ -101,7 +93,7 @@ function BubbleCard({
           text-center px-4 cursor-default select-none
           ${isLast ? '' : '-mr-5'}
         `}
-        style={{ zIndex: totalItems - index }}
+        style={{ zIndex: timeline.length - index }}
       >
         {/* inner glow ring */}
         <div className="absolute inset-2 rounded-full border border-white/15 pointer-events-none" />
@@ -118,9 +110,7 @@ function BubbleCard({
 
         {/* subtitle */}
         {item.subtitle && (
-          <p className="mt-1 text-[0.58rem] leading-snug text-white/70">
-            {item.subtitle}
-          </p>
+          <p className="mt-1 text-[0.58rem] leading-snug text-white/70">{item.subtitle}</p>
         )}
       </motion.div>
     </motion.div>
@@ -129,21 +119,8 @@ function BubbleCard({
 
 /* ── Main section ──────────────────────────────────────────────────────── */
 export default function HomeTimeline() {
-  const headerRef  = useRef<HTMLDivElement>(null)
+  const headerRef = useRef<HTMLDivElement>(null)
   const headerInView = useInView(headerRef, { once: true })
-  const { content } = useSiteContent()
-  const timeline = content?.timelineEvents?.length
-    ? content.timelineEvents
-    : fallbackTimeline.map((item, index) => ({
-        id: index + 1,
-        slug: item.id,
-        year: String(item.year),
-        title: item.title,
-        subtitle: item.subtitle,
-        description: item.description,
-        category: item.category as TimelineEvent['category'],
-        sort_order: index,
-      }))
 
   return (
     <section className="section-padding bg-paper-warm">
@@ -160,8 +137,7 @@ export default function HomeTimeline() {
             <span className="section-rule" />
           </div>
           <h2 className="font-serif text-4xl md:text-5xl font-light text-ink mb-14">
-            From medical student to{' '}
-            <em className="text-teal-mid not-italic">system architect</em>
+            From medical student to <em className="text-teal-mid not-italic">system architect</em>
           </h2>
         </motion.div>
 
@@ -185,13 +161,7 @@ export default function HomeTimeline() {
           {/* No scroll — flex-wrap centres everything */}
           <div className="flex flex-wrap items-start justify-center gap-y-8 gap-x-0">
             {timeline.map((item, i) => (
-              <BubbleCard
-                key={item.id}
-                item={item}
-                index={i}
-                isLast={i === timeline.length - 1}
-                totalItems={timeline.length}
-              />
+              <BubbleCard key={item.id} item={item} index={i} isLast={i === timeline.length - 1} />
             ))}
           </div>
         </div>
