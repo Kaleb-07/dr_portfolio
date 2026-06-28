@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { ArrowLeft, CheckCheck, Loader2, MessageSquare, Trash2 } from 'lucide-react'
 import api from '../api'
 import { useNotifications } from '../components/NotificationContext'
+import ConfirmDialog from '../components/ConfirmDialog'
 
 interface ContactMessage {
   id: number
@@ -20,6 +21,7 @@ export default function ContactMessages() {
   const [loading, setLoading] = useState(true)
   const [selected, setSelected] = useState<ContactMessage | null>(null)
   const [readMessages, setReadMessages] = useState<Set<number>>(new Set())
+  const [deleteTarget, setDeleteTarget] = useState<number | null>(null)
 
   const { refreshUnreadCount } = useNotifications()
   const STORAGE_KEY = 'luxury_messages_read_status'
@@ -32,23 +34,31 @@ export default function ContactMessages() {
       if (saved) {
         setReadMessages(new Set(JSON.parse(saved)))
       }
-    } catch (err) {
-      console.error('Failed to load messages:', err)
+    } catch (error) {
+      console.error('Failed to load messages:', error)
     } finally {
       setLoading(false)
     }
   }
 
   useEffect(() => {
-    fetchMessages()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    ;(async () => {
+      await fetchMessages()
+    })()
   }, [])
 
-  const deleteMessage = async (id: number) => {
-    await api.delete(`/contact/messages/${id}`)
-    setMessages((prev) => prev.filter((m) => m.id !== id))
-    if (selected?.id === id) setSelected(null)
-    refreshUnreadCount()
+  const confirmDelete = async () => {
+    if (deleteTarget === null) return
+    try {
+      await api.delete(`/contact/messages/${deleteTarget}`)
+      setMessages((prev) => prev.filter((m) => m.id !== deleteTarget))
+      if (selected?.id === deleteTarget) setSelected(null)
+      refreshUnreadCount()
+    } catch (error) {
+      console.error('Failed to delete message:', error)
+    } finally {
+      setDeleteTarget(null)
+    }
   }
 
   const handleSelectMessage = async (message: ContactMessage) => {
@@ -59,7 +69,7 @@ export default function ContactMessages() {
 
     try {
       await api.patch(`/contact/messages/${message.id}`, { read: true })
-    } catch (err) {
+    } catch {
       // silently ignore
     }
     refreshUnreadCount()
@@ -162,6 +172,17 @@ export default function ContactMessages() {
                           {message.subject}
                         </p>
                       </div>
+
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setDeleteTarget(message.id)
+                        }}
+                        className="opacity-0 group-hover:opacity-100 p-2 hover:bg-red-50 text-red-600 rounded-lg transition-all duration-200"
+                        title="Delete message"
+                      >
+                        <Trash2 size={18} />
+                      </button>
                     </div>
                   </button>
                 )
@@ -201,7 +222,7 @@ export default function ContactMessages() {
                 </div>
               </div>
               <button
-                onClick={() => deleteMessage(selected.id)}
+                onClick={() => setDeleteTarget(selected.id)}
                 className="p-2 md:p-2.5 hover:bg-red-50 text-red-600 rounded-xl transition-colors duration-200 active:scale-95 flex-shrink-0"
                 title="Delete message"
               >
@@ -295,6 +316,14 @@ export default function ContactMessages() {
           </div>
         )}
       </div>
+
+      <ConfirmDialog
+        open={deleteTarget !== null}
+        title="Delete Message"
+        message="Are you sure you want to delete this message? This action cannot be undone."
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </div>
   )
 }

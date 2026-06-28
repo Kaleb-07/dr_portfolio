@@ -1,8 +1,11 @@
 import { Link } from 'react-router-dom'
 import { AnimatedSection, Container, Button } from '@/components/shared'
-import { identityItems } from '@/constants/site'
+import { useSiteContent } from '@/hooks/useSiteContent'
 
 export default function HomeIdentities() {
+  const { content } = useSiteContent()
+  const items = content?.identityItems || []
+
   return (
     <section className="section-padding bg-paper-warm border-t border-b border-rule">
       <Container>
@@ -42,15 +45,15 @@ export default function HomeIdentities() {
           <div className="lg:col-span-7 lg:col-start-6 flex flex-col justify-center">
             <AnimatedSection>
               <div className="space-y-0">
-                {identityItems.map((item) => (
-                  <div key={item.num}>
+                {items.map((item) => (
+                  <div key={item.id}>
                     <div className="flex gap-6 py-6">
                       <span className="font-mono text-[9px] tracking-widest uppercase text-teal shrink-0 w-6">
-                        {item.num}
+                        {item.label}
                       </span>
                       <div>
                         <h3 className="font-serif text-lg font-light text-ink">{item.title}</h3>
-                        <p className="text-sm text-ink-muted font-light mt-1">{item.detail}</p>
+                        <p className="text-sm text-ink-muted font-light mt-1">{item.description}</p>
                       </div>
                     </div>
                     <div className="border-b border-rule" />

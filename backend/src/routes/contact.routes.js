@@ -14,9 +14,18 @@ router.get('/settings', async (req, res) => {
 router.put('/settings', async (req, res) => {
   try {
     const data = req.body
-    await prisma.contact_settings.update({
+    await prisma.contact_settings.upsert({
       where: { id: 1 },
-      data: {
+      update: {
+        heading: data.heading,
+        email: data.email,
+        phone: data.phone,
+        location: data.location,
+        image_url: data.image_url,
+        image_caption: data.image_caption,
+      },
+      create: {
+        id: 1,
         heading: data.heading,
         email: data.email,
         phone: data.phone,
@@ -31,7 +40,6 @@ router.put('/settings', async (req, res) => {
   }
 })
 
-/* ---------------- INQUIRY TYPES ---------------- */
 router.get('/inquiry-types', async (req, res) => {
   try {
     const types = await prisma.inquiry_types.findMany({
@@ -68,11 +76,10 @@ router.put('/inquiry-types/:id', async (req, res) => {
     res.status(500).json({ error: error.message })
   }
 })
-
-router.delete('/inquiry-types/:id', async (req, res) => {
+router.delete('/messages/:id', async (req, res) => {
   try {
     const { id } = req.params
-    await prisma.inquiry_types.delete({
+    await prisma.contact_messages.delete({
       where: { id: Number(id) },
     })
     res.json({ success: true })
@@ -81,8 +88,6 @@ router.delete('/inquiry-types/:id', async (req, res) => {
   }
 })
 
-/* ---------------- MESSAGES ---------------- */
-// POST – create a new contact message
 router.post('/messages', async (req, res) => {
   try {
     const { name, email, organization, phone, subject, message, inquiryType } = req.body
@@ -93,7 +98,7 @@ router.post('/messages', async (req, res) => {
         email,
         organization,
         phone: phone || null,
-        inquiry_type: inquiryType, // frontend sends camelCase → backend uses snake_case
+        inquiry_type: inquiryType,
         subject,
         message,
       },
@@ -105,7 +110,6 @@ router.post('/messages', async (req, res) => {
   }
 })
 
-// Optional: GET messages (for admin)
 router.get('/messages', async (req, res) => {
   try {
     const messages = await prisma.contact_messages.findMany({

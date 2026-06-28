@@ -5,7 +5,6 @@ import {
   ArrowUp,
   CheckCircle2,
   ChevronDown,
-  Eye,
   Loader2,
   Plus,
   Save,
@@ -14,6 +13,23 @@ import {
   Zap,
 } from 'lucide-react'
 import api from '../api'
+import MediaPicker from '../components/MediaPicker'
+import ConfirmDialog from '../components/ConfirmDialog'
+import UndoButton from '../components/UndoButton'
+
+interface RawMediaBlock {
+  id?: number
+  title?: string | null
+  body?: string | null
+  image_url?: string | null
+  metadata?: {
+    type?: string
+    source?: string
+    date?: string
+    url?: string
+    [key: string]: unknown
+  }
+}
 
 type MediaItem = {
   id: string
@@ -78,16 +94,28 @@ export default function MediaEditor() {
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
 
-  const [mediaEyebrow, setMediaEyebrow] = useState('Media & Speaking')
-  const [mediaTitle, setMediaTitle] = useState('Voices of leadership')
-  const [mediaDescription, setMediaDescription] = useState(
+  const [media, setMedia] = useState<MediaItem[]>([])
+  const [sectionEyebrow, setSectionEyebrow] = useState('Media & Speaking')
+  const [sectionTitle, setSectionTitle] = useState(
+    'Voices of <em class="text-teal-mid not-italic">leadership</em>',
+  )
+  const [sectionDescription, setSectionDescription] = useState(
     'Interviews, keynotes, podcasts, and press coverage that amplify the vision for healthcare transformation.',
   )
-  const [media, setMedia] = useState<MediaItem[]>([])
+
+  const [backupMedia, setBackupMedia] = useState<MediaItem[]>([])
+  const [backupSectionEyebrow, setBackupSectionEyebrow] = useState('Media & Speaking')
+  const [backupSectionTitle, setBackupSectionTitle] = useState(
+    'Voices of <em class="text-teal-mid not-italic">leadership</em>',
+  )
+  const [backupSectionDescription, setBackupSectionDescription] = useState(
+    'Interviews, keynotes, podcasts, and press coverage that amplify the vision for healthcare transformation.',
+  )
 
   const [expandedMedia, setExpandedMedia] = useState<string[]>([])
   const newRef = useRef<HTMLDivElement>(null)
   const [focusId, setFocusId] = useState<string | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<number | null>(null)
 
   useEffect(() => {
     if (!focusId || !newRef.current) return undefined
@@ -115,30 +143,54 @@ export default function MediaEditor() {
         const res = await api.get('/cms/site-content')
         if (!active) return
         const mediaData = res.data?.sections?.media_speaking || {}
-        setMediaEyebrow(mediaData.eyebrow || 'Media & Speaking')
-        setMediaTitle(mediaData.title || 'Voices of leadership')
-        setMediaDescription(
-          mediaData.description ||
+        const sectionMeta = mediaData.metadata || {}
+
+        setSectionEyebrow(sectionMeta.sectionEyebrow || 'Media & Speaking')
+        setSectionTitle(
+          sectionMeta.sectionTitle ||
+            'Voices of <em class="text-teal-mid not-italic">leadership</em>',
+        )
+        setSectionDescription(
+          sectionMeta.sectionDescription ||
             'Interviews, keynotes, podcasts, and press coverage that amplify the vision for healthcare transformation.',
         )
-        setMedia(
-          (mediaData.blocks?.length ? mediaData.blocks : fallbackMedia).map(
-            (item: any, idx: number) => ({
-              id: item.id || `media-${idx}`,
-              title: item.title || '',
-              type: item.type || 'interview',
-              source: item.source || '',
-              date: item.date || new Date().toISOString().slice(0, 10),
-              description: item.description || '',
-              url: item.url || '',
-              thumbnail: item.thumbnail || '',
-            }),
-          ),
+        setBackupSectionEyebrow(sectionMeta.sectionEyebrow || 'Media & Speaking')
+        setBackupSectionTitle(
+          sectionMeta.sectionTitle ||
+            'Voices of <em class="text-teal-mid not-italic">leadership</em>',
         )
+        setBackupSectionDescription(
+          sectionMeta.sectionDescription ||
+            'Interviews, keynotes, podcasts, and press coverage that amplify the vision for healthcare transformation.',
+        )
+
+        const rawBlocks: RawMediaBlock[] = mediaData.blocks?.length
+          ? mediaData.blocks
+          : fallbackMedia.map((m, i) => ({
+              id: i,
+              title: m.title,
+              body: m.description,
+              image_url: m.thumbnail,
+              metadata: { type: m.type, source: m.source, date: m.date, url: m.url },
+            }))
+
+        const loadedMedia = rawBlocks.map((item, idx) => ({
+          id: item.id !== undefined ? String(item.id) : `media-${idx}`,
+          title: item.title || '',
+          type: item.metadata?.type || 'interview',
+          source: item.metadata?.source || '',
+          date: item.metadata?.date || new Date().toISOString().slice(0, 10),
+          description: item.body || '',
+          url: item.metadata?.url || '',
+          thumbnail: item.image_url || '',
+        }))
+        setMedia(loadedMedia)
+        setBackupMedia(loadedMedia)
       } catch (loadError) {
         console.warn('Could not load media, using fallback data', loadError)
         if (!active) return
         setMedia(fallbackMedia.map((item) => ({ ...item })))
+        setBackupMedia(fallbackMedia.map((item) => ({ ...item })))
       } finally {
         if (active) setLoading(false)
       }
@@ -156,19 +208,54 @@ export default function MediaEditor() {
     try {
       await api.put('/cms/sections/media_speaking', {
         section: {
-          eyebrow: mediaEyebrow,
-          title: mediaTitle,
-          description: mediaDescription,
+          metadata: {
+            sectionEyebrow,
+            sectionTitle,
+            sectionDescription,
+          },
         },
-        blocks: media,
+        blocks: media.map((item, index) => ({
+          block_type: 'media',
+          title: item.title,
+          body: item.description,
+          image_url: item.thumbnail,
+          metadata: {
+            type: item.type,
+            source: item.source,
+            date: item.date,
+            url: item.url,
+          },
+          sort_order: index + 1,
+        })),
       })
       setMessage('Media saved successfully.')
       setTimeout(() => setMessage(''), 3000)
+      setBackupMedia(media)
+      setBackupSectionEyebrow(sectionEyebrow)
+      setBackupSectionTitle(sectionTitle)
+      setBackupSectionDescription(sectionDescription)
     } catch (saveError) {
       console.error(saveError)
       setError('Save failed. Please try again.')
     } finally {
       setSaving(false)
+    }
+  }
+
+  const handleUndo = () => {
+    setMedia(backupMedia)
+    setSectionEyebrow(backupSectionEyebrow)
+    setSectionTitle(backupSectionTitle)
+    setSectionDescription(backupSectionDescription)
+    setMessage('Changes reverted.')
+    setTimeout(() => setMessage(''), 2000)
+  }
+
+  const confirmDelete = () => {
+    if (deleteTarget !== null) {
+      setMedia((prev) => prev.filter((_, i) => i !== deleteTarget))
+      setExpandedMedia((prev) => prev.filter((id) => id !== String(deleteTarget)))
+      setDeleteTarget(null)
     }
   }
 
@@ -188,30 +275,31 @@ export default function MediaEditor() {
       message={message}
       error={error}
       title="Media & Speaking"
+      undoButton={<UndoButton onClick={handleUndo} />}
     >
-      <Card title="Media Hero" description="Top section of the Media & Speaking page.">
+      <Card title="Section Header" description="The heading shown above the list of media items.">
         <div className="grid gap-6 md:grid-cols-2">
           <Field label="Eyebrow">
             <input
               className={formInput}
-              value={mediaEyebrow}
-              onChange={(e) => setMediaEyebrow(e.target.value)}
+              value={sectionEyebrow}
+              onChange={(e) => setSectionEyebrow(e.target.value)}
             />
           </Field>
-          <Field label="Title">
+          <Field label="Title (HTML allowed)" hint="Use &lt;em&gt; tags for styled words.">
             <input
               className={formInput}
-              value={mediaTitle}
-              onChange={(e) => setMediaTitle(e.target.value)}
+              value={sectionTitle}
+              onChange={(e) => setSectionTitle(e.target.value)}
             />
           </Field>
           <div className="md:col-span-2">
             <Field label="Description">
               <textarea
                 className={formInput}
-                rows={4}
-                value={mediaDescription}
-                onChange={(e) => setMediaDescription(e.target.value)}
+                rows={3}
+                value={sectionDescription}
+                onChange={(e) => setSectionDescription(e.target.value)}
               />
             </Field>
           </div>
@@ -243,10 +331,7 @@ export default function MediaEditor() {
               refProp={newRef}
               onUp={() => setMedia((prev) => reorderArray(prev, idx, -1))}
               onDown={() => setMedia((prev) => reorderArray(prev, idx, 1))}
-              onDelete={() => {
-                setMedia((prev) => prev.filter((_, i) => i !== idx))
-                setExpandedMedia((prev) => prev.filter((id) => id !== String(idx)))
-              }}
+              onDelete={() => setDeleteTarget(idx)}
               upDisabled={idx === 0}
               downDisabled={idx === media.length - 1}
             >
@@ -328,16 +413,14 @@ export default function MediaEditor() {
                     placeholder="https://..."
                   />
                 </Field>
-                <Field label="Thumbnail URL">
-                  <input
-                    className={formInput}
-                    value={item.thumbnail}
-                    onChange={(e) => {
+                <Field label="Thumbnail">
+                  <MediaPicker
+                    currentUrl={item.thumbnail}
+                    onUpload={(url) => {
                       const updated = [...media]
-                      updated[idx] = { ...updated[idx], thumbnail: e.target.value }
+                      updated[idx] = { ...updated[idx], thumbnail: url }
                       setMedia(updated)
                     }}
-                    placeholder="/thumbnail.jpg"
                   />
                 </Field>
               </div>
@@ -345,11 +428,17 @@ export default function MediaEditor() {
           ))
         )}
       </Card>
+
+      <ConfirmDialog
+        open={deleteTarget !== null}
+        title="Delete Media Item"
+        message="Are you sure you want to delete this media entry?"
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </EditorShell>
   )
 }
-
-// ---------------- Shared sub-components (identical to AwardsEditor) ----------------
 
 function EditorShell({
   saving,
@@ -358,6 +447,7 @@ function EditorShell({
   error,
   title,
   children,
+  undoButton,
 }: {
   saving: boolean
   onSave: () => void
@@ -365,6 +455,7 @@ function EditorShell({
   error: string
   title: string
   children: ReactNode
+  undoButton?: ReactNode
 }) {
   return (
     <section className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100/60">
@@ -376,46 +467,21 @@ function EditorShell({
             </p>
             <h1 className="mt-3 text-4xl font-bold text-slate-900">{title}</h1>
           </div>
-          <button
-            type="button"
-            onClick={onSave}
-            disabled={saving}
-            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 px-6 py-3 font-semibold text-white transition-all hover:shadow-xl hover:shadow-emerald-500/30 active:scale-[0.98] disabled:opacity-50"
-          >
-            {saving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
-            <span>{saving ? 'Saving...' : 'Save All Changes'}</span>
-          </button>
+          <div className="flex items-center gap-3">
+            {undoButton}
+            <button
+              type="button"
+              onClick={onSave}
+              disabled={saving}
+              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 px-6 py-3 font-semibold text-white transition-all hover:shadow-xl hover:shadow-emerald-500/30 active:scale-[0.98] disabled:opacity-50"
+            >
+              {saving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
+              <span>{saving ? 'Saving...' : 'Save All Changes'}</span>
+            </button>
+          </div>
         </div>
 
-        <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
-          <div className="space-y-8">{children}</div>
-
-          <aside className="space-y-6">
-            <div className="sticky top-8 space-y-6">
-              <div className="rounded-2xl border border-slate-200 bg-white/80 p-6 shadow-sm backdrop-blur-md transition-all hover:shadow-lg">
-                <h3 className="mb-4 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-slate-400">
-                  <Eye size={14} className="text-emerald-500" /> Live Preview
-                </h3>
-                <div className="min-h-[160px] rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-slate-900">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
-                    {title.toUpperCase()}
-                  </p>
-                  <p className="mt-2 text-sm text-slate-600">
-                    All changes are stored in the database.
-                  </p>
-                </div>
-              </div>
-              <div className="rounded-2xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-emerald-100 p-6">
-                <h3 className="mb-3 flex items-center gap-2 text-sm font-bold text-emerald-900">
-                  <Sparkles size={16} className="text-emerald-600" /> Editing Guide
-                </h3>
-                <p className="text-sm leading-relaxed text-emerald-800">
-                  Click <strong>Save All Changes</strong> to persist your edits.
-                </p>
-              </div>
-            </div>
-          </aside>
-        </div>
+        <div className="space-y-8">{children}</div>
       </div>
       <Toast message={message} error={error} />
     </section>
@@ -556,11 +622,12 @@ function EmptyState({ message }: { message: string }) {
   )
 }
 
-function Field({ label, children }: { label: string; children: ReactNode }) {
+function Field({ label, children, hint }: { label: string; children: ReactNode; hint?: string }) {
   return (
     <label className="block">
       <span className={labelClass}>{label}</span>
       {children}
+      {hint && <p className="mt-1 text-xs text-slate-500">{hint}</p>}
     </label>
   )
 }

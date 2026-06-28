@@ -14,15 +14,36 @@ const mediaTypeLabels: Record<MediaItem['type'], string> = {
   video: 'Video',
 }
 
-const allTypes: MediaItem['type'][] = ['interview', 'conference', 'podcast', 'press', 'speech', 'video']
+const allTypes: MediaItem['type'][] = [
+  'interview',
+  'conference',
+  'podcast',
+  'press',
+  'speech',
+  'video',
+]
+
+interface SectionMeta {
+  sectionEyebrow?: string
+  sectionTitle?: string
+  sectionDescription?: string
+}
 
 export default function MediaListSection() {
   const [activeType, setActiveType] = useState<MediaItem['type'] | 'all'>('all')
   const { content } = useSiteContent()
+  const section = content?.sections?.media_speaking
+
+  const meta = (section?.metadata ?? {}) as SectionMeta
+  const sectionEyebrow = meta.sectionEyebrow || 'Media & Speaking'
+  const sectionTitle = meta.sectionTitle || 'Voices of leadership'
+  const sectionDescription =
+    meta.sectionDescription ||
+    'Interviews, keynotes, podcasts, and press coverage that amplify the vision for healthcare transformation.'
 
   const filtered = useMemo(() => {
     const cmsMedia =
-      content?.sections.media_speaking?.blocks?.map((block) => ({
+      section?.blocks?.map((block) => ({
         id: String(block.id),
         title: block.title || '',
         type: (block.metadata?.type || 'interview') as MediaItem['type'],
@@ -36,11 +57,10 @@ export default function MediaListSection() {
     const sourceItems = cmsMedia.length ? cmsMedia : mediaItems
     if (activeType === 'all') return sourceItems
     return sourceItems.filter((item) => item.type === activeType)
-  }, [activeType, content])
+  }, [activeType, section])
 
   return (
     <section className="section-padding bg-paper relative overflow-hidden">
-      {/* Ambient background accent */}
       <div className="absolute inset-0 pointer-events-none opacity-20">
         <div className="absolute bottom-10 -left-10 w-[300px] h-[300px] rounded-full blur-[90px] bg-teal-light" />
       </div>
@@ -48,18 +68,21 @@ export default function MediaListSection() {
       <Container className="relative z-10">
         <AnimatedSection>
           <div className="section-header">
-            <span className="section-tag">Media & Speaking</span>
+            <span className="section-tag">{sectionEyebrow}</span>
             <span className="section-rule" />
           </div>
           <h2 className="font-serif text-4xl md:text-5xl font-light text-ink mb-4">
-            Voices of <em className="text-teal-mid not-italic">leadership</em>
+            {sectionTitle.includes('<em') ? (
+              <span dangerouslySetInnerHTML={{ __html: sectionTitle }} />
+            ) : (
+              sectionTitle
+            )}
           </h2>
           <p className="text-sm font-light text-ink-mid leading-relaxed max-w-xl mb-10">
-            Interviews, keynotes, podcasts, and press coverage that amplify the vision for healthcare transformation.
+            {sectionDescription}
           </p>
         </AnimatedSection>
 
-        {/* Filter tabs */}
         <AnimatedSection delay={0.1}>
           <div className="mb-10 flex flex-wrap gap-2">
             {(['all', ...allTypes] as const).map((type) => (
@@ -79,15 +102,12 @@ export default function MediaListSection() {
           </div>
         </AnimatedSection>
 
-        {/* Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filtered.map((item, i) => (
             <AnimatedSection key={item.id} delay={i * 0.06}>
               <div className="bg-white border border-rule h-full p-6 group hover:border-teal-mid/50 hover:shadow-md transition-all duration-300 relative overflow-hidden">
-                {/* Top hover accent strip */}
                 <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-teal to-teal-mid origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300" />
 
-                {/* Type badge + date */}
                 <div className="flex items-center justify-between mb-4">
                   <span className="badge-teal">{mediaTypeLabels[item.type]}</span>
                   <span className="font-mono text-[9px] tracking-[0.2em] uppercase text-ink-muted">

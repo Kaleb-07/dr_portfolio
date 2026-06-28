@@ -13,11 +13,26 @@ const categoryLabels: Record<Award['category'], string> = {
 
 const categoryKeys: Award['category'][] = ['professional', 'alumni', 'industry', 'leadership']
 
+interface SectionMeta {
+  sectionEyebrow?: string
+  sectionTitle?: string
+  sectionDescription?: string
+}
+
 export default function AwardsList() {
   const { content } = useSiteContent()
+  const section = content?.sections?.recognition_awards
+
+  const meta = (section?.metadata ?? {}) as SectionMeta
+  const sectionEyebrow = meta.sectionEyebrow || 'Awards & Recognition'
+  const sectionTitle = meta.sectionTitle || 'Honours that reflect a life of impact'
+  const sectionDescription =
+    meta.sectionDescription ||
+    'Recognition from institutions and peers for sustained excellence in healthcare leadership, service, and innovation.'
+
   const groupedAwards = useMemo(() => {
     const cmsAwards =
-      content?.sections.recognition_awards?.blocks?.map((block) => ({
+      section?.blocks?.map((block) => ({
         id: String(block.id),
         title: block.title || '',
         organization: String(block.metadata?.organization || ''),
@@ -38,11 +53,10 @@ export default function AwardsList() {
       if (groups[award.category]) groups[award.category]!.push(award)
     }
     return groups
-  }, [content])
+  }, [section])
 
   return (
     <section className="section-padding bg-paper relative overflow-hidden">
-      {/* Ambient background accent */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-20">
         <div className="absolute top-1/4 -right-20 w-[300px] h-[300px] rounded-full blur-[80px] bg-gold-light" />
       </div>
@@ -50,15 +64,18 @@ export default function AwardsList() {
       <Container>
         <AnimatedSection>
           <div className="section-header">
-            <span className="section-tag">Awards & Recognition</span>
+            <span className="section-tag">{sectionEyebrow}</span>
             <span className="section-rule" />
           </div>
           <h2 className="font-serif text-4xl md:text-5xl font-light text-ink mb-4">
-            Honours that reflect a life of <em className="text-teal-mid not-italic">impact</em>
+            {sectionTitle.includes('<em') ? (
+              <span dangerouslySetInnerHTML={{ __html: sectionTitle }} />
+            ) : (
+              sectionTitle
+            )}
           </h2>
           <p className="text-sm font-light text-ink-mid leading-relaxed max-w-xl mb-12">
-            Recognition from institutions and peers for sustained excellence in healthcare
-            leadership, service, and innovation.
+            {sectionDescription}
           </p>
         </AnimatedSection>
 
@@ -69,7 +86,6 @@ export default function AwardsList() {
 
             return (
               <AnimatedSection key={category} delay={sectionIndex * 0.1}>
-                {/* Category sub-header */}
                 <div className="flex items-center gap-4 mb-8">
                   <span className="font-mono text-[9px] tracking-[0.25em] uppercase text-gold">
                     {String(sectionIndex + 1).padStart(2, '0')}
@@ -80,12 +96,10 @@ export default function AwardsList() {
                   <div className="h-px flex-1 bg-rule" />
                 </div>
 
-                {/* Awards editorial list */}
                 <div className="border-t border-rule divide-y divide-rule">
                   {items.map((award, i) => (
                     <AnimatedSection key={award.id} delay={i * 0.08}>
                       <div className="py-8 md:py-10 grid md:grid-cols-12 gap-6 items-start group hover:bg-paper-warm/40 px-4 transition-colors duration-300">
-                        {/* Left: title + org + description */}
                         <div className="md:col-span-7">
                           <h3 className="font-serif text-xl font-light text-ink mb-1 group-hover:text-teal transition-colors duration-300">
                             {award.title}
@@ -97,8 +111,6 @@ export default function AwardsList() {
                             {award.description}
                           </p>
                         </div>
-
-                        {/* Right: badge + year */}
                         <div className="md:col-span-5 flex md:justify-end items-start gap-4">
                           <span className="badge-gold">{categoryLabels[category]}</span>
                           <span className="font-mono text-[9px] tracking-[0.2em] uppercase text-ink-muted shrink-0">

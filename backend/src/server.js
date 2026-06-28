@@ -1,25 +1,27 @@
 const express = require('express')
 const cors = require('cors')
+const path = require('path')
 const cmsRoutes = require('./cms/routes')
 const authRoutes = require('./routes/auth.routes')
+const uploadRoutes = require('./routes/upload')
+const contactRoutes = require('./routes/contact.routes')
 
 const app = express()
 
 app.use(cors())
 app.use(express.json({ limit: '25mb' }))
 
-// Mount CMS routes
+app.use('/uploads', express.static(path.join(__dirname, '..', 'public/uploads')))
+
 app.use('/api/cms', cmsRoutes)
-
-// Mount auth routes
 app.use('/api/auth', authRoutes)
+app.use('/api/upload', uploadRoutes)
+app.use('/api/contact', contactRoutes)
 
-// Health check
 app.get('/', (req, res) => {
   res.json({ status: 'ok', message: 'CMS Backend Running 🚀' })
 })
 
-// Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack)
   res.status(500).json({

@@ -5,7 +5,6 @@ import {
   ArrowUp,
   CheckCircle2,
   ChevronDown,
-  Eye,
   Loader2,
   Plus,
   Save,
@@ -14,6 +13,22 @@ import {
   Zap,
 } from 'lucide-react'
 import api from '../api'
+import MediaPicker from '../components/MediaPicker'
+import ConfirmDialog from '../components/ConfirmDialog'
+import UndoButton from '../components/UndoButton'
+
+interface RawAwardBlock {
+  id?: number
+  title?: string | null
+  body?: string | null
+  image_url?: string | null
+  metadata?: {
+    organization?: string
+    year?: string | number
+    category?: string
+    [key: string]: unknown
+  }
+}
 
 type Award = {
   id: string
@@ -73,16 +88,26 @@ export default function AwardsEditor() {
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
 
-  const [awardEyebrow, setAwardEyebrow] = useState('Awards & Recognition')
-  const [awardTitle, setAwardTitle] = useState('Honours that reflect a life of impact')
-  const [awardDescription, setAwardDescription] = useState(
+  const [awards, setAwards] = useState<Award[]>([])
+  const [sectionEyebrow, setSectionEyebrow] = useState('Awards & Recognition')
+  const [sectionTitle, setSectionTitle] = useState('Honours that reflect a life of impact')
+  const [sectionDescription, setSectionDescription] = useState(
     'Recognition from institutions and peers for sustained excellence in healthcare leadership, service, and innovation.',
   )
-  const [awards, setAwards] = useState<Award[]>([])
+
+  const [backupAwards, setBackupAwards] = useState<Award[]>([])
+  const [backupSectionEyebrow, setBackupSectionEyebrow] = useState('Awards & Recognition')
+  const [backupSectionTitle, setBackupSectionTitle] = useState(
+    'Honours that reflect a life of impact',
+  )
+  const [backupSectionDescription, setBackupSectionDescription] = useState(
+    'Recognition from institutions and peers for sustained excellence in healthcare leadership, service, and innovation.',
+  )
 
   const [expandedAwards, setExpandedAwards] = useState<string[]>([])
   const newRef = useRef<HTMLDivElement>(null)
   const [focusId, setFocusId] = useState<string | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<number | null>(null)
 
   useEffect(() => {
     if (!focusId || !newRef.current) return undefined
@@ -110,29 +135,47 @@ export default function AwardsEditor() {
         const res = await api.get('/cms/site-content')
         if (!active) return
         const awardsData = res.data?.sections?.recognition_awards || {}
-        setAwardEyebrow(awardsData.eyebrow || 'Awards & Recognition')
-        setAwardTitle(awardsData.title || 'Honours that reflect a life of impact')
-        setAwardDescription(
-          awardsData.description ||
+        const sectionMeta = awardsData.metadata || {}
+
+        setSectionEyebrow(sectionMeta.sectionEyebrow || 'Awards & Recognition')
+        setSectionTitle(sectionMeta.sectionTitle || 'Honours that reflect a life of impact')
+        setSectionDescription(
+          sectionMeta.sectionDescription ||
             'Recognition from institutions and peers for sustained excellence in healthcare leadership, service, and innovation.',
         )
-        setAwards(
-          (awardsData.blocks?.length ? awardsData.blocks : fallbackAwards).map(
-            (item: any, idx: number) => ({
-              id: item.id || `award-${idx}`,
-              title: item.title || '',
-              organization: item.organization || '',
-              year: item.year || new Date().getFullYear(),
-              description: item.description || '',
-              image: item.image || '',
-              category: item.category || 'professional',
-            }),
-          ),
+        setBackupSectionEyebrow(sectionMeta.sectionEyebrow || 'Awards & Recognition')
+        setBackupSectionTitle(sectionMeta.sectionTitle || 'Honours that reflect a life of impact')
+        setBackupSectionDescription(
+          sectionMeta.sectionDescription ||
+            'Recognition from institutions and peers for sustained excellence in healthcare leadership, service, and innovation.',
         )
+
+        const rawBlocks: RawAwardBlock[] = awardsData.blocks?.length
+          ? awardsData.blocks
+          : fallbackAwards.map((a, i) => ({
+              id: i,
+              title: a.title,
+              body: a.description,
+              image_url: a.image,
+              metadata: { organization: a.organization, year: a.year, category: a.category },
+            }))
+
+        const loadedAwards = rawBlocks.map((item, idx) => ({
+          id: item.id !== undefined ? String(item.id) : `award-${idx}`,
+          title: item.title || '',
+          organization: item.metadata?.organization || '',
+          year: item.metadata?.year || new Date().getFullYear(),
+          description: item.body || '',
+          image: item.image_url || '',
+          category: item.metadata?.category || 'professional',
+        }))
+        setAwards(loadedAwards)
+        setBackupAwards(loadedAwards)
       } catch (loadError) {
         console.warn('Could not load awards, using fallback data', loadError)
         if (!active) return
         setAwards(fallbackAwards.map((item) => ({ ...item })))
+        setBackupAwards(fallbackAwards.map((item) => ({ ...item })))
       } finally {
         if (active) setLoading(false)
       }
@@ -150,22 +193,53 @@ export default function AwardsEditor() {
     try {
       await api.put('/cms/sections/recognition_awards', {
         section: {
-          eyebrow: awardEyebrow,
-          title: awardTitle,
-          description: awardDescription,
+          metadata: {
+            sectionEyebrow,
+            sectionTitle,
+            sectionDescription,
+          },
         },
-        blocks: awards.map((item) => ({
-          ...item,
-          year: Number(item.year) || new Date().getFullYear(),
+        blocks: awards.map((item, index) => ({
+          block_type: 'award',
+          title: item.title,
+          body: item.description,
+          image_url: item.image,
+          metadata: {
+            organization: item.organization,
+            year: Number(item.year) || new Date().getFullYear(),
+            category: item.category,
+          },
+          sort_order: index + 1,
         })),
       })
       setMessage('Awards saved successfully.')
       setTimeout(() => setMessage(''), 3000)
+      setBackupAwards(awards)
+      setBackupSectionEyebrow(sectionEyebrow)
+      setBackupSectionTitle(sectionTitle)
+      setBackupSectionDescription(sectionDescription)
     } catch (saveError) {
       console.error(saveError)
       setError('Save failed. Please try again.')
     } finally {
       setSaving(false)
+    }
+  }
+
+  const handleUndo = () => {
+    setAwards(backupAwards)
+    setSectionEyebrow(backupSectionEyebrow)
+    setSectionTitle(backupSectionTitle)
+    setSectionDescription(backupSectionDescription)
+    setMessage('Changes reverted.')
+    setTimeout(() => setMessage(''), 2000)
+  }
+
+  const confirmDelete = () => {
+    if (deleteTarget !== null) {
+      setAwards((prev) => prev.filter((_, i) => i !== deleteTarget))
+      setExpandedAwards((prev) => prev.filter((id) => id !== String(deleteTarget)))
+      setDeleteTarget(null)
     }
   }
 
@@ -179,30 +253,37 @@ export default function AwardsEditor() {
   }
 
   return (
-    <EditorShell saving={saving} onSave={handleSave} message={message} error={error} title="Awards">
-      <Card title="Awards Hero" description="Top section of the Awards page.">
+    <EditorShell
+      saving={saving}
+      onSave={handleSave}
+      message={message}
+      error={error}
+      title="Awards"
+      undoButton={<UndoButton onClick={handleUndo} />}
+    >
+      <Card title="Section Header" description="The heading shown above the list of awards.">
         <div className="grid gap-6 md:grid-cols-2">
           <Field label="Eyebrow">
             <input
               className={formInput}
-              value={awardEyebrow}
-              onChange={(e) => setAwardEyebrow(e.target.value)}
+              value={sectionEyebrow}
+              onChange={(e) => setSectionEyebrow(e.target.value)}
             />
           </Field>
-          <Field label="Title">
+          <Field label="Title (HTML allowed)" hint="Use &lt;em&gt; tags for styled words.">
             <input
               className={formInput}
-              value={awardTitle}
-              onChange={(e) => setAwardTitle(e.target.value)}
+              value={sectionTitle}
+              onChange={(e) => setSectionTitle(e.target.value)}
             />
           </Field>
           <div className="md:col-span-2">
             <Field label="Description">
               <textarea
                 className={formInput}
-                rows={4}
-                value={awardDescription}
-                onChange={(e) => setAwardDescription(e.target.value)}
+                rows={3}
+                value={sectionDescription}
+                onChange={(e) => setSectionDescription(e.target.value)}
               />
             </Field>
           </div>
@@ -234,10 +315,7 @@ export default function AwardsEditor() {
               refProp={newRef}
               onUp={() => setAwards((prev) => reorderArray(prev, idx, -1))}
               onDown={() => setAwards((prev) => reorderArray(prev, idx, 1))}
-              onDelete={() => {
-                setAwards((prev) => prev.filter((_, i) => i !== idx))
-                setExpandedAwards((prev) => prev.filter((id) => id !== String(idx)))
-              }}
+              onDelete={() => setDeleteTarget(idx)}
               upDisabled={idx === 0}
               downDisabled={idx === awards.length - 1}
             >
@@ -308,16 +386,14 @@ export default function AwardsEditor() {
                   </Field>
                 </div>
                 <div className="md:col-span-2">
-                  <Field label="Image URL">
-                    <input
-                      className={formInput}
-                      value={award.image}
-                      onChange={(e) => {
+                  <Field label="Image">
+                    <MediaPicker
+                      currentUrl={award.image}
+                      onUpload={(url) => {
                         const updated = [...awards]
-                        updated[idx] = { ...updated[idx], image: e.target.value }
+                        updated[idx] = { ...updated[idx], image: url }
                         setAwards(updated)
                       }}
-                      placeholder="/image.png"
                     />
                   </Field>
                 </div>
@@ -326,11 +402,17 @@ export default function AwardsEditor() {
           ))
         )}
       </Card>
+
+      <ConfirmDialog
+        open={deleteTarget !== null}
+        title="Delete Award"
+        message="Are you sure you want to delete this award? This action cannot be undone."
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </EditorShell>
   )
 }
-
-// ---------------- Shared sub-components (copied for independence) ----------------
 
 function EditorShell({
   saving,
@@ -339,6 +421,7 @@ function EditorShell({
   error,
   title,
   children,
+  undoButton,
 }: {
   saving: boolean
   onSave: () => void
@@ -346,6 +429,7 @@ function EditorShell({
   error: string
   title: string
   children: ReactNode
+  undoButton?: ReactNode
 }) {
   return (
     <section className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100/60">
@@ -357,46 +441,21 @@ function EditorShell({
             </p>
             <h1 className="mt-3 text-4xl font-bold text-slate-900">{title}</h1>
           </div>
-          <button
-            type="button"
-            onClick={onSave}
-            disabled={saving}
-            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 px-6 py-3 font-semibold text-white transition-all hover:shadow-xl hover:shadow-emerald-500/30 active:scale-[0.98] disabled:opacity-50"
-          >
-            {saving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
-            <span>{saving ? 'Saving...' : 'Save All Changes'}</span>
-          </button>
+          <div className="flex items-center gap-3">
+            {undoButton}
+            <button
+              type="button"
+              onClick={onSave}
+              disabled={saving}
+              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 px-6 py-3 font-semibold text-white transition-all hover:shadow-xl hover:shadow-emerald-500/30 active:scale-[0.98] disabled:opacity-50"
+            >
+              {saving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
+              <span>{saving ? 'Saving...' : 'Save All Changes'}</span>
+            </button>
+          </div>
         </div>
 
-        <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
-          <div className="space-y-8">{children}</div>
-
-          <aside className="space-y-6">
-            <div className="sticky top-8 space-y-6">
-              <div className="rounded-2xl border border-slate-200 bg-white/80 p-6 shadow-sm backdrop-blur-md transition-all hover:shadow-lg">
-                <h3 className="mb-4 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-slate-400">
-                  <Eye size={14} className="text-emerald-500" /> Live Preview
-                </h3>
-                <div className="min-h-[160px] rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-slate-900">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
-                    {title.toUpperCase()}
-                  </p>
-                  <p className="mt-2 text-sm text-slate-600">
-                    All changes are stored in the database.
-                  </p>
-                </div>
-              </div>
-              <div className="rounded-2xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-emerald-100 p-6">
-                <h3 className="mb-3 flex items-center gap-2 text-sm font-bold text-emerald-900">
-                  <Sparkles size={16} className="text-emerald-600" /> Editing Guide
-                </h3>
-                <p className="text-sm leading-relaxed text-emerald-800">
-                  Click <strong>Save All Changes</strong> to persist your edits.
-                </p>
-              </div>
-            </div>
-          </aside>
-        </div>
+        <div className="space-y-8">{children}</div>
       </div>
       <Toast message={message} error={error} />
     </section>
@@ -537,11 +596,12 @@ function EmptyState({ message }: { message: string }) {
   )
 }
 
-function Field({ label, children }: { label: string; children: ReactNode }) {
+function Field({ label, children, hint }: { label: string; children: ReactNode; hint?: string }) {
   return (
     <label className="block">
       <span className={labelClass}>{label}</span>
       {children}
+      {hint && <p className="mt-1 text-xs text-slate-500">{hint}</p>}
     </label>
   )
 }

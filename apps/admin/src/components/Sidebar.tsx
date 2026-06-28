@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 import { useState, useMemo, useEffect } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import {
@@ -24,7 +25,6 @@ const navItems = [
       { label: 'Foundation', path: '/story/foundation' },
       { label: 'Recognition & Awards', path: '/story/recognition-awards' },
       { label: 'Leadership Philosophy', path: '/story/leadership-philosophy' },
-      { label: 'Testimonials', path: '/story/testimonials' },
     ],
   },
   {
@@ -70,7 +70,6 @@ export function Sidebar() {
 
   const location = useLocation()
 
-  // Automatically expand the parent whose child path matches the current location
   const autoExpandParents = useMemo(() => {
     const parents: string[] = []
     navItems.forEach((item) => {
@@ -81,7 +80,6 @@ export function Sidebar() {
     return parents
   }, [location.pathname])
 
-  // Merge auto-expanded parents into state without losing manual toggles
   useEffect(() => {
     setExpandedMenus((prev) => {
       const next = new Set([...prev, ...autoExpandParents])

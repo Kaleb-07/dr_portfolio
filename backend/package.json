@@ -23,6 +23,7 @@
     "express-joi-validation": "^5.0.1",
     "joi": "^17.13.4",
     "jsonwebtoken": "^9.0.2",
+    "multer": "^2.2.0",
     "prisma": "^5.22.0"
   },
   "devDependencies": {

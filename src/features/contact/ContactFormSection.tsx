@@ -1,32 +1,16 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { motion, useInView, type Variants } from 'framer-motion'
 import { Container, Button } from '@/components/shared'
+import { useContactData } from '@/hooks/useContactData'
 import axios from 'axios'
 
 const api = axios.create({
-  baseURL: 'http://localhost:5000/api',
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api',
   timeout: 5000,
 })
-
-const fallbackContact = {
-  heading: 'Get in touch',
-  email: 'info@liyanahealthcare.com',
-  phone: '+251-11-XXX-XXXX',
-  location: 'Addis Ababa, Ethiopia',
-  image_url: '',
-  image_caption: '',
-}
-
-const fallbackInquiryTypes = [
-  { value: 'partnership', label: 'Partnerships' },
-  { value: 'media', label: 'Media' },
-  { value: 'speaking', label: 'Speaking' },
-  { value: 'other', label: 'Policy' },
-  { value: 'foundation', label: 'Foundation' },
-]
 
 const contactSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -43,8 +27,7 @@ type ContactFormValues = z.infer<typeof contactSchema>
 export default function ContactFormSection() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
-  const [contactData, setContactData] = useState(fallbackContact)
-  const [inquiryTypes, setInquiryTypes] = useState(fallbackInquiryTypes)
+  const { contactData, inquiryTypes } = useContactData()
 
   const sectionRef = useRef<HTMLDivElement>(null)
   const isInView = useInView(sectionRef, { once: true, margin: '-60px' })
@@ -57,30 +40,6 @@ export default function ContactFormSection() {
     resolver: zodResolver(contactSchema),
     defaultValues: { inquiryType: '' },
   })
-
-  useEffect(() => {
-    let cancelled = false
-    ;(async () => {
-      try {
-        const [settingsRes, typesRes] = await Promise.all([
-          api.get('/contact/settings'),
-          api.get('/contact/inquiry-types'),
-        ])
-        if (cancelled) return
-        if (settingsRes.data && Object.keys(settingsRes.data).length) {
-          setContactData((prev) => ({ ...prev, ...settingsRes.data }))
-        }
-        if (typesRes.data?.length) {
-          setInquiryTypes(typesRes.data)
-        }
-      } catch (err) {
-        console.warn('CMS offline – using default contact data', err)
-      }
-    })()
-    return () => {
-      cancelled = true
-    }
-  }, [])
 
   const onSubmit = async (data: ContactFormValues) => {
     setIsSubmitting(true)

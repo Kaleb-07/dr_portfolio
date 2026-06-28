@@ -66,11 +66,22 @@ export interface NavigationItem {
   children?: NavigationItem[]
 }
 
+export interface ContactSettings {
+  heading: string
+  email: string
+  phone: string
+  location: string
+  image_url: string
+  image_caption: string
+}
+
 export interface SiteContent {
   sections: Record<string, CmsSection>
+  sectionOrder: string[]
   identityItems: IdentityItem[]
   timelineEvents: TimelineEvent[]
   navigation: NavigationItem[]
+  contact: ContactSettings | null
 }
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api'
@@ -91,9 +102,33 @@ const defaultSections: Record<string, CmsSection> = {
       cta: heroData.cta,
     },
     blocks: [
-      { id: 0, section_id: 0, block_type: 'identity_teaser', title: 'Physician', eyebrow: 'Identity I', sort_order: 1, is_active: 1 },
-      { id: 1, section_id: 0, block_type: 'identity_teaser', title: 'Entrepreneur', eyebrow: 'Identity II', sort_order: 2, is_active: 1 },
-      { id: 2, section_id: 0, block_type: 'identity_teaser', title: 'Nation Builder', eyebrow: 'Identity III', sort_order: 3, is_active: 1 },
+      {
+        id: 0,
+        section_id: 0,
+        block_type: 'identity_teaser',
+        title: 'Physician',
+        eyebrow: 'Identity I',
+        sort_order: 1,
+        is_active: 1,
+      },
+      {
+        id: 1,
+        section_id: 0,
+        block_type: 'identity_teaser',
+        title: 'Entrepreneur',
+        eyebrow: 'Identity II',
+        sort_order: 2,
+        is_active: 1,
+      },
+      {
+        id: 2,
+        section_id: 0,
+        block_type: 'identity_teaser',
+        title: 'Nation Builder',
+        eyebrow: 'Identity III',
+        sort_order: 3,
+        is_active: 1,
+      },
     ],
   },
   leadership_philosophy: {
@@ -110,6 +145,7 @@ const defaultSections: Record<string, CmsSection> = {
 
 export const defaultContent: SiteContent = {
   sections: defaultSections,
+  sectionOrder: [],
   identityItems: [],
   timelineEvents: [],
   navigation: mainNavigation.map((item, index) => ({
@@ -120,6 +156,7 @@ export const defaultContent: SiteContent = {
     target: '_self',
     sort_order: index,
   })),
+  contact: null,
 }
 
 function normalizeContent(raw: Partial<SiteContent> | null | undefined): SiteContent {
@@ -128,9 +165,13 @@ function normalizeContent(raw: Partial<SiteContent> | null | undefined): SiteCon
       ...defaultContent.sections,
       ...(raw?.sections || {}),
     },
+    sectionOrder: raw?.sectionOrder?.length ? raw.sectionOrder : defaultContent.sectionOrder,
     identityItems: raw?.identityItems?.length ? raw.identityItems : defaultContent.identityItems,
-    timelineEvents: raw?.timelineEvents?.length ? raw.timelineEvents : defaultContent.timelineEvents,
+    timelineEvents: raw?.timelineEvents?.length
+      ? raw.timelineEvents
+      : defaultContent.timelineEvents,
     navigation: raw?.navigation?.length ? raw.navigation : defaultContent.navigation,
+    contact: raw?.contact ?? null,
   }
 }
 
