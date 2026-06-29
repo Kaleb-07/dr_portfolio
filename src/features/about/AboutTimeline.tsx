@@ -1,7 +1,15 @@
 import { AnimatedSection, Container } from '@/components/shared'
 import { journey } from '@/data/about'
+import { useSiteContent } from '@/hooks/useSiteContent'
 
 export default function AboutTimeline() {
+  const { content } = useSiteContent()
+  const cmsEvents = content?.timelineEvents || []
+  const events =
+    cmsEvents.length > 0
+      ? cmsEvents
+      : journey
+
   return (
     <section className="section-padding bg-paper-warm relative overflow-hidden">
       {/* Soft background glows */}
@@ -31,7 +39,7 @@ export default function AboutTimeline() {
           />
 
           <div className="space-y-12 relative">
-            {journey.map((item, i) => {
+            {events.map((item: any, i: number) => {
               const isEven = i % 2 === 0
               return (
                 <AnimatedSection key={i} delay={i * 0.05}>
@@ -40,7 +48,9 @@ export default function AboutTimeline() {
                   >
                     {/* Glowing Year Node Circle on Timeline */}
                     <div className="absolute left-4 sm:left-1/2 -translate-x-1/2 top-1.5 z-10 w-9 h-9 rounded-full bg-white border border-teal flex items-center justify-center shadow-sm transition-all duration-300 hover:scale-110 hover:border-teal-mid">
-                      <span className="font-mono text-[9px] font-bold text-teal">{item.year}</span>
+                      <span className="font-mono text-[9px] font-bold text-teal">
+                        {item.year || item.title || ''}
+                      </span>
                     </div>
 
                     {/* Timeline Card Column */}
@@ -56,7 +66,7 @@ export default function AboutTimeline() {
                         </p>
 
                         <p className="text-sm font-light text-ink-mid leading-relaxed">
-                          {item.milestone}
+                          {item.title || item.milestone || ''}
                         </p>
                       </div>
                     </div>

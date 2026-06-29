@@ -16,6 +16,8 @@ import {
   Zap,
 } from 'lucide-react'
 import api from '../api'
+import ConfirmDialog from '../components/ConfirmDialog'
+import UndoButton from '../components/UndoButton'
 
 // ------------------------------------------------------------------
 // Helpers
@@ -95,12 +97,13 @@ const readLocalImage = (
 }
 
 // ------------------------------------------------------------------
-// Reusable sub‑components
+// Reusable sub‑components (with onUndo added)
 // ------------------------------------------------------------------
 function EditorShell({
   title,
   saving,
   onSave,
+  onUndo,
   message,
   error,
   children,
@@ -108,6 +111,7 @@ function EditorShell({
   title: string
   saving: boolean
   onSave: () => void
+  onUndo?: () => void
   message: string
   error: string
   children: React.ReactNode
@@ -122,14 +126,17 @@ function EditorShell({
             </p>
             <h1 className="mt-3 text-4xl font-bold text-slate-900">{title}</h1>
           </div>
-          <button
-            onClick={onSave}
-            disabled={saving}
-            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 px-6 py-3 font-semibold text-white transition-all hover:shadow-xl hover:shadow-emerald-500/30 active:scale-[0.98] disabled:opacity-50"
-          >
-            {saving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
-            <span>{saving ? 'Saving...' : 'Save All Changes'}</span>
-          </button>
+          <div className="flex items-center gap-4">
+            {onUndo && <UndoButton onClick={onUndo} />}
+            <button
+              onClick={onSave}
+              disabled={saving}
+              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 px-6 py-3 font-semibold text-white transition-all hover:shadow-xl hover:shadow-emerald-500/30 active:scale-[0.98] disabled:opacity-50"
+            >
+              {saving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
+              <span>{saving ? 'Saving...' : 'Save All Changes'}</span>
+            </button>
+          </div>
         </div>
 
         <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
@@ -300,7 +307,6 @@ function EmptyState({ message }: { message: string }) {
 // ------------------------------------------------------------------
 // Types
 // ------------------------------------------------------------------
-
 interface Block {
   id: string | number
   block_type: string
@@ -323,9 +329,12 @@ interface JourneyDraft {
   about: {
     eyebrow: string
     title: string
+    subtitle: string
     description: string
     image_url: string
     image_alt: string
+    quote: string
+    attribution: string
     blocks: Block[]
   }
   principles: {
@@ -352,7 +361,6 @@ interface JourneyDraft {
 // ------------------------------------------------------------------
 // Main Component
 // ------------------------------------------------------------------
-
 export default function JourneyEditor() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -360,6 +368,21 @@ export default function JourneyEditor() {
   const [error, setError] = useState('')
   const [deletedIds, setDeletedIds] = useState<(string | number)[]>([])
   const [draft, setDraft] = useState<JourneyDraft | null>(null)
+
+  // Backup for undo
+  const backupRef = useRef<JourneyDraft | null>(null)
+
+  // Confirm dialog state
+  const [confirm, setConfirm] = useState<{
+    open: boolean
+    title?: string
+    message?: string
+    onConfirm?: () => void
+  }>({ open: false })
+
+  const askConfirm = (title: string, message: string, onConfirm: () => void) => {
+    setConfirm({ open: true, title, message, onConfirm })
+  }
 
   // Expand/collapse states
   const [expandedChapters, setExpandedChapters] = useState<string[]>([])
@@ -384,56 +407,66 @@ export default function JourneyEditor() {
     return () => clearTimeout(reset)
   }, [focusId])
 
-  // Fetch data
+  // Fetch data helper (used both on load and after save)
+  const fetchData = async () => {
+    const response = await api.get('/cms/site-content')
+    const data = response.data
+    const timeline = (data.timelineEvents || []).map((event: any) => ({
+      id: event.id,
+      year: event.year || '',
+      title: event.title || '',
+      sort_order: event.sort_order || 0,
+      image_url: event.image_url || '',
+    }))
+    const about = data.sections?.about_story || {}
+    const philosophy = data.sections?.leadership_philosophy || {}
+    const principles = data.sections?.about_values || {}
+    const vision = data.sections?.about_vision || {}
+    const fresh: JourneyDraft = {
+      events: timeline,
+      about: {
+        eyebrow: about.eyebrow || '',
+        title: about.title || '',
+        subtitle: about.subtitle || '',
+        description: about.description || '',
+        image_url: about.image_url || '',
+        image_alt: about.image_alt || '',
+        quote: about.metadata?.quote || '',
+        attribution: about.metadata?.attribution || '',
+        blocks: about.blocks || [],
+      },
+      principles: {
+        eyebrow: principles.eyebrow || '',
+        title: principles.title || '',
+        description: principles.description || '',
+        blocks: principles.blocks || [],
+      },
+      vision: {
+        eyebrow: vision.eyebrow || '',
+        title: vision.title || '',
+        description: vision.description || '',
+        blocks: vision.blocks || [],
+      },
+      philosophy: {
+        eyebrow: philosophy.eyebrow || '',
+        title: philosophy.title || '',
+        description: philosophy.description || '',
+        subtitle: philosophy.subtitle || '',
+        blocks: philosophy.blocks || [],
+      },
+    }
+    setDraft(fresh)
+    backupRef.current = structuredClone(fresh)
+    return fresh
+  }
+
+  // Initial load
   useEffect(() => {
     let active = true
     const load = async () => {
       setLoading(true)
       try {
-        const response = await api.get('/cms/site-content')
-        if (!active) return
-        const data = response.data
-        const timeline = (data.timelineEvents || []).map((event: any) => ({
-          id: event.id,
-          year: event.year || '',
-          title: event.title || '',
-          sort_order: event.sort_order || 0,
-          image_url: event.image_url || '',
-        }))
-        const about = data.sections?.about_story || {}
-        const philosophy = data.sections?.leadership_philosophy || {}
-        const principles = data.sections?.about_values || {}
-        const vision = data.sections?.about_vision || {}
-        setDraft({
-          events: timeline,
-          about: {
-            eyebrow: about.eyebrow || '',
-            title: about.title || '',
-            description: about.description || '',
-            image_url: about.image_url || '',
-            image_alt: about.image_alt || '',
-            blocks: about.blocks || [],
-          },
-          principles: {
-            eyebrow: principles.eyebrow || '',
-            title: principles.title || '',
-            description: principles.description || '',
-            blocks: principles.blocks || [],
-          },
-          vision: {
-            eyebrow: vision.eyebrow || '',
-            title: vision.title || '',
-            description: vision.description || '',
-            blocks: vision.blocks || [],
-          },
-          philosophy: {
-            eyebrow: philosophy.eyebrow || '',
-            title: philosophy.title || '',
-            description: philosophy.description || '',
-            subtitle: philosophy.subtitle || '',
-            blocks: philosophy.blocks || [],
-          },
-        })
+        if (active) await fetchData()
       } catch {
         if (active) setError('Unable to load Journey content.')
       } finally {
@@ -441,10 +474,22 @@ export default function JourneyEditor() {
       }
     }
     load()
-    return () => {
-      active = false
-    }
+    return () => { active = false }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // Undo: restore from backup
+  const handleUndo = () => {
+    if (!backupRef.current) return
+    setDraft(structuredClone(backupRef.current))
+    setExpandedChapters([])
+    setExpandedPrinciples([])
+    setExpandedQuotes([])
+    setExpandedEvents([])
+    setDeletedIds([])
+    setMessage('↩ Reverted to last saved version')
+    setTimeout(() => setMessage(''), 3000)
+  }
 
   // --------------- Helper functions for each section ---------------
   const updateAbout = (patch: Partial<JourneyDraft['about']>) =>
@@ -714,9 +759,14 @@ export default function JourneyEditor() {
           section: {
             eyebrow: draft.about.eyebrow,
             title: draft.about.title,
+            subtitle: draft.about.subtitle,
             description: draft.about.description,
             image_url: draft.about.image_url,
             image_alt: draft.about.image_alt,
+            metadata: {
+              quote: draft.about.quote,
+              attribution: draft.about.attribution,
+            },
           },
           blocks: draft.about.blocks || [],
         })
@@ -753,54 +803,12 @@ export default function JourneyEditor() {
         })
       }
 
-      setMessage('✨ Journey saved successfully!')
       setDeletedIds([])
+      setMessage('✨ Journey saved successfully!')
       setTimeout(() => setMessage(''), 3000)
 
-      // Refresh
-      const response = await api.get('/cms/site-content')
-      const data = response.data
-      const timeline = (data.timelineEvents || []).map((event: any) => ({
-        id: event.id,
-        year: event.year || '',
-        title: event.title || '',
-        sort_order: event.sort_order || 0,
-        image_url: event.image_url || '',
-      }))
-      const about = data.sections?.about_story || {}
-      const philosophy = data.sections?.leadership_philosophy || {}
-      const principles = data.sections?.about_values || {}
-      const vision = data.sections?.about_vision || {}
-      setDraft({
-        events: timeline,
-        about: {
-          eyebrow: about.eyebrow || '',
-          title: about.title || '',
-          description: about.description || '',
-          image_url: about.image_url || '',
-          image_alt: about.image_alt || '',
-          blocks: about.blocks || [],
-        },
-        principles: {
-          eyebrow: principles.eyebrow || '',
-          title: principles.title || '',
-          description: principles.description || '',
-          blocks: principles.blocks || [],
-        },
-        vision: {
-          eyebrow: vision.eyebrow || '',
-          title: vision.title || '',
-          description: vision.description || '',
-          blocks: vision.blocks || [],
-        },
-        philosophy: {
-          eyebrow: philosophy.eyebrow || '',
-          title: philosophy.title || '',
-          description: philosophy.description || '',
-          subtitle: philosophy.subtitle || '',
-          blocks: philosophy.blocks || [],
-        },
-      })
+      // Refresh data and update backup
+      await fetchData()
     } catch {
       setError('Could not save Journey. Please try again.')
     } finally {
@@ -818,50 +826,25 @@ export default function JourneyEditor() {
   }
 
   return (
-    <EditorShell title="Journey" saving={saving} onSave={save} message={message} error={error}>
-      {/* About Story Card */}
-      <Card title="About Story" description="Header and chapter blocks." onAdd={addChapter}>
-        <div className="grid gap-6 md:grid-cols-2 mb-6">
-          <Field label="Eyebrow">
-            <input
-              className={formInput}
-              value={draft.about.eyebrow}
-              onChange={(e) => updateAbout({ eyebrow: e.target.value })}
-            />
-          </Field>
-          <Field label="Title (HTML)">
-            <input
-              className={formInput}
-              value={draft.about.title}
-              onChange={(e) => updateAbout({ title: e.target.value })}
-            />
-          </Field>
-          <Field label="Image URL">
-            <div className="flex gap-2">
+    <>
+      <EditorShell
+        title="Journey"
+        saving={saving}
+        onSave={save}
+        onUndo={handleUndo}
+        message={message}
+        error={error}
+      >
+        {/* ── Hero Banner ─────────────────────────────────────── */}
+        <Card title="Hero Banner" description="The top banner of the About page.">
+          <div className="grid gap-6 md:grid-cols-2">
+            <Field label="Title">
               <input
                 className={formInput}
-                value={draft.about.image_url || ''}
-                onChange={(e) => updateAbout({ image_url: e.target.value })}
+                value={draft.about.title}
+                onChange={(e) => updateAbout({ title: e.target.value })}
               />
-              <label className="inline-flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-slate-200 bg-slate-100 text-slate-600 transition-all hover:bg-slate-200">
-                <Upload size={18} />
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="sr-only"
-                  onChange={(e) => updateAboutImage(e.target.files?.[0])}
-                />
-              </label>
-            </div>
-          </Field>
-          <Field label="Image Alt">
-            <input
-              className={formInput}
-              value={draft.about.image_alt || ''}
-              onChange={(e) => updateAbout({ image_alt: e.target.value })}
-            />
-          </Field>
-          <div className="md:col-span-2">
+            </Field>
             <Field label="Description">
               <textarea
                 className={formInput}
@@ -871,305 +854,344 @@ export default function JourneyEditor() {
               />
             </Field>
           </div>
-        </div>
+        </Card>
 
-        {draft.about.blocks.length === 0 ? (
-          <EmptyState message="No chapters yet. Add one to get started." />
-        ) : (
-          draft.about.blocks.map((block, idx) => (
-            <ExpandableItem
-              key={block.id || idx}
-              idx={idx}
-              expanded={expandedChapters}
-              setExpanded={setExpandedChapters}
-              headerLabel={`Chapter ${idx + 1}`}
-              headerValue={block.title || 'Untitled'}
-              isFocused={focusId === String(block.id)}
-              refProp={newRef}
-              onUp={() => reorderChapter(idx, -1)}
-              onDown={() => reorderChapter(idx, 1)}
-              onDelete={() => removeChapter(idx)}
-              upDisabled={idx === 0}
-              downDisabled={idx === draft.about.blocks.length - 1}
-            >
-              <Field label="Title">
-                <input
-                  className={formInput}
-                  value={block.title}
-                  onChange={(e) => updateChapter(idx, { title: e.target.value })}
-                />
-              </Field>
-              <Field label="Body">
-                <textarea
-                  className={formInput}
-                  rows={5}
-                  value={block.body}
-                  onChange={(e) => updateChapter(idx, { body: e.target.value })}
-                />
-              </Field>
-              <Field label="Order">
-                <input
-                  className={formInput}
-                  type="number"
-                  value={block.sort_order || idx + 1}
-                  onChange={(e) => updateChapter(idx, { sort_order: Number(e.target.value) })}
-                />
-              </Field>
-            </ExpandableItem>
-          ))
-        )}
-      </Card>
-
-      {/* Principles Card */}
-      <Card
-        title="Principles (Values)"
-        description="Core principles and values."
-        onAdd={addPrinciple}
-      >
-        <div className="grid gap-6 md:grid-cols-2 mb-6">
-          <Field label="Eyebrow">
-            <input
-              className={formInput}
-              value={draft.principles.eyebrow}
-              onChange={(e) => updatePrinciples({ eyebrow: e.target.value })}
-            />
-          </Field>
-          <Field label="Title (HTML)">
-            <input
-              className={formInput}
-              value={draft.principles.title}
-              onChange={(e) => updatePrinciples({ title: e.target.value })}
-            />
-          </Field>
-          <div className="md:col-span-2">
-            <Field label="Description">
-              <textarea
+        {/* ── About Story ─────────────────────────────────────── */}
+        <Card title="About Story" description="Eyebrow, heading, image, quote, and chapter blocks." onAdd={addChapter}>
+          <div className="grid gap-6 md:grid-cols-2 mb-6">
+            <Field label="Eyebrow (small tag)">
+              <input
                 className={formInput}
-                rows={4}
-                value={draft.principles.description}
-                onChange={(e) => updatePrinciples({ description: e.target.value })}
+                value={draft.about.eyebrow}
+                onChange={(e) => updateAbout({ eyebrow: e.target.value })}
               />
             </Field>
-          </div>
-        </div>
-
-        {draft.principles.blocks.length === 0 ? (
-          <EmptyState message="No principles yet." />
-        ) : (
-          draft.principles.blocks.map((block, idx) => (
-            <ExpandableItem
-              key={block.id || idx}
-              idx={idx}
-              expanded={expandedPrinciples}
-              setExpanded={setExpandedPrinciples}
-              headerLabel="Principle"
-              headerValue={block.title || 'Untitled'}
-              isFocused={focusId === String(block.id)}
-              refProp={newRef}
-              onUp={() => reorderPrinciple(idx, -1)}
-              onDown={() => reorderPrinciple(idx, 1)}
-              onDelete={() => removePrinciple(idx)}
-              upDisabled={idx === 0}
-              downDisabled={idx === draft.principles.blocks.length - 1}
-            >
-              <Field label="Title">
-                <input
-                  className={formInput}
-                  value={block.title}
-                  onChange={(e) => updatePrinciple(idx, { title: e.target.value })}
-                />
-              </Field>
-              <Field label="Description">
-                <textarea
-                  className={formInput}
-                  rows={4}
-                  value={block.body}
-                  onChange={(e) => updatePrinciple(idx, { body: e.target.value })}
-                />
-              </Field>
-              <Field label="Order">
-                <input
-                  className={formInput}
-                  type="number"
-                  value={block.sort_order || idx + 1}
-                  onChange={(e) => updatePrinciple(idx, { sort_order: Number(e.target.value) })}
-                />
-              </Field>
-            </ExpandableItem>
-          ))
-        )}
-      </Card>
-
-      {/* Leadership Philosophy Card */}
-      <Card
-        title="Leadership Philosophy"
-        description="Quotes and philosophy section."
-        onAdd={addQuote}
-      >
-        <div className="grid gap-6 md:grid-cols-2 mb-6">
-          <Field label="Eyebrow">
-            <input
-              className={formInput}
-              value={draft.philosophy.eyebrow}
-              onChange={(e) => updatePhilosophy({ eyebrow: e.target.value })}
-            />
-          </Field>
-          <Field label="Title">
-            <input
-              className={formInput}
-              value={draft.philosophy.title}
-              onChange={(e) => updatePhilosophy({ title: e.target.value })}
-            />
-          </Field>
-          <div className="md:col-span-2">
-            <Field label="Primary Quote">
-              <textarea
+            <Field label="Subtitle (section heading)">
+              <input
                 className={formInput}
-                rows={4}
-                value={draft.philosophy.description}
-                onChange={(e) => updatePhilosophy({ description: e.target.value })}
+                value={draft.about.subtitle}
+                onChange={(e) => updateAbout({ subtitle: e.target.value })}
               />
             </Field>
-          </div>
-          <Field label="Attribution">
-            <input
-              className={formInput}
-              value={draft.philosophy.subtitle}
-              onChange={(e) => updatePhilosophy({ subtitle: e.target.value })}
-            />
-          </Field>
-        </div>
-
-        {draft.philosophy.blocks.length === 0 ? (
-          <EmptyState message="No quotes yet." />
-        ) : (
-          draft.philosophy.blocks.map((block, idx) => (
-            <ExpandableItem
-              key={block.id || idx}
-              idx={idx}
-              expanded={expandedQuotes}
-              setExpanded={setExpandedQuotes}
-              headerLabel="Quote"
-              headerValue={block.body ? block.body.slice(0, 50) + '...' : 'Untitled'}
-              isFocused={focusId === String(block.id)}
-              refProp={newRef}
-              onUp={() => reorderQuote(idx, -1)}
-              onDown={() => reorderQuote(idx, 1)}
-              onDelete={() => removeQuote(idx)}
-              upDisabled={idx === 0}
-              downDisabled={idx === draft.philosophy.blocks.length - 1}
-            >
-              <Field label="Quote Text">
-                <textarea
-                  className={formInput}
-                  rows={4}
-                  value={block.body}
-                  onChange={(e) => updateQuote(idx, { body: e.target.value })}
-                />
-              </Field>
-              <Field label="Attribution">
+            <Field label="Image URL">
+              <div className="flex gap-2">
                 <input
                   className={formInput}
-                  value={block.title}
-                  onChange={(e) => updateQuote(idx, { title: e.target.value })}
+                  value={draft.about.image_url || ''}
+                  onChange={(e) => updateAbout({ image_url: e.target.value })}
                 />
-              </Field>
-            </ExpandableItem>
-          ))
-        )}
-      </Card>
-
-      {/* Vision Card */}
-      <Card title="Vision">
-        <div className="grid gap-6 md:grid-cols-2">
-          <Field label="Eyebrow">
-            <input
-              className={formInput}
-              value={draft.vision.eyebrow}
-              onChange={(e) => updateVision({ eyebrow: e.target.value })}
-            />
-          </Field>
-          <Field label="Title">
-            <input
-              className={formInput}
-              value={draft.vision.title}
-              onChange={(e) => updateVision({ title: e.target.value })}
-            />
-          </Field>
-          <div className="md:col-span-2">
-            <Field label="Quote / Description">
-              <textarea
-                className={formInput}
-                rows={4}
-                value={draft.vision.description}
-                onChange={(e) => updateVision({ description: e.target.value })}
-              />
-            </Field>
-          </div>
-        </div>
-      </Card>
-
-      {/* Timeline Events Card */}
-      <Card title="Timeline Events" description="Chronological events." onAdd={addEvent}>
-        {draft.events.length === 0 ? (
-          <EmptyState message="No events yet." />
-        ) : (
-          draft.events.map((event, idx) => (
-            <ExpandableItem
-              key={event.id || idx}
-              idx={idx}
-              expanded={expandedEvents}
-              setExpanded={setExpandedEvents}
-              headerLabel={event.year || 'Year'}
-              headerValue={event.title || 'Untitled Event'}
-              isFocused={focusId === String(event.id)}
-              refProp={newRef}
-              onUp={() => reorderEvent(idx, -1)}
-              onDown={() => reorderEvent(idx, 1)}
-              onDelete={() => removeEvent(idx)}
-              upDisabled={idx === 0}
-              downDisabled={idx === draft.events.length - 1}
-            >
-              <div className="grid gap-4 md:grid-cols-2">
-                <Field label="Year">
-                  <input
-                    className={formInput}
-                    value={event.year}
-                    onChange={(e) => updateEvent(idx, { year: e.target.value })}
-                  />
-                </Field>
-                <Field label="Title">
-                  <input
-                    className={formInput}
-                    value={event.title}
-                    onChange={(e) => updateEvent(idx, { title: e.target.value })}
-                  />
-                </Field>
-              </div>
-              {/* Image upload */}
-              <div className="flex items-center gap-3">
-                <Field label="Image URL">
-                  <input
-                    className={formInput}
-                    value={event.image_url || ''}
-                    onChange={(e) => updateEvent(idx, { image_url: e.target.value })}
-                    placeholder="Image URL"
-                  />
-                </Field>
-                <label className="inline-flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-slate-200 bg-slate-100 text-slate-600 transition-all hover:bg-slate-200 mt-5">
+                <label className="inline-flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-slate-200 bg-slate-100 text-slate-600 transition-all hover:bg-slate-200">
                   <Upload size={18} />
                   <input
                     type="file"
                     accept="image/*"
                     className="sr-only"
-                    onChange={(e) => updateEventImage(idx, e.target.files?.[0])}
+                    onChange={(e) => updateAboutImage(e.target.files?.[0])}
                   />
                 </label>
               </div>
-            </ExpandableItem>
-          ))
-        )}
-      </Card>
-    </EditorShell>
+            </Field>
+            <Field label="Image Alt">
+              <input
+                className={formInput}
+                value={draft.about.image_alt || ''}
+                onChange={(e) => updateAbout({ image_alt: e.target.value })}
+              />
+            </Field>
+            <div className="md:col-span-2">
+              <Field label="Quote (under the picture)">
+                <textarea
+                  className={formInput}
+                  rows={3}
+                  value={draft.about.quote}
+                  onChange={(e) => updateAbout({ quote: e.target.value })}
+                />
+              </Field>
+            </div>
+            <div className="md:col-span-2">
+              <Field label="Attribution">
+                <input
+                  className={formInput}
+                  value={draft.about.attribution}
+                  onChange={(e) => updateAbout({ attribution: e.target.value })}
+                />
+              </Field>
+            </div>
+          </div>
+
+          {/* Chapters */}
+          {draft.about.blocks.length === 0 ? (
+            <EmptyState message="No chapters yet. Add one to get started." />
+          ) : (
+            draft.about.blocks.map((block, idx) => (
+              <ExpandableItem
+                key={block.id || idx}
+                idx={idx}
+                expanded={expandedChapters}
+                setExpanded={setExpandedChapters}
+                headerLabel={`Chapter ${idx + 1}`}
+                headerValue={block.title || 'Untitled'}
+                isFocused={focusId === String(block.id)}
+                refProp={newRef}
+                onUp={() => reorderChapter(idx, -1)}
+                onDown={() => reorderChapter(idx, 1)}
+                onDelete={() =>
+                  askConfirm('Delete chapter?', 'This cannot be undone.', () => removeChapter(idx))
+                }
+                upDisabled={idx === 0}
+                downDisabled={idx === draft.about.blocks.length - 1}
+              >
+                <Field label="Title">
+                  <input
+                    className={formInput}
+                    value={block.title}
+                    onChange={(e) => updateChapter(idx, { title: e.target.value })}
+                  />
+                </Field>
+                <Field label="Body">
+                  <textarea
+                    className={formInput}
+                    rows={5}
+                    value={block.body}
+                    onChange={(e) => updateChapter(idx, { body: e.target.value })}
+                  />
+                </Field>
+                <Field label="Order">
+                  <input
+                    className={formInput}
+                    type="number"
+                    value={block.sort_order || idx + 1}
+                    onChange={(e) => updateChapter(idx, { sort_order: Number(e.target.value) })}
+                  />
+                </Field>
+              </ExpandableItem>
+            ))
+          )}
+        </Card>
+        
+        {/* ── Leadership Philosophy ─────────────────────── */}
+<Card title="Leadership Philosophy" description="Primary quote and attribution.">
+  <div className="grid gap-6 md:grid-cols-2 mb-6">
+    <Field label="Eyebrow">
+      <input
+        className={formInput}
+        value={draft.philosophy.eyebrow}
+        onChange={(e) => updatePhilosophy({ eyebrow: e.target.value })}
+      />
+    </Field>
+    <Field label="Title">
+      <input
+        className={formInput}
+        value={draft.philosophy.title}
+        onChange={(e) => updatePhilosophy({ title: e.target.value })}
+      />
+    </Field>
+    <div className="md:col-span-2">
+      <Field label="Quote Text">
+        <textarea
+          className={formInput}
+          rows={5}
+          value={draft.philosophy.description}
+          onChange={(e) => updatePhilosophy({ description: e.target.value })}
+        />
+      </Field>
+    </div>
+    <Field label="Attribution">
+      <input
+        className={formInput}
+        value={draft.philosophy.subtitle}
+        onChange={(e) => updatePhilosophy({ subtitle: e.target.value })}
+      />
+    </Field>
+  </div>
+</Card>
+
+        {/* Principles Card */}
+        <Card
+          title="Principles (Values)"
+          description="Core principles and values."
+          onAdd={addPrinciple}
+        >
+          <div className="grid gap-6 md:grid-cols-2 mb-6">
+            <Field label="Eyebrow">
+              <input
+                className={formInput}
+                value={draft.principles.eyebrow}
+                onChange={(e) => updatePrinciples({ eyebrow: e.target.value })}
+              />
+            </Field>
+            <Field label="Title (HTML)">
+              <input
+                className={formInput}
+                value={draft.principles.title}
+                onChange={(e) => updatePrinciples({ title: e.target.value })}
+              />
+            </Field>
+            <div className="md:col-span-2">
+              <Field label="Description">
+                <textarea
+                  className={formInput}
+                  rows={4}
+                  value={draft.principles.description}
+                  onChange={(e) => updatePrinciples({ description: e.target.value })}
+                />
+              </Field>
+            </div>
+          </div>
+
+          {draft.principles.blocks.length === 0 ? (
+            <EmptyState message="No principles yet." />
+          ) : (
+            draft.principles.blocks.map((block, idx) => (
+              <ExpandableItem
+                key={block.id || idx}
+                idx={idx}
+                expanded={expandedPrinciples}
+                setExpanded={setExpandedPrinciples}
+                headerLabel="Principle"
+                headerValue={block.title || 'Untitled'}
+                isFocused={focusId === String(block.id)}
+                refProp={newRef}
+                onUp={() => reorderPrinciple(idx, -1)}
+                onDown={() => reorderPrinciple(idx, 1)}
+                onDelete={() =>
+                  askConfirm('Delete principle?', 'This cannot be undone.', () =>
+                    removePrinciple(idx),
+                  )
+                }
+                upDisabled={idx === 0}
+                downDisabled={idx === draft.principles.blocks.length - 1}
+              >
+                <Field label="Title">
+                  <input
+                    className={formInput}
+                    value={block.title}
+                    onChange={(e) => updatePrinciple(idx, { title: e.target.value })}
+                  />
+                </Field>
+                <Field label="Description">
+                  <textarea
+                    className={formInput}
+                    rows={4}
+                    value={block.body}
+                    onChange={(e) => updatePrinciple(idx, { body: e.target.value })}
+                  />
+                </Field>
+                <Field label="Order">
+                  <input
+                    className={formInput}
+                    type="number"
+                    value={block.sort_order || idx + 1}
+                    onChange={(e) => updatePrinciple(idx, { sort_order: Number(e.target.value) })}
+                  />
+                </Field>
+              </ExpandableItem>
+            ))
+          )}
+        </Card>
+
+        {/* Vision Card */}
+        <Card title="Vision">
+          <div className="grid gap-6 md:grid-cols-2">
+            <Field label="Eyebrow">
+              <input
+                className={formInput}
+                value={draft.vision.eyebrow}
+                onChange={(e) => updateVision({ eyebrow: e.target.value })}
+              />
+            </Field>
+            <Field label="Title">
+              <input
+                className={formInput}
+                value={draft.vision.title}
+                onChange={(e) => updateVision({ title: e.target.value })}
+              />
+            </Field>
+            <div className="md:col-span-2">
+              <Field label="Quote / Description">
+                <textarea
+                  className={formInput}
+                  rows={4}
+                  value={draft.vision.description}
+                  onChange={(e) => updateVision({ description: e.target.value })}
+                />
+              </Field>
+            </div>
+          </div>
+        </Card>
+
+        {/* Timeline Events Card */}
+        <Card title="Timeline Events" description="Chronological events." onAdd={addEvent}>
+          {draft.events.length === 0 ? (
+            <EmptyState message="No events yet." />
+          ) : (
+            draft.events.map((event, idx) => (
+              <ExpandableItem
+                key={event.id || idx}
+                idx={idx}
+                expanded={expandedEvents}
+                setExpanded={setExpandedEvents}
+                headerLabel={event.year || 'Year'}
+                headerValue={event.title || 'Untitled Event'}
+                isFocused={focusId === String(event.id)}
+                refProp={newRef}
+                onUp={() => reorderEvent(idx, -1)}
+                onDown={() => reorderEvent(idx, 1)}
+                onDelete={() =>
+                  askConfirm('Delete event?', 'This cannot be undone.', () => removeEvent(idx))
+                }
+                upDisabled={idx === 0}
+                downDisabled={idx === draft.events.length - 1}
+              >
+                <div className="grid gap-4 md:grid-cols-2">
+                  <Field label="Year">
+                    <input
+                      className={formInput}
+                      value={event.year}
+                      onChange={(e) => updateEvent(idx, { year: e.target.value })}
+                    />
+                  </Field>
+                  <Field label="Title">
+                    <input
+                      className={formInput}
+                      value={event.title}
+                      onChange={(e) => updateEvent(idx, { title: e.target.value })}
+                    />
+                  </Field>
+                </div>
+                {/* Image upload */}
+                {/* <div className="flex items-center gap-3">
+                  <Field label="Image URL">
+                    <input
+                      className={formInput}
+                      value={event.image_url || ''}
+                      onChange={(e) => updateEvent(idx, { image_url: e.target.value })}
+                      placeholder="Image URL"
+                    />
+                  </Field>
+                  <label className="inline-flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-slate-200 bg-slate-100 text-slate-600 transition-all hover:bg-slate-200 mt-5">
+                    <Upload size={18} />
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="sr-only"
+                      onChange={(e) => updateEventImage(idx, e.target.files?.[0])}
+                    />
+                  </label>
+                </div> */}
+              </ExpandableItem>
+            ))
+          )}
+        </Card>
+      </EditorShell>
+
+      <ConfirmDialog
+        open={confirm.open}
+        title={confirm.title || 'Confirm'}
+        message={confirm.message || ''}
+        onConfirm={() => confirm.onConfirm?.()}
+        onCancel={() => setConfirm({ open: false })}
+      />
+    </>
   )
 }

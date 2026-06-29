@@ -6,8 +6,14 @@ export default function AboutStory() {
   const { content } = useSiteContent()
   const section = content?.sections?.about_story
 
-  
+  // Metadata from the Journey editor (quote & attribution)
+  const meta = (section?.metadata as any) || {}
+  const quote = meta?.quote || "We don't just build healthcare facilities; we build the future of our nation's wellness."
+  const attribution = meta?.attribution || 'Dr. Girma Ababi, Founder'
 
+  const subtitle = section?.subtitle || 'A life in <em class="text-teal-mid not-italic">service</em>'
+
+  // ... rest of the component remains unchanged ...
   return (
     <section className="section-padding bg-paper relative overflow-hidden">
       {/* Dynamic background accents */}
@@ -24,7 +30,10 @@ export default function AboutStory() {
                 <span className="section-tag">{section?.eyebrow || 'The Story'}</span>
                 <span className="section-rule" />
               </div>
-              <h2 className="font-serif text-4xl md:text-5xl font-light text-ink mb-8" dangerouslySetInnerHTML={{ __html: section?.title || 'A life in <em className="text-teal-mid not-italic">service</em>' }} />
+              <h2
+                className="font-serif text-4xl md:text-5xl font-light text-ink mb-8"
+                dangerouslySetInnerHTML={{ __html: subtitle }}
+              />
             </AnimatedSection>
 
             <AnimatedSection delay={0.15}>
@@ -36,7 +45,7 @@ export default function AboutStory() {
                     src={section?.image_url || '/image.png'}
                     alt={section?.image_alt || 'Dr. Girma Ababi Portrait'}
                     onError={(e) => {
-                      ;(e.target as HTMLImageElement).src = '/image.png'
+                      (e.target as HTMLImageElement).src = '/image.png'
                     }}
                     className="w-full h-auto object-cover grayscale transition-all duration-700 group-hover:grayscale-0 scale-100 group-hover:scale-105"
                   />
@@ -44,10 +53,10 @@ export default function AboutStory() {
               </div>
               <div className="mt-8 text-center lg:text-left max-w-sm">
                 <p className="font-serif text-lg italic font-light text-gold">
-                  &ldquo;We don't just build healthcare facilities; we build the future of our nation's wellness.&rdquo;
+                  &ldquo;{quote}&rdquo;
                 </p>
                 <p className="font-mono text-[9px] tracking-widest uppercase text-ink-muted mt-2">
-                  — Dr. Girma Ababi, Founder
+                  — {attribution}
                 </p>
               </div>
             </AnimatedSection>
