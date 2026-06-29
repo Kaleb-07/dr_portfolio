@@ -1,5 +1,13 @@
 import { useEffect, useMemo, useState } from 'react'
-import { AlertCircle, CheckCircle2, Loader2, Save, Sparkles, Zap } from 'lucide-react'
+import {
+  AlertCircle,
+  CheckCircle2,
+  Loader2,
+  Save,
+  Sparkles,
+  Zap,
+  MessageCircle,
+} from 'lucide-react'
 import { FaFacebook, FaInstagram, FaLinkedinIn, FaXTwitter } from 'react-icons/fa6'
 import api from '../api'
 import UndoButton from '../components/UndoButton'
@@ -44,6 +52,11 @@ type SocialLink = {
   label: string
   href: string
   icon: string
+}
+
+type FloatingLinks = {
+  telegram: string
+  whatsapp: string
 }
 
 function Field({
@@ -134,8 +147,16 @@ function SocialIcon({ icon }: { icon: string }) {
 export default function FooterEditor() {
   const [contact, setContact] = useState<FooterContact>(defaultFooterContact)
   const [socialLinks, setSocialLinks] = useState<SocialLink[]>(defaultSocialLinks)
+  const [floatingLinks, setFloatingLinks] = useState<FloatingLinks>({
+    telegram: 'https://t.me/girmaababi',
+    whatsapp: 'https://wa.me/251904776464',
+  })
   const [backupContact, setBackupContact] = useState<FooterContact>(defaultFooterContact)
   const [backupSocialLinks, setBackupSocialLinks] = useState<SocialLink[]>(defaultSocialLinks)
+  const [backupFloatingLinks, setBackupFloatingLinks] = useState<FloatingLinks>({
+    telegram: '',
+    whatsapp: '',
+  })
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [message, setMessage] = useState('')
@@ -160,9 +181,13 @@ export default function FooterEditor() {
         }
 
         const footerMetadata = contentRes.data?.sections?.footer_settings?.metadata || {}
+
         const loadedSocialLinks = Array.isArray(footerMetadata.socialLinks)
           ? footerMetadata.socialLinks.map(
-              (link: { id?: string; label?: string; href?: string; icon?: string }, index: number) => ({
+              (
+                link: { id?: string; label?: string; href?: string; icon?: string },
+                index: number,
+              ) => ({
                 id: link.id || `social-${index + 1}`,
                 label: link.label || '',
                 href: link.href || '',
@@ -171,10 +196,17 @@ export default function FooterEditor() {
             )
           : defaultSocialLinks
 
+        const loadedFloatingLinks = {
+          telegram: footerMetadata.telegram || 'https://t.me/girmaababi',
+          whatsapp: footerMetadata.whatsapp || 'https://wa.me/251904776464',
+        }
+
         setContact(loadedContact)
         setBackupContact(loadedContact)
         setSocialLinks(loadedSocialLinks)
         setBackupSocialLinks(loadedSocialLinks)
+        setFloatingLinks(loadedFloatingLinks)
+        setBackupFloatingLinks(loadedFloatingLinks)
       } catch (err) {
         console.error('Failed to load footer settings:', err)
         if (active) {
@@ -183,6 +215,11 @@ export default function FooterEditor() {
           setBackupContact(defaultFooterContact)
           setSocialLinks(defaultSocialLinks)
           setBackupSocialLinks(defaultSocialLinks)
+          setFloatingLinks({
+            telegram: 'https://t.me/girmaababi',
+            whatsapp: 'https://wa.me/251904776464',
+          })
+          setBackupFloatingLinks({ telegram: '', whatsapp: '' })
         }
       } finally {
         if (active) setIsLoading(false)
@@ -199,9 +236,10 @@ export default function FooterEditor() {
     setContact((prev) => ({ ...prev, [field]: value }))
 
   const updateSocialLink = (index: number, patch: Partial<SocialLink>) =>
-    setSocialLinks((prev) =>
-      prev.map((item, i) => (i === index ? { ...item, ...patch } : item)),
-    )
+    setSocialLinks((prev) => prev.map((item, i) => (i === index ? { ...item, ...patch } : item)))
+
+  const updateFloatingLink = (field: keyof FloatingLinks, value: string) =>
+    setFloatingLinks((prev) => ({ ...prev, [field]: value }))
 
   const footerSectionPayload = useMemo(
     () => ({
@@ -215,9 +253,11 @@ export default function FooterEditor() {
           href: link.href,
           icon: link.icon,
         })),
+        telegram: floatingLinks.telegram,
+        whatsapp: floatingLinks.whatsapp,
       },
     }),
-    [socialLinks],
+    [socialLinks, floatingLinks],
   )
 
   const saveAll = async () => {
@@ -241,9 +281,13 @@ export default function FooterEditor() {
         ...(contactRes.data || {}),
       }
       const footerMetadata = contentRes.data?.sections?.footer_settings?.metadata || {}
+
       const savedSocialLinks = Array.isArray(footerMetadata.socialLinks)
         ? footerMetadata.socialLinks.map(
-            (link: { id?: string; label?: string; href?: string; icon?: string }, index: number) => ({
+            (
+              link: { id?: string; label?: string; href?: string; icon?: string },
+              index: number,
+            ) => ({
               id: link.id || `social-${index + 1}`,
               label: link.label || '',
               href: link.href || '',
@@ -252,10 +296,17 @@ export default function FooterEditor() {
           )
         : socialLinks
 
+      const savedFloatingLinks = {
+        telegram: footerMetadata.telegram || floatingLinks.telegram,
+        whatsapp: footerMetadata.whatsapp || floatingLinks.whatsapp,
+      }
+
       setContact(savedContact)
       setBackupContact(savedContact)
       setSocialLinks(savedSocialLinks)
       setBackupSocialLinks(savedSocialLinks)
+      setFloatingLinks(savedFloatingLinks)
+      setBackupFloatingLinks(savedFloatingLinks)
       setMessage('Footer settings saved.')
     } catch (err) {
       console.error('Failed to save footer settings:', err)
@@ -268,6 +319,7 @@ export default function FooterEditor() {
   const handleUndo = () => {
     setContact(backupContact)
     setSocialLinks(backupSocialLinks)
+    setFloatingLinks(backupFloatingLinks)
     setMessage('Changes reverted.')
     setTimeout(() => setMessage(''), 2000)
   }
@@ -294,6 +346,7 @@ export default function FooterEditor() {
     >
       <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
         <div className="space-y-8">
+          {/* ── Footer Contact ── */}
           <div className="rounded-2xl border border-slate-200 bg-white/80 p-5 shadow-sm backdrop-blur-sm sm:p-8">
             <div className="mb-6 border-b border-slate-200 pb-6">
               <h2 className="text-2xl font-bold text-slate-900">Footer Contact</h2>
@@ -339,6 +392,7 @@ export default function FooterEditor() {
             </div>
           </div>
 
+          {/* ── Footer Social Links ── */}
           <div className="rounded-2xl border border-slate-200 bg-white/80 p-5 shadow-sm backdrop-blur-sm sm:p-8">
             <div className="mb-6 border-b border-slate-200 pb-6">
               <h2 className="text-2xl font-bold text-slate-900">Social Media</h2>
@@ -404,8 +458,41 @@ export default function FooterEditor() {
               ))}
             </div>
           </div>
+
+          {/* ── Chat Widget Links (floating Telegram/WhatsApp) ── */}
+          <div className="rounded-2xl border border-slate-200 bg-white/80 p-5 shadow-sm backdrop-blur-sm sm:p-8">
+            <div className="mb-6 border-b border-slate-200 pb-6">
+              <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+                <MessageCircle size={22} className="text-emerald-600" />
+                Chat Widget Links
+              </h2>
+              <p className="mt-2 text-sm text-slate-600">
+                Configure the Telegram and WhatsApp links shown in the floating chat widget.
+              </p>
+            </div>
+
+            <div className="grid gap-6 sm:grid-cols-2">
+              <Field label="Telegram URL">
+                <input
+                  className={formInput}
+                  value={floatingLinks.telegram}
+                  onChange={(e) => updateFloatingLink('telegram', e.target.value)}
+                  placeholder="https://t.me/yourusername"
+                />
+              </Field>
+              <Field label="WhatsApp URL">
+                <input
+                  className={formInput}
+                  value={floatingLinks.whatsapp}
+                  onChange={(e) => updateFloatingLink('whatsapp', e.target.value)}
+                  placeholder="https://wa.me/123456789"
+                />
+              </Field>
+            </div>
+          </div>
         </div>
 
+        {/* ── Live Preview ── */}
         <aside className="space-y-6">
           <div className="sticky top-8 space-y-6">
             <div className="rounded-2xl border border-slate-200 bg-white/80 p-6 shadow-sm backdrop-blur-md">
@@ -423,7 +510,8 @@ export default function FooterEditor() {
                 </div>
                 <div className="mt-5 flex gap-2">
                   {socialLinks.map((link) => {
-                    const Icon = socialIconMap[(link.icon as keyof typeof socialIconMap) || 'linkedin']
+                    const Icon =
+                      socialIconMap[(link.icon as keyof typeof socialIconMap) || 'linkedin']
                     return (
                       <span
                         key={link.id}
@@ -433,6 +521,19 @@ export default function FooterEditor() {
                       </span>
                     )
                   })}
+                </div>
+                <div className="mt-5 border-t border-slate-200 pt-4">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-3">
+                    Chat Widget
+                  </p>
+                  <div className="flex gap-2">
+                    <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-blue-500 text-white text-[10px] font-bold">
+                      T
+                    </span>
+                    <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-green-500 text-white text-[10px] font-bold">
+                      W
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
