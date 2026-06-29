@@ -265,13 +265,13 @@ export default function LeadershipEditor() {
 
         {/* Hero Section (below banner) */}
         <Card title="Hero Section" description="Title, subtitle, and description.">
-          <Field label="Eyebrow">
+          {/* <Field label="Eyebrow">
             <input
               className={formInput}
               value={leadEyebrow}
               onChange={(e) => setLeadEyebrow(e.target.value)}
             />
-          </Field>
+          </Field> */}
           <Field label="Title">
             <input
               className={formInput}
@@ -279,13 +279,13 @@ export default function LeadershipEditor() {
               onChange={(e) => setLeadOverview((p) => ({ ...p, title: e.target.value }))}
             />
           </Field>
-          <Field label="Subtitle">
+          {/* <Field label="Subtitle">
             <input
               className={formInput}
               value={leadOverview.subtitle}
               onChange={(e) => setLeadOverview((p) => ({ ...p, subtitle: e.target.value }))}
             />
-          </Field>
+          </Field> */}
           <Field label="Description">
             <textarea
               className={formInput}

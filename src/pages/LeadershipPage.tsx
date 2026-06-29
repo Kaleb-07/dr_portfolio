@@ -10,11 +10,10 @@ import {
 export default function LeadershipPage() {
   const { content } = useSiteContent()
   const section = content?.sections.leadership || content?.sections.leadership_philosophy
-
-  const heroTitle = (section?.metadata?.heroTitle as string) || 'Leadership & Impact'
-  const heroDescription =
-    (section?.metadata?.heroDescription as string) ||
-    'Executive leadership spanning healthcare organizations, boards, and institutions.'
+  const overview = (section?.metadata?.overview || {}) as {
+    title?: string
+    description?: string
+  }
 
   useEffect(() => {
     document.title = seoPages.leadership.title
@@ -23,8 +22,11 @@ export default function LeadershipPage() {
   return (
     <>
       <PageBanner
-        title={heroTitle}
-        description={heroDescription}
+        title={overview.title || 'Leadership & Impact'}
+        description={
+          overview.description ||
+          'Executive leadership spanning healthcare organizations, boards, and institutions.'
+        }
       />
       <LeadershipExecutiveSection />
       <LeadershipBoardSection />

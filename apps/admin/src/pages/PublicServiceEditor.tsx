@@ -313,7 +313,7 @@ export default function PublicServiceEditor() {
           </div>
         </Card>
 
-        {/* Quick Facts */}
+        {/* Quick Facts
         <Card
           title={factsTitle}
           description="Three summary facts displayed under the hero copy."
@@ -394,7 +394,7 @@ export default function PublicServiceEditor() {
               </ExpandableItem>
             ))
           )}
-        </Card>
+        </Card> */}
 
         {/* Policy & Leadership Roles */}
         <Card
