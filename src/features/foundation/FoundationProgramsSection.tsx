@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState, useEffect } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { AnimatedSection, Container } from '@/components/shared'
 import { programs } from '@/data/foundation'
@@ -21,11 +21,14 @@ const programIcons: Record<string, React.ComponentType<{ className?: string; siz
 
 export default function FoundationProgramsSection() {
   const { content } = useSiteContent()
-  const section = content?.sections.foundation || content?.sections.foundation_story
+  const section = content?.sections.foundation_story || content?.sections.foundation
   const cmsPrograms = Array.isArray(section?.metadata?.programs) ? section.metadata.programs : []
   const displayedPrograms = cmsPrograms.length > 0 ? cmsPrograms : programs
   const [activeId, setActiveId] = useState(displayedPrograms[0]?.id ?? '')
-  const activeProgram = displayedPrograms.find((p) => p.id === activeId) ?? displayedPrograms[0]
+  const safeActiveId = displayedPrograms.some((program) => program.id === activeId)
+    ? activeId
+    : displayedPrograms[0]?.id ?? ''
+  const activeProgram = displayedPrograms.find((p) => p.id === safeActiveId) ?? displayedPrograms[0]
   const programsTitle = (section?.metadata?.programsTitle as string) || 'Our programs'
   const programsEyebrow = (section?.metadata?.programsEyebrow as string) || 'Programs'
 
@@ -59,7 +62,7 @@ export default function FoundationProgramsSection() {
           <div className="lg:col-span-4 border-t border-rule divide-y divide-rule">
             {displayedPrograms.map((program, i) => {
               const Icon = programIcons[program.id] ?? FaHeartbeat
-              const isActive = program.id === activeId
+              const isActive = program.id === safeActiveId
               return (
                 <AnimatedSection key={program.id} delay={i * 0.06}>
                   <button

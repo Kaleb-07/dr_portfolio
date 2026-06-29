@@ -1,5 +1,6 @@
-import { useState } from 'react'
-import { Loader2, X } from 'lucide-react'
+/* eslint-disable react-hooks/set-state-in-effect */
+import { X, Loader2, CheckCircle2 } from 'lucide-react'
+import { useState, useEffect } from 'react'
 import api from '../api'
 
 interface ProfileModalProps {
@@ -19,157 +20,107 @@ export default function ProfileModal({
 }: ProfileModalProps) {
   const [name, setName] = useState(currentName)
   const [email, setEmail] = useState(currentEmail)
-  const [oldPassword, setOldPassword] = useState('')
-  const [newPassword, setNewPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
-  const [saving, setSaving] = useState(false)
+  const [password, setPassword] = useState('')
+  const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
 
-  // Reset fields when modal opens with new current values
-  if (open && (name !== currentName || email !== currentEmail)) {
+  useEffect(() => {
     setName(currentName)
     setEmail(currentEmail)
-    setOldPassword('')
-    setNewPassword('')
-    setConfirmPassword('')
+    setPassword('')
     setMessage('')
     setError('')
-  }
+  }, [open, currentName, currentEmail])
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSave = async () => {
+    setLoading(true)
     setMessage('')
     setError('')
-
-    if (!name.trim() || !email.trim()) {
-      setError('Name and email are required.')
-      return
-    }
-
-    // If any password field is filled, all must be filled and valid
-    const changingPassword = oldPassword || newPassword || confirmPassword
-    if (changingPassword) {
-      if (!oldPassword || !newPassword || !confirmPassword) {
-        setError('All password fields are required to change the password.')
-        return
-      }
-      if (newPassword.length < 6) {
-        setError('New password must be at least 6 characters.')
-        return
-      }
-      if (newPassword !== confirmPassword) {
-        setError('Passwords do not match.')
-        return
-      }
-    }
-
-    setSaving(true)
     try {
-      const payload: any = { name: name.trim(), email: email.trim() }
-      if (changingPassword) {
-        payload.oldPassword = oldPassword
-        payload.newPassword = newPassword
-      }
-
-      await api.put('/auth/profile', payload)
-
-      onProfileUpdate(name.trim(), email.trim())
-      setMessage('Profile updated successfully.')
-      setTimeout(onClose, 1500)
-    } catch (err: any) {
-      const msg = err?.response?.data?.message || 'Failed to update profile.'
-      setError(msg)
+      const res = await api.put('/auth/profile', {
+        name,
+        email,
+        password: password || undefined,
+      })
+      setMessage('Profile updated!')
+      onProfileUpdate(res.data.admin.name || name, res.data.admin.email || email)
+      setTimeout(() => onClose(), 1500)
+    } catch {
+      setError('Update failed. Please try again.')
     } finally {
-      setSaving(false)
+      setLoading(false)
     }
   }
 
   if (!open) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 relative max-h-[90vh] overflow-y-auto">
-        <button
-          onClick={onClose}
-          className="absolute top-3 right-3 text-slate-400 hover:text-slate-700"
-        >
-          <X size={20} />
-        </button>
-        <h2 className="text-xl font-bold text-slate-900 mb-4">Edit Profile</h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Name</label>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
+      <div className="bg-white rounded-2xl shadow-xl max-w-md w-full mx-4 overflow-hidden">
+        <div className="p-6 border-b border-gray-100 flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-gray-800">Edit Profile</h2>
+          <button onClick={onClose} className="p-1 rounded-lg hover:bg-gray-100">
+            <X size={20} />
+          </button>
+        </div>
+
+        <div className="p-6 space-y-4">
+          <label className="block">
+            <span className="text-sm font-medium text-gray-700">Name</span>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
-              placeholder="Your name"
+              className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500"
             />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
+          </label>
+          <label className="block">
+            <span className="text-sm font-medium text-gray-700">Email</span>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
-              placeholder="admin@example.com"
+              className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500"
             />
-          </div>
-
-          <hr className="border-slate-200" />
-
-          <p className="text-sm font-semibold text-slate-700">Change Password (optional)</p>
-
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Current Password
-            </label>
+          </label>
+          <label className="block">
+            <span className="text-sm font-medium text-gray-700">
+              New Password (leave blank to keep)
+            </span>
             <input
               type="password"
-              value={oldPassword}
-              onChange={(e) => setOldPassword(e.target.value)}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
-              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500"
             />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">New Password</label>
-            <input
-              type="password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
-              placeholder="••••••••"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Confirm New Password
-            </label>
-            <input
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
-              placeholder="••••••••"
-            />
-          </div>
+          </label>
 
-          {error && <p className="text-red-600 text-sm">{error}</p>}
-          {message && <p className="text-emerald-600 text-sm">{message}</p>}
+          {message && (
+            <div className="flex items-center gap-2 text-sm text-emerald-600 bg-emerald-50 rounded-lg p-2">
+              <CheckCircle2 size={16} />
+              {message}
+            </div>
+          )}
+          {error && <div className="text-sm text-red-600 bg-red-50 rounded-lg p-2">{error}</div>}
+        </div>
 
+        <div className="bg-gray-50 px-6 py-4 flex justify-end gap-3">
           <button
-            type="submit"
-            disabled={saving}
-            className="w-full bg-teal-600 text-white font-semibold py-2 rounded-lg hover:bg-teal-700 disabled:opacity-50 flex items-center justify-center gap-2"
+            onClick={onClose}
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-100"
           >
-            {saving ? <Loader2 size={18} className="animate-spin" /> : null}
-            {saving ? 'Saving...' : 'Save Changes'}
+            Cancel
           </button>
-        </form>
+          <button
+            onClick={handleSave}
+            disabled={loading}
+            className="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-700 disabled:opacity-50"
+          >
+            {loading ? <Loader2 size={16} className="animate-spin" /> : null}
+            Save
+          </button>
+        </div>
       </div>
     </div>
   )

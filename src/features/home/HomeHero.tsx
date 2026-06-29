@@ -14,6 +14,21 @@ export default function HomeHero() {
     (section?.metadata as VisionMeta | undefined)?.title_highlight ||
     'self-sufficient healthcare Africa'
   const imageUrl: string = section?.image_url || '/image.png'
+  const blocks = section?.blocks || []
+  const identityCards =
+    blocks.length > 0
+      ? blocks
+          .slice()
+          .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
+          .map((block, index) => ({
+            label: block.eyebrow || `Identity ${String(index + 1).padStart(2, '0')}`,
+            title: block.title || 'Untitled',
+          }))
+      : [
+          { label: 'Identity I', title: 'Physician' },
+          { label: 'Identity II', title: 'Entrepreneur' },
+          { label: 'Identity III', title: 'Nation Builder' },
+        ]
 
   return (
     <section className="section-padding bg-paper min-h-[85vh] flex items-center pt-24 lg:pt-32">
@@ -35,28 +50,16 @@ export default function HomeHero() {
 
             <AnimatedSection delay={0.2}>
               <div className="border-t border-rule py-6 grid grid-cols-3 gap-6">
-                <div>
-                  <p className="font-mono text-[9px] tracking-widest uppercase text-ink-muted mb-2">
-                    Identity I
-                  </p>
-                  <h3 className="font-serif text-lg sm:text-xl text-ink font-normal">Physician</h3>
-                </div>
-                <div>
-                  <p className="font-mono text-[9px] tracking-widest uppercase text-ink-muted mb-2">
-                    Identity II
-                  </p>
-                  <h3 className="font-serif text-lg sm:text-xl text-ink font-normal">
-                    Entrepreneur
-                  </h3>
-                </div>
-                <div>
-                  <p className="font-mono text-[9px] tracking-widest uppercase text-ink-muted mb-2">
-                    Identity III
-                  </p>
-                  <h3 className="font-serif text-lg sm:text-xl text-ink font-normal">
-                    Nation Builder
-                  </h3>
-                </div>
+                {identityCards.map((card) => (
+                  <div key={`${card.label}-${card.title}`}>
+                    <p className="font-mono text-[9px] tracking-widest uppercase text-ink-muted mb-2">
+                      {card.label}
+                    </p>
+                    <h3 className="font-serif text-lg sm:text-xl text-ink font-normal">
+                      {card.title}
+                    </h3>
+                  </div>
+                ))}
               </div>
               <div className="border-b border-rule mb-8" />
             </AnimatedSection>

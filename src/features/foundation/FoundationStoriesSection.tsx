@@ -6,10 +6,8 @@ import { mapCmsHtml } from '@/lib/html'
 
 export default function FoundationStoriesSection() {
   const { content } = useSiteContent()
-  const section = content?.sections.foundation || content?.sections.foundation_story
-  const cmsStories = Array.isArray(section?.metadata?.impactStories)
-    ? section.metadata.impactStories
-    : []
+  const section = content?.sections.foundation_story || content?.sections.foundation
+  const cmsStories = Array.isArray(section?.metadata?.impactStories) ? section.metadata.impactStories : []
   const displayedStories = cmsStories.length > 0 ? cmsStories : impactStories
 
   const storiesEyebrow = (section?.metadata?.storiesEyebrow as string) || 'Impact'

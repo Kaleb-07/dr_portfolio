@@ -9,8 +9,7 @@ export default function FoundationFutureSection() {
   const ref = useRef<HTMLDivElement>(null)
   const inView = useInView(ref, { once: true, margin: '-80px' })
   const { content } = useSiteContent()
-  const section = content?.sections.foundation || content?.sections.foundation_story
-
+  const section = content?.sections.foundation_story || content?.sections.foundation
   const quote = (section?.metadata?.futureVision as string) || futureVision
   const quoteEyebrow = (section?.metadata?.quoteEyebrow as string) || 'Future Vision'
   const quoteTitle = (section?.metadata?.quoteTitle as string) ||

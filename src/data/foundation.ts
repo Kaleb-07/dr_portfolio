@@ -58,6 +58,37 @@ export const programs: FoundationProgram[] = [
   },
 ]
 
+export const foundationPillars = [
+  {
+    id: 'community-health',
+    title: 'Community Health',
+    description:
+      'Outreach and screening initiatives that bring basic diagnostics and care closer to underserved communities.',
+    icon: 'heart-pulse',
+  },
+  {
+    id: 'education-access',
+    title: 'Education Access',
+    description:
+      'Scholarships, training support, and academic pathways that open doors for future healthcare professionals.',
+    icon: 'graduation-cap',
+  },
+  {
+    id: 'healthcare-infrastructure',
+    title: 'Healthcare Infrastructure',
+    description:
+      'Long-term investments in facilities, systems, and capacity that improve care delivery for generations.',
+    icon: 'hospital',
+  },
+  {
+    id: 'professional-mentorship',
+    title: 'Professional Mentorship',
+    description:
+      'Guidance, leadership development, and career support for the next wave of healthcare leaders.',
+    icon: 'handshake',
+  },
+]
+
 export const impactStories = [
   {
     title: "Bringing Healthcare to the Remote Highlands",

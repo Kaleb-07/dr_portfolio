@@ -4,6 +4,7 @@ import { seoPages } from '@/lib/seo'
 import { useSiteContent } from '@/hooks/useSiteContent'
 import {
   FoundationOverviewSection,
+  FoundationPillarsSection,
   FoundationProgramsSection,
   FoundationStoriesSection,
   FoundationFutureSection,
@@ -29,6 +30,7 @@ export default function FoundationPage() {
         description={heroDescription}
       />
       <FoundationOverviewSection />
+      <FoundationPillarsSection />
       <FoundationProgramsSection />
       <FoundationStoriesSection />
       <FoundationFutureSection />

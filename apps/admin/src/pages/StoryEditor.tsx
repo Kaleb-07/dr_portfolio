@@ -42,6 +42,9 @@ interface StorySection {
 }
 
 interface RawSectionData {
+  id?: number
+  slug?: string
+  section_type?: string
   eyebrow?: string
   title?: string
   subtitle?: string
@@ -72,6 +75,7 @@ interface RawBlock {
 
 interface RawTimelineEvent {
   id: number
+  slug?: string
   year?: string
   title?: string
   subtitle?: string
@@ -79,11 +83,6 @@ interface RawTimelineEvent {
   category?: string
   icon?: string
   sort_order?: number
-}
-
-interface SiteContent {
-  sections: Record<string, RawSectionData>
-  timelineEvents?: RawTimelineEvent[]
 }
 
 interface SectionDraft {
@@ -99,6 +98,7 @@ interface SectionDraft {
   stats: { value: string; label: string }[]
   blocks: DraftBlock[]
   icon: string
+  metadata: Record<string, unknown>
 }
 
 interface DraftBlock {
@@ -115,6 +115,7 @@ interface DraftBlock {
 
 interface TimelineEventDraft {
   id: string | number
+  slug?: string
   year: string
   title: string
   subtitle: string
@@ -125,6 +126,35 @@ interface TimelineEventDraft {
 }
 
 type Draft = { events: TimelineEventDraft[] } | SectionDraft | null
+
+// API payload types (replaces `any`)
+interface BlockSavePayload {
+  id?: number
+  block_type: string
+  eyebrow: string
+  title: string
+  body: string
+  image_url: string
+  image_alt: string
+  metadata: Record<string, string>
+  sort_order: number
+}
+
+interface SectionSavePayload {
+  eyebrow: string
+  title: string
+  subtitle: string
+  description: string
+  image_url: string
+  image_alt: string
+  metadata: {
+    cta: Record<string, string>[]
+    icon: string
+    metrics: { value: string; label: string }[]
+    stats: { value: string; label: string }[]
+    title_highlight: string
+  }
+}
 
 /* ─── Constants ──────────────────────────────────────────── */
 const STORY_SECTIONS: StorySection[] = [
@@ -375,6 +405,7 @@ function ExpandableItem({
   downDisabled,
   isFocused,
   refProp,
+  icon,
 }: {
   idx: number
   expanded: string[]
@@ -389,6 +420,7 @@ function ExpandableItem({
   downDisabled: boolean
   isFocused: boolean
   refProp: React.RefObject<HTMLDivElement | null>
+  icon?: React.ReactNode
 }) {
   const itemKey = String(idx)
   const isOpen = expanded.includes(itemKey)
@@ -423,6 +455,7 @@ function ExpandableItem({
             </p>
             <h3 className="truncate text-base font-semibold text-slate-900">{headerValue}</h3>
           </div>
+          {icon && <div className="ml-2 shrink-0">{icon}</div>}
         </div>
         <ChevronDown
           size={18}
@@ -449,6 +482,60 @@ function ExpandableItem({
             </IconButton>
           </div>
         </div>
+      </div>
+    </div>
+  )
+}
+
+function ExpandableSection({
+  title,
+  isOpen,
+  onToggle,
+  children,
+  onAdd,
+}: {
+  title: string
+  isOpen: boolean
+  onToggle: () => void
+  children: React.ReactNode
+  onAdd?: () => void
+}) {
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-white/80 shadow-sm backdrop-blur-sm transition-all duration-300 hover:border-teal-300 hover:shadow-lg">
+      <button
+        type="button"
+        onClick={onToggle}
+        className="flex w-full items-center justify-between gap-4 p-6 text-left"
+      >
+        <h3 className="text-lg font-bold text-slate-900">{title}</h3>
+        <div className="flex items-center gap-3">
+          {onAdd && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation()
+                onAdd()
+              }}
+              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-teal-500 to-teal-600 px-3 py-2 text-sm font-semibold text-white transition-all hover:shadow-xl hover:shadow-teal-500/30 active:scale-95"
+            >
+              <Plus size={16} /> Add
+            </button>
+          )}
+          <ChevronDown
+            size={20}
+            className={`shrink-0 text-slate-400 transition-transform duration-300 ${
+              isOpen ? 'rotate-180' : ''
+            }`}
+          />
+        </div>
+      </button>
+
+      <div
+        className={`overflow-hidden transition-all duration-500 ease-in-out ${
+          isOpen ? 'max-h-[1200px] opacity-100' : 'max-h-0 opacity-0'
+        }`}
+      >
+        <div className="border-t border-slate-100 bg-slate-50/50 p-6">{children}</div>
       </div>
     </div>
   )
@@ -533,12 +620,14 @@ function buildSectionDraft(section: RawSectionData = {}): SectionDraft {
       }),
     ),
     icon: section.metadata?.icon || '',
+    metadata: section.metadata || {},
   }
 }
 
 function buildTimelineEvents(events: RawTimelineEvent[] = []): TimelineEventDraft[] {
   return events.map((event) => ({
     id: event.id,
+    slug: event.slug || '',
     year: event.year || '',
     title: event.title || '',
     subtitle: event.subtitle || '',
@@ -549,11 +638,51 @@ function buildTimelineEvents(events: RawTimelineEvent[] = []): TimelineEventDraf
   }))
 }
 
+function emptySectionDraft(): SectionDraft {
+  return {
+    eyebrow: '',
+    title: '',
+    subtitle: '',
+    title_highlight: '',
+    description: '',
+    image_url: '',
+    image_alt: '',
+    buttons: [],
+    metrics: [],
+    stats: [],
+    blocks: [],
+    icon: '',
+    metadata: {},
+  }
+}
+
+function getSectionFromContent(
+  content: { sections?: Record<string, RawSectionData>; timelineEvents?: RawTimelineEvent[] } | null,
+  section: StorySection,
+) {
+  if (section.type === 'timeline') {
+    return { events: buildTimelineEvents(content?.timelineEvents || []) } as Draft
+  }
+  const rawSection = section.backendSlug ? content?.sections?.[section.backendSlug] : null
+  return buildSectionDraft(rawSection || {})
+}
+
+function normalizeSlug(value: string) {
+  return value
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+}
+
+function stripHtmlTags(value = '') {
+  return value.replace(/<[^>]*>/g, '').trim()
+}
+
 /* ─── Main Component ─────────────────────────────────────── */
 export default function StoryEditor() {
   const { sectionSlug } = useParams<{ sectionSlug: string }>()
   const navigate = useNavigate()
-  const [content, setContent] = useState<SiteContent | null>(null)
   const [draft, setDraft] = useState<Draft>(null)
   const [backup, setBackup] = useState<Draft>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -571,6 +700,7 @@ export default function StoryEditor() {
 
   const [expandedTimeline, setExpandedTimeline] = useState<string[]>([])
   const [expandedBlock, setExpandedBlock] = useState<string[]>([])
+  const [expandedStats, setExpandedStats] = useState(false)
 
   const selectedSection = useMemo(
     () => STORY_SECTIONS.find((s) => s.slug === sectionSlug) ?? STORY_SECTIONS[0],
@@ -586,44 +716,68 @@ export default function StoryEditor() {
     setError('')
     setDeletedTimelineIds([])
     setNewItemId(null)
+    setExpandedStats(false)
   }, [sectionSlug, selectedSection])
 
   useEffect(() => {
     let active = true
-    const load = async () => {
+    const loadDraft = async () => {
       setIsLoading(true)
       setError('')
       try {
         const response = await api.get('/cms/site-content')
         if (!active) return
-        setContent(response.data as SiteContent)
-      } catch {
+        const nextDraft = getSectionFromContent(response.data, selectedSection)
+        setDraft(nextDraft)
+        setBackup(structuredClone(nextDraft))
+      } catch (err) {
         if (!active) return
-        setError('Unable to load Story content.')
+        console.error('Failed to load section draft:', err)
+        try {
+          if (selectedSection.type === 'timeline') {
+            const response = await api.get('/cms/timeline-events?all=1')
+            if (!active) return
+            const nextDraft: Draft = {
+              events: buildTimelineEvents(Array.isArray(response.data) ? response.data : []),
+            }
+            setDraft(nextDraft)
+            setBackup(structuredClone(nextDraft))
+          } else {
+            const slug = selectedSection.backendSlug || selectedSection.slug
+            if (!slug) {
+              const fallbackDraft = emptySectionDraft()
+              setDraft(fallbackDraft)
+              setBackup(structuredClone(fallbackDraft))
+              return
+            }
+            const response = await api.get(`/cms/sections/${slug}`)
+            if (!active) return
+            const nextDraft = buildSectionDraft(response.data || {})
+            setDraft(nextDraft)
+            setBackup(structuredClone(nextDraft))
+          }
+        } catch (fallbackErr) {
+          console.error('Failed to load fallback draft:', fallbackErr)
+          const fallbackDraft =
+            selectedSection.type === 'timeline'
+              ? ({ events: [] } as Draft)
+              : emptySectionDraft()
+          if (active) {
+            setDraft(fallbackDraft)
+            setBackup(structuredClone(fallbackDraft))
+            setError(`Unable to load ${selectedSection.title}.`)
+          }
+        }
       } finally {
         if (active) setIsLoading(false)
       }
     }
-    load()
+
+    loadDraft()
     return () => {
       active = false
     }
-  }, [])
-
-  useEffect(() => {
-    if (!content) return
-    let newDraft: Draft
-    if (selectedSection.type === 'timeline') {
-      const events = buildTimelineEvents(content.timelineEvents || [])
-      newDraft = { events }
-    } else if (selectedSection.backendSlug) {
-      newDraft = buildSectionDraft(content.sections?.[selectedSection.backendSlug] || {})
-    } else {
-      newDraft = buildSectionDraft({})
-    }
-    setDraft(newDraft)
-    setBackup(structuredClone(newDraft))
-  }, [content, selectedSection])
+  }, [selectedSection])
 
   useEffect(() => {
     if (newItemId && newItemRef.current) {
@@ -643,6 +797,10 @@ export default function StoryEditor() {
     if (backup) setDraft(structuredClone(backup))
   }
 
+  const handleFoundationStatsToggle = async () => {
+    setExpandedStats((prev) => !prev)
+  }
+
   /* Timeline handlers */
   const addTimelineEvent = () => {
     setDraft((c) => {
@@ -659,6 +817,7 @@ export default function StoryEditor() {
           ...c.events,
           {
             id,
+            slug: '',
             year: '',
             title: '',
             subtitle: '',
@@ -697,13 +856,21 @@ export default function StoryEditor() {
         setExpandedBlock((prev) => [...prev, String(idx)])
         setNewItemId(id)
       }, 0)
+      const defaultBlockType =
+        c.blocks.length > 0
+          ? c.blocks[0].block_type
+          : isVision
+            ? 'identity_card'
+            : isFoundation
+              ? 'pillar'
+              : 'content'
       return {
         ...c,
         blocks: [
           ...c.blocks,
           {
             id,
-            block_type: c.blocks[0]?.block_type || 'content',
+            block_type: defaultBlockType,
             eyebrow: '',
             title: '',
             body: '',
@@ -743,6 +910,20 @@ export default function StoryEditor() {
       return { ...c, blocks: reorderArray(c.blocks, index, direction) }
     })
 
+  const refreshContent = async () => {
+    try {
+      const response = await api.get('/cms/site-content')
+      const nextDraft = getSectionFromContent(response.data, selectedSection)
+      setDraft(nextDraft)
+      setBackup(structuredClone(nextDraft))
+      return true
+    } catch (err) {
+      console.error('Failed to refresh content after save:', err)
+      setError('Could not refresh content after save.')
+      return false
+    }
+  }
+
   /* Save */
   const saveSection = async () => {
     if (!draft || !selectedSection) return
@@ -751,59 +932,140 @@ export default function StoryEditor() {
     setIsSaving(true)
     try {
       if (selectedSection.type === 'timeline' && 'events' in draft) {
-        for (const deletedId of deletedTimelineIds)
-          await api.delete(`/cms/timeline-events/${deletedId}`)
+        for (const deletedId of deletedTimelineIds) {
+          try {
+            await api.delete(`/cms/timeline-events/${deletedId}`)
+          } catch (err) {
+            console.error(`Failed to delete timeline event ${deletedId}:`, err)
+          }
+        }
+
         for (const [i, event] of draft.events.entries()) {
-          const payload = { ...event, sort_order: i + 1 }
-          if (typeof event.id === 'number') {
-            await api.put(`/cms/timeline-events/${event.id}`, payload)
-          } else {
-            // Remove temporary id before POST
-            const { id: _, ...p } = payload
-            void _ // eslint-disable-line @typescript-eslint/no-unused-vars
-            await api.post('/cms/timeline-events', p)
+          const slugBase = event.slug || normalizeSlug(event.title || selectedSection.slug)
+          const payload = {
+            slug: typeof event.id === 'number' ? event.slug || slugBase : `${slugBase || selectedSection.slug}-${i + 1}`,
+            year: event.year,
+            title: event.title,
+            subtitle: event.subtitle,
+            description: event.description,
+            category: event.category || 'milestone',
+            icon: event.icon || 'sparkles',
+            sort_order: i + 1,
+          }
+
+          try {
+            if (typeof event.id === 'number') {
+              await api.put(`/cms/timeline-events/${event.id}`, payload)
+            } else {
+              await api.post('/cms/timeline-events', payload)
+            }
+          } catch (err) {
+            console.error(`Failed to save timeline event:`, err)
+            const saveErr = new Error(`Failed to save event "${event.title}". Please try again.`)
+            Object.defineProperty(saveErr, 'cause', {
+              value: err,
+              writable: true,
+              configurable: true,
+            })
+            throw saveErr
           }
         }
         setDeletedTimelineIds([])
       } else if ('blocks' in draft && selectedSection.backendSlug) {
-        const cleanBlocks = draft.blocks.map((b) => {
-          if (typeof b.id === 'string') {
-            const { id: _, ...rest } = b
-            void _ // eslint-disable-line @typescript-eslint/no-unused-vars
-            return rest
-          }
-          return b
-        })
-        await api.put(`/cms/sections/${selectedSection.backendSlug}`, {
-          section: {
-            eyebrow: draft.eyebrow,
-            title: draft.title,
-            subtitle: draft.subtitle,
-            description: draft.description,
-            image_url: draft.image_url,
-            image_alt: draft.image_alt,
-            metadata: {
-              cta: draft.buttons,
-              icon: draft.icon,
-              metrics: draft.metrics,
-              stats: draft.stats,
-              title_highlight: draft.title_highlight,
-            },
+        const isFoundationSection = selectedSection.slug === 'foundation'
+        const foundationMetadata = isFoundationSection
+          ? {
+              overview: {
+                title: stripHtmlTags(draft.title || ''),
+                subtitle: stripHtmlTags(draft.eyebrow || ''),
+                description: stripHtmlTags(draft.description || ''),
+                vision: '',
+                mission: '',
+              },
+              stats: (draft.stats || []).map((stat, index) => ({
+                id: `stat-${index + 1}`,
+                label: stat.label || '',
+                value: stat.value || '',
+              })),
+              programs: draft.blocks.map((block, index) => ({
+                id: typeof block.id === 'number' ? String(block.id) : block.id || `program-${index + 1}`,
+                title: block.title || '',
+                description: block.body || '',
+                impact: '',
+                beneficiaries: '',
+                status: 'active',
+                icon: String(block.metadata?.icon || 'FaHeartbeat'),
+              })),
+              impactStories: [],
+              futureVision: '',
+            }
+          : {}
+
+        const cleanBlocks: BlockSavePayload[] = draft.blocks.map((b, idx) => ({
+          id: typeof b.id === 'number' ? b.id : undefined,
+          block_type: b.block_type,
+          eyebrow: b.eyebrow || '',
+          title: b.title || '',
+          body: b.body || '',
+          image_url: b.image_url || '',
+          image_alt: b.image_alt || '',
+          metadata: b.metadata || {},
+          sort_order: idx + 1,
+        }))
+
+        const sectionPayload: SectionSavePayload = {
+          eyebrow: draft.eyebrow || '',
+          title: draft.title || '',
+          subtitle: draft.subtitle || '',
+          description: draft.description || '',
+          image_url: draft.image_url || '',
+          image_alt: draft.image_alt || '',
+          metadata: {
+            ...(draft.metadata || {}),
+            cta: draft.buttons || [],
+            icon: draft.icon || '',
+            metrics: draft.metrics || [],
+            stats: draft.stats || [],
+            title_highlight: draft.title_highlight || '',
+            ...(isFoundationSection ? foundationMetadata : {}),
           },
-          blocks: cleanBlocks,
-        })
+        }
+
+        try {
+          await api.put(`/cms/sections/${selectedSection.backendSlug}`, {
+            section: sectionPayload,
+            blocks: cleanBlocks,
+          })
+        } catch (err) {
+          console.error(`Failed to save section ${selectedSection.backendSlug}:`, err)
+          const saveErr = new Error(
+            `Failed to save ${selectedSection.title}. Please check your data and try again.`,
+          )
+          Object.defineProperty(saveErr, 'cause', {
+            value: err,
+            writable: true,
+            configurable: true,
+          })
+          throw saveErr
+        }
       }
-      const response = await api.get('/cms/site-content')
-      setContent(response.data as SiteContent)
+
+      const refreshed = await refreshContent()
+      if (!refreshed) {
+        throw new Error('Failed to refresh content after save.')
+      }
+
       setMessage('Saved successfully.')
-    } catch {
-      setError('Could not save. Please try again.')
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Could not save. Please try again.'
+      console.error('Save error:', err)
+      setError(errorMessage)
     } finally {
       setIsSaving(false)
     }
   }
 
-  if (isLoading || !draft) {
+  if (isLoading && !draft) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100/60">
         <div className="flex flex-col items-center gap-4">
@@ -814,7 +1076,10 @@ export default function StoryEditor() {
     )
   }
 
-  const blocks = 'blocks' in draft ? draft.blocks : []
+  const currentDraft = draft
+  if (!currentDraft) return null
+
+  const blocks = 'blocks' in currentDraft ? currentDraft.blocks : []
   const isLeadership = selectedSection.slug === 'leadership-philosophy'
   const isFoundation = selectedSection.slug === 'foundation'
   const isLiyana = selectedSection.slug === 'liyana-framework'
@@ -831,16 +1096,16 @@ export default function StoryEditor() {
       undoButton={<UndoButton onClick={handleUndo} />}
     >
       {/* Timeline Editor */}
-      {selectedSection.type === 'timeline' && 'events' in draft && (
+      {selectedSection.type === 'timeline' && 'events' in currentDraft && (
         <Card
           title="Career Timeline"
           description={selectedSection.description}
           onAdd={addTimelineEvent}
         >
-          {draft.events.length === 0 ? (
+          {currentDraft.events.length === 0 ? (
             <EmptyState message="No events yet. Add one to get started." />
           ) : (
-            draft.events.map((event, index) => (
+            currentDraft.events.map((event, index) => (
               <ExpandableItem
                 key={event.id || index}
                 idx={index}
@@ -854,7 +1119,7 @@ export default function StoryEditor() {
                 onDown={() => reorderTimeline(index, 1)}
                 onDelete={() => setDeleteTimelineIdx(index)}
                 upDisabled={index === 0}
-                downDisabled={index === draft.events.length - 1}
+                downDisabled={index === currentDraft.events.length - 1}
               >
                 <div className="grid gap-4 sm:grid-cols-2">
                   <Field label="Year">
@@ -922,7 +1187,7 @@ export default function StoryEditor() {
       )}
 
       {/* Generic sections */}
-      {!selectedSection.type && 'blocks' in draft && (
+      {!selectedSection.type && 'blocks' in currentDraft && (
         <div className="space-y-6">
           {/* Section Header Card */}
           <Card title={selectedSection.title} description={selectedSection.description}>
@@ -931,7 +1196,7 @@ export default function StoryEditor() {
                 <Field label="Eyebrow / Section Label" hint="Short label above headline">
                   <input
                     className={formInput}
-                    value={draft.eyebrow ?? ''}
+                    value={currentDraft.eyebrow ?? ''}
                     onChange={(e) =>
                       setDraft((c) => (c && 'blocks' in c ? { ...c, eyebrow: e.target.value } : c))
                     }
@@ -941,7 +1206,7 @@ export default function StoryEditor() {
                 <Field label="Headline — Line 1 (Normal text)">
                   <input
                     className={formInput}
-                    value={draft.title ?? ''}
+                    value={currentDraft.title ?? ''}
                     onChange={(e) =>
                       setDraft((c) => (c && 'blocks' in c ? { ...c, title: e.target.value } : c))
                     }
@@ -954,7 +1219,7 @@ export default function StoryEditor() {
                 >
                   <input
                     className={formInput}
-                    value={draft.title_highlight ?? ''}
+                    value={currentDraft.title_highlight ?? ''}
                     onChange={(e) =>
                       setDraft((c) =>
                         c && 'blocks' in c ? { ...c, title_highlight: e.target.value } : c,
@@ -965,7 +1230,7 @@ export default function StoryEditor() {
                 </Field>
                 <Field label="Hero Image">
                   <MediaPicker
-                    currentUrl={draft.image_url}
+                    currentUrl={currentDraft.image_url}
                     onUpload={(url) =>
                       setDraft((c) => (c && 'blocks' in c ? { ...c, image_url: url } : c))
                     }
@@ -979,7 +1244,7 @@ export default function StoryEditor() {
                 <Field label="Section Label">
                   <input
                     className={formInput}
-                    value={draft.eyebrow ?? ''}
+                    value={currentDraft.eyebrow ?? ''}
                     onChange={(e) =>
                       setDraft((c) => (c && 'blocks' in c ? { ...c, eyebrow: e.target.value } : c))
                     }
@@ -990,7 +1255,7 @@ export default function StoryEditor() {
                   <textarea
                     className={formInput}
                     rows={5}
-                    value={draft.description ?? ''}
+                    value={currentDraft.description ?? ''}
                     onChange={(e) =>
                       setDraft((c) =>
                         c && 'blocks' in c ? { ...c, description: e.target.value } : c,
@@ -1002,7 +1267,7 @@ export default function StoryEditor() {
                 <Field label="Attribution">
                   <input
                     className={formInput}
-                    value={draft.subtitle ?? ''}
+                    value={currentDraft.subtitle ?? ''}
                     onChange={(e) =>
                       setDraft((c) => (c && 'blocks' in c ? { ...c, subtitle: e.target.value } : c))
                     }
@@ -1017,7 +1282,7 @@ export default function StoryEditor() {
                 <Field label="Section Label">
                   <input
                     className={formInput}
-                    value={draft.eyebrow ?? ''}
+                    value={currentDraft.eyebrow ?? ''}
                     onChange={(e) =>
                       setDraft((c) => (c && 'blocks' in c ? { ...c, eyebrow: e.target.value } : c))
                     }
@@ -1028,7 +1293,7 @@ export default function StoryEditor() {
                   <textarea
                     className={formInput}
                     rows={2}
-                    value={draft.title ?? ''}
+                    value={currentDraft.title ?? ''}
                     onChange={(e) =>
                       setDraft((c) => (c && 'blocks' in c ? { ...c, title: e.target.value } : c))
                     }
@@ -1039,7 +1304,7 @@ export default function StoryEditor() {
                   <textarea
                     className={formInput}
                     rows={4}
-                    value={draft.description ?? ''}
+                    value={currentDraft.description ?? ''}
                     onChange={(e) =>
                       setDraft((c) =>
                         c && 'blocks' in c ? { ...c, description: e.target.value } : c,
@@ -1056,7 +1321,7 @@ export default function StoryEditor() {
                 <Field label="Eyebrow / Section Label">
                   <input
                     className={formInput}
-                    value={draft.eyebrow ?? ''}
+                    value={currentDraft.eyebrow ?? ''}
                     onChange={(e) =>
                       setDraft((c) => (c && 'blocks' in c ? { ...c, eyebrow: e.target.value } : c))
                     }
@@ -1068,7 +1333,7 @@ export default function StoryEditor() {
                     <textarea
                       className={formInput}
                       rows={2}
-                      value={draft.title ?? ''}
+                      value={currentDraft.title ?? ''}
                       onChange={(e) =>
                         setDraft((c) => (c && 'blocks' in c ? { ...c, title: e.target.value } : c))
                       }
@@ -1080,7 +1345,7 @@ export default function StoryEditor() {
                   <Field label="Subtitle / Supporting Text">
                     <input
                       className={formInput}
-                      value={draft.subtitle ?? ''}
+                      value={currentDraft.subtitle ?? ''}
                       onChange={(e) =>
                         setDraft((c) =>
                           c && 'blocks' in c ? { ...c, subtitle: e.target.value } : c,
@@ -1094,66 +1359,78 @@ export default function StoryEditor() {
             )}
           </Card>
 
-          {/* Foundation Stats Card */}
+          {/* Foundation Stats Card - Collapsible */}
           {isFoundation && (
-            <Card
+            <ExpandableSection
               title="Foundation Stats"
-              description="Key numbers displayed as stat cards"
+              isOpen={expandedStats}
+              onToggle={handleFoundationStatsToggle}
               onAdd={() =>
                 setDraft((c) =>
                   c && 'blocks' in c ? { ...c, stats: [...c.stats, { value: '', label: '' }] } : c,
                 )
               }
             >
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                {draft.stats.map((stat, index) => (
-                  <div
-                    key={index}
-                    className="rounded-xl border border-slate-200 bg-slate-50 p-5 hover:shadow-md hover:border-teal-300 transition-all"
-                  >
-                    <Field label="Number / Value">
-                      <input
-                        className={formInput}
-                        value={stat.value || ''}
-                        onChange={(e) => {
-                          const stats = [...draft.stats]
-                          stats[index] = { ...stats[index], value: e.target.value }
-                          setDraft((c) => (c && 'blocks' in c ? { ...c, stats } : c))
-                        }}
-                        placeholder="e.g., $10M"
-                      />
-                    </Field>
-                    <div className="mt-3">
-                      <Field label="Label">
+              <div className="mb-4 rounded-2xl border border-teal-100 bg-teal-50/40 px-4 py-3 text-sm text-slate-700">
+                These cards feed the Foundation page stats row on the frontend. Keep the label short
+                and the value punchy so they scan well on desktop and mobile.
+              </div>
+
+              {currentDraft.stats && currentDraft.stats.length > 0 ? (
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                  {currentDraft.stats.map((stat, index) => (
+                    <div
+                      key={index}
+                      className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:border-teal-300 hover:shadow-md"
+                    >
+                      <Field label="Number / Value">
                         <input
                           className={formInput}
-                          value={stat.label || ''}
+                          value={stat.value || ''}
                           onChange={(e) => {
-                            const stats = [...draft.stats]
-                            stats[index] = { ...stats[index], label: e.target.value }
+                            const stats = [...currentDraft.stats]
+                            stats[index] = { ...stats[index], value: e.target.value }
                             setDraft((c) => (c && 'blocks' in c ? { ...c, stats } : c))
                           }}
-                          placeholder="e.g., Raised"
+                          placeholder="e.g., $10M"
                         />
                       </Field>
+                      <div className="mt-3">
+                        <Field label="Label">
+                          <input
+                            className={formInput}
+                            value={stat.label || ''}
+                            onChange={(e) => {
+                            const stats = [...currentDraft.stats]
+                              stats[index] = { ...stats[index], label: e.target.value }
+                              setDraft((c) => (c && 'blocks' in c ? { ...c, stats } : c))
+                            }}
+                            placeholder="e.g., Raised"
+                          />
+                        </Field>
+                      </div>
+                      <div className="mt-4 flex justify-end">
+                        <IconButton
+                          label="Delete stat"
+                          danger
+                          onClick={() => setDeleteStatIdx(index)}
+                        >
+                          <Trash2 size={16} />
+                        </IconButton>
+                      </div>
                     </div>
-                    <div className="mt-4 flex justify-end">
-                      <IconButton
-                        label="Delete stat"
-                        danger
-                        onClick={() => setDeleteStatIdx(index)}
-                      >
-                        <Trash2 size={16} />
-                      </IconButton>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </Card>
+                  ))}
+                </div>
+              ) : (
+                <div className="rounded-2xl border border-dashed border-slate-300 bg-white/70 p-6">
+                  <EmptyState message="No stats yet. Add one to get started." />
+                </div>
+              )}
+            </ExpandableSection>
           )}
 
           {/* Blocks Card (framework items, pillars, awards, identity cards) */}
-          {!isLeadership && (
+      {!isLeadership && (
             <Card
               title={selectedSection.blockLabel || 'Cards & Blocks'}
               description="Manage every visible card in this section"
@@ -1167,10 +1444,9 @@ export default function StoryEditor() {
                 blocks.map((block, index) => {
                   const cardLabel = block.eyebrow || block.metadata?.organization || ''
                   const cardTitle = block.title || 'Untitled'
-                  // Only compute icon for sections that actually display one
-                  const showIcon = isLiyana || isRecognition || isFoundation
                   const iconValue = block.metadata?.icon || 'sparkles'
-                  const IconComp = showIcon ? getIconComponent(iconValue) : null
+                  const IconComp = getIconComponent(iconValue)
+                  const iconElement = <IconComp size={16} className="text-teal-600" />
 
                   return (
                     <ExpandableItem
@@ -1178,7 +1454,13 @@ export default function StoryEditor() {
                       idx={index}
                       expanded={expandedBlock}
                       setExpanded={setExpandedBlock}
-                      headerLabel={isFoundation ? `Pillar ${index + 1}` : cardLabel || 'Item'}
+                      headerLabel={
+                        isFoundation
+                          ? `Pillar ${index + 1}`
+                          : isVision
+                            ? 'Identity'
+                            : cardLabel || 'Item'
+                      }
                       headerValue={cardTitle}
                       isFocused={block.id === newItemId}
                       refProp={newItemRef}
@@ -1187,6 +1469,7 @@ export default function StoryEditor() {
                       onDelete={() => setDeleteBlockIdx(index)}
                       upDisabled={index === 0}
                       downDisabled={index === blocks.length - 1}
+                      icon={iconElement}
                     >
                       <div className="grid gap-4 sm:grid-cols-2">
                         {/* Liyana Framework fields */}
@@ -1213,7 +1496,7 @@ export default function StoryEditor() {
                                 <textarea
                                   className={formInput}
                                   rows={3}
-                                  value={stripHtml(block.body || '')}
+                                  value={stripHtml(block.body || block.metadata?.description || '')}
                                   onChange={(e) => updateBlock(index, { body: e.target.value })}
                                   placeholder="Write a short description..."
                                 />
@@ -1248,7 +1531,7 @@ export default function StoryEditor() {
                                 <textarea
                                   className={formInput}
                                   rows={3}
-                                  value={stripHtml(block.body || '')}
+                                  value={stripHtml(block.body || block.metadata?.description || '')}
                                   onChange={(e) => updateBlock(index, { body: e.target.value })}
                                   placeholder="Write a short description..."
                                 />
@@ -1324,18 +1607,35 @@ export default function StoryEditor() {
                           </>
                         )}
 
-                        {/* Identity cards (Vision Agenda) – only Title */}
-                        {!isLiyana && !isRecognition && !isFoundation && (
-                          <div className="sm:col-span-2">
+                        {/* Identity cards (Vision Agenda) – Full fields */}
+                        {isVision && (
+                          <>
+                            <Field label="Label">
+                              <select
+                                className={formInput}
+                                value={block.eyebrow || ''}
+                                onChange={(e) => updateBlock(index, { eyebrow: e.target.value })}
+                              >
+                                <option value="Identity I">Identity I</option>
+                                <option value="Identity II">Identity II</option>
+                                <option value="Identity III">Identity III</option>
+                                <option value="">Custom / Empty</option>
+                              </select>
+                            </Field>
                             <Field label="Title">
                               <input
                                 className={formInput}
                                 value={block.title || ''}
-                                onChange={(e) => updateBlock(index, { title: e.target.value })}
+                                onChange={(e) => {
+                                  updateBlock(index, {
+                                    title: e.target.value,
+                                    block_type: 'identity_card',
+                                  })
+                                }}
                                 placeholder="Identity card title"
                               />
                             </Field>
-                          </div>
+                          </>
                         )}
                       </div>
                     </ExpandableItem>
@@ -1353,8 +1653,12 @@ export default function StoryEditor() {
         title="Delete Event"
         message="Are you sure you want to delete this event? This action cannot be undone."
         onConfirm={() => {
-          if (deleteTimelineIdx !== null && 'events' in draft) {
-            const events = [...draft.events]
+          if (deleteTimelineIdx !== null && 'events' in currentDraft) {
+            const events = [...currentDraft.events]
+            const deletedEvent = events[deleteTimelineIdx]
+            if (typeof deletedEvent.id === 'number') {
+              setDeletedTimelineIds((prev) => [...prev, deletedEvent.id as number])
+            }
             events.splice(deleteTimelineIdx, 1)
             setDraft({ events })
             setDeleteTimelineIdx(null)
@@ -1367,10 +1671,10 @@ export default function StoryEditor() {
         title="Delete Block"
         message="Are you sure you want to delete this block? This action cannot be undone."
         onConfirm={() => {
-          if (deleteBlockIdx !== null && 'blocks' in draft) {
-            const blocks = [...draft.blocks]
+          if (deleteBlockIdx !== null && 'blocks' in currentDraft) {
+            const blocks = [...currentDraft.blocks]
             blocks.splice(deleteBlockIdx, 1)
-            setDraft({ ...draft, blocks })
+            setDraft({ ...currentDraft, blocks })
             setDeleteBlockIdx(null)
           }
         }}
@@ -1381,10 +1685,10 @@ export default function StoryEditor() {
         title="Delete Metric"
         message="Are you sure?"
         onConfirm={() => {
-          if (deleteMetricIdx !== null && 'metrics' in draft) {
-            const metrics = [...draft.metrics]
+          if (deleteMetricIdx !== null && 'metrics' in currentDraft) {
+            const metrics = [...currentDraft.metrics]
             metrics.splice(deleteMetricIdx, 1)
-            setDraft({ ...draft, metrics })
+            setDraft({ ...currentDraft, metrics })
             setDeleteMetricIdx(null)
           }
         }}
@@ -1393,12 +1697,12 @@ export default function StoryEditor() {
       <ConfirmDialog
         open={deleteStatIdx !== null}
         title="Delete Stat"
-        message="Are you sure?"
+        message="Are you sure you want to delete this stat?"
         onConfirm={() => {
-          if (deleteStatIdx !== null && 'stats' in draft) {
-            const stats = [...draft.stats]
+          if (deleteStatIdx !== null && 'stats' in currentDraft) {
+            const stats = [...currentDraft.stats]
             stats.splice(deleteStatIdx, 1)
-            setDraft({ ...draft, stats })
+            setDraft({ ...currentDraft, stats })
             setDeleteStatIdx(null)
           }
         }}
