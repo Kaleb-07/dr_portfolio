@@ -95,6 +95,7 @@ function safeParseMetadata(value, fallback = {}) {
   }
 }
 
+// ── Site‑content (aggregate endpoint) ─────────────────────
 router.get('/site-content', async (req, res) => {
   try {
     const [sections, navigation, identityItems, timelineEvents, contactSettings] =
@@ -161,6 +162,7 @@ router.get('/site-content', async (req, res) => {
   }
 })
 
+// ── Section management ────────────────────────────────────
 router.get('/sections', verifyToken, async (req, res) => {
   try {
     const sections = await prisma.cms_sections.findMany({
@@ -296,11 +298,7 @@ router.put('/sections/:slug', verifyToken, async (req, res) => {
 
       return tx.cms_sections.findUnique({
         where: { slug: req.params.slug },
-        include: {
-          blocks: {
-            orderBy: [{ sort_order: 'asc' }, { id: 'asc' }],
-          },
-        },
+        include: { blocks: { orderBy: [{ sort_order: 'asc' }, { id: 'asc' }] } },
       })
     })
 
@@ -312,10 +310,80 @@ router.put('/sections/:slug', verifyToken, async (req, res) => {
 
 router.delete('/sections/:slug', verifyToken, async (req, res) => {
   try {
-    await prisma.cms_sections.delete({
-      where: { slug: req.params.slug },
-    })
+    await prisma.cms_sections.delete({ where: { slug: req.params.slug } })
     res.json({ success: true })
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+})
+
+// ── Timeline Events CRUD ──────────────────────────────────
+router.get('/timeline-events', async (req, res) => {
+  try {
+    const includeInactive = req.query.all === '1'
+    const events = await prisma.timeline_events.findMany({
+      where: includeInactive ? {} : { is_active: true },
+      orderBy: { sort_order: 'asc' },
+    })
+    res.json(events)
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+})
+
+router.post('/timeline-events', verifyToken, async (req, res) => {
+  try {
+    const { slug, year, title, subtitle, description, category, icon, sort_order, is_active } =
+      req.body
+    const created = await prisma.timeline_events.create({
+      data: {
+        slug: slug || null,
+        year: year || null,
+        title,
+        subtitle: subtitle || null,
+        description: description || null,
+        category: category || 'milestone',
+        icon: icon || null,
+        sort_order: sort_order || 0,
+        is_active: is_active === 0 ? false : true,
+      },
+    })
+    res.status(201).json({ id: created.id })
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+})
+
+router.put('/timeline-events/:id', verifyToken, async (req, res) => {
+  try {
+    const { slug, year, title, subtitle, description, category, icon, sort_order, is_active } =
+      req.body
+    await prisma.timeline_events.update({
+      where: { id: Number(req.params.id) },
+      data: {
+        slug: slug || null,
+        year: year || null,
+        title,
+        subtitle: subtitle || null,
+        description: description || null,
+        category: category || 'milestone',
+        icon: icon || null,
+        sort_order: sort_order || 0,
+        is_active: is_active === 0 ? false : true,
+      },
+    })
+    res.json({ message: 'Timeline event saved' })
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+})
+
+router.delete('/timeline-events/:id', verifyToken, async (req, res) => {
+  try {
+    await prisma.timeline_events.delete({
+      where: { id: Number(req.params.id) },
+    })
+    res.json({ message: 'Timeline event deleted' })
   } catch (error) {
     res.status(500).json({ error: error.message })
   }

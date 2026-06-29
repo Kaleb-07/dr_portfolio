@@ -14,17 +14,16 @@ interface ContactMessage {
   message: string
   inquiry_type: string
   created_at: string
+  read: boolean // <-- now provided by the API
 }
 
 export default function ContactMessages() {
   const [messages, setMessages] = useState<ContactMessage[]>([])
   const [loading, setLoading] = useState(true)
   const [selected, setSelected] = useState<ContactMessage | null>(null)
-  const [readMessages, setReadMessages] = useState<Set<number>>(new Set())
   const [deleteTarget, setDeleteTarget] = useState<number | null>(null)
 
   const { refreshUnreadCount } = useNotifications()
-  const STORAGE_KEY = 'luxury_messages_read_status'
 
   useEffect(() => {
     let active = true
@@ -32,11 +31,8 @@ export default function ContactMessages() {
       try {
         const res = await api.get('/contact/messages')
         if (!active) return
+        // API now returns `read` field for each message
         setMessages(res.data)
-        const saved = localStorage.getItem(STORAGE_KEY)
-        if (saved) {
-          setReadMessages(new Set(JSON.parse(saved)))
-        }
       } catch (error) {
         console.error('Failed to load messages:', error)
       } finally {
@@ -66,20 +62,22 @@ export default function ContactMessages() {
   }
 
   const handleSelectMessage = async (message: ContactMessage) => {
+    // Optimistically mark as read in the UI
     setSelected(message)
-    const newReadSet = new Set([...readMessages, message.id])
-    setReadMessages(newReadSet)
-    localStorage.setItem(STORAGE_KEY, JSON.stringify([...newReadSet]))
+    setMessages((prev) => prev.map((m) => (m.id === message.id ? { ...m, read: true } : m)))
+    refreshUnreadCount()
 
     try {
       await api.patch(`/contact/messages/${message.id}`, { read: true })
     } catch {
-      // silently ignore
+      // If the call fails, revert the local read state
+      setMessages((prev) => prev.map((m) => (m.id === message.id ? { ...m, read: false } : m)))
+      refreshUnreadCount()
     }
-    refreshUnreadCount()
   }
 
-  const unreadCount = messages.filter((m) => !readMessages.has(m.id)).length
+  // Now based on the server-provided `read` field
+  const unreadCount = messages.filter((m) => !m.read).length
 
   if (loading) {
     return (
@@ -129,7 +127,7 @@ export default function ContactMessages() {
             <div className="space-y-1 p-4">
               {messages.map((message) => {
                 const isSelected = selected?.id === message.id
-                const isRead = readMessages.has(message.id)
+                const isRead = message.read // now from server
 
                 return (
                   <button

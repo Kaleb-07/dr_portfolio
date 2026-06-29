@@ -1,8 +1,5 @@
 import { motion } from 'framer-motion'
-import {
-  Container,
-  AnimatedSection,
-} from '@/components/shared'
+import { Container, AnimatedSection } from '@/components/shared'
 import { foundationPillars } from '@/data/foundation'
 import { useSiteContent } from '@/hooks/useSiteContent'
 import {
@@ -65,7 +62,10 @@ export default function FoundationPillarsSection() {
             const Icon = iconMap[iconValue as keyof typeof iconMap] || Sparkles
 
             return (
-              <AnimatedSection key={String(pillar.id ?? pillar.title ?? index)} delay={index * 0.06}>
+              <AnimatedSection
+                key={String(pillar.id ?? pillar.title ?? index)}
+                delay={index * 0.06}
+              >
                 <motion.article
                   whileHover={{ y: -4 }}
                   transition={{ duration: 0.25 }}
@@ -85,7 +85,9 @@ export default function FoundationPillarsSection() {
                   </h3>
 
                   <p className="text-sm font-light leading-relaxed text-ink-mid">
-                    {pillar.body || pillar.eyebrow || 'Strategic support for the foundation mission.'}
+                    {pillar.body ||
+                      pillar.eyebrow ||
+                      'Strategic support for the foundation mission.'}
                   </p>
                 </motion.article>
               </AnimatedSection>
