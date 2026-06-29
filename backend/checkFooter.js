@@ -1,0 +1,10 @@
+const { PrismaClient } = require('@prisma/client')
+const p = new PrismaClient()
+;(async () => {
+  const s = await p.cms_sections.findUnique({ where: { slug: 'footer_settings' } })
+  const m = JSON.parse(s.metadata || '{}')
+  console.log('telegram:', m.telegram)
+  console.log('whatsapp:', m.whatsapp)
+  console.log('socialLinks:', JSON.stringify(m.socialLinks, null, 2))
+  await p.$disconnect()
+})()

@@ -1,4 +1,4 @@
-import { Bell, Moon, Sun, ChevronDown } from 'lucide-react'
+import { Bell, ChevronDown } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useNotifications } from './NotificationContext'
@@ -6,7 +6,6 @@ import ProfileModal from './ProfileModal'
 import api from '../api'
 
 export function Topbar() {
-  const [darkMode, setDarkMode] = useState(false)
   const [showUserMenu, setShowUserMenu] = useState(false)
   const [profileModalOpen, setProfileModalOpen] = useState(false)
 
@@ -45,13 +44,6 @@ export function Topbar() {
     <>
       <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-end px-6">
         <div className="flex items-center gap-4">
-          <button
-            onClick={() => setDarkMode(!darkMode)}
-            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-          >
-            {darkMode ? <Sun size={20} /> : <Moon size={20} />}
-          </button>
-
           <button
             onClick={() => navigate('/contact-messages')}
             className="p-2 rounded-lg hover:bg-gray-100 transition-colors relative"

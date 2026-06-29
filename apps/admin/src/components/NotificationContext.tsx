@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, useCallback } from 'react'
+import { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react'
 import api from '../api'
 
 interface NotificationContextType {
@@ -11,30 +11,40 @@ const NotificationContext = createContext<NotificationContextType>({
   refreshUnreadCount: () => {},
 })
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useNotifications = () => useContext(NotificationContext)
 
 export function NotificationProvider({ children }: { children: React.ReactNode }) {
   const [unreadCount, setUnreadCount] = useState(0)
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  const fetchUnreadCount = useCallback(async () => {
+  const refreshUnreadCount = useCallback(async () => {
     try {
-      const res = await api.get('/contact/messages')
-      const messages = res.data || []
-      const saved = localStorage.getItem('luxury_messages_read_status')
-      const readSet: Set<number> = saved ? new Set(JSON.parse(saved)) : new Set()
-      const unread = messages.filter((m: { id: number }) => !readSet.has(m.id)).length
-      setUnreadCount(unread)
-    } catch {
-      // silently fail
+      const res = await api.get('/contact/messages/unread-count')
+      setUnreadCount(res.data.count || 0)
+    } catch (error) {
+      console.error('Failed to fetch unread count:', error)
     }
   }, [])
 
+  // Initial fetch (does not call refreshUnreadCount to avoid sync setState warning)
   useEffect(() => {
-    fetchUnreadCount()
-  }, [fetchUnreadCount])
+    api
+      .get('/contact/messages/unread-count')
+      .then((res) => setUnreadCount(res.data.count || 0))
+      .catch((err) => console.error('Failed to fetch unread count:', err))
+  }, [])
+
+  // Polling every 5 seconds
+  useEffect(() => {
+    intervalRef.current = setInterval(refreshUnreadCount, 5000)
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current)
+    }
+  }, [refreshUnreadCount])
 
   return (
-    <NotificationContext.Provider value={{ unreadCount, refreshUnreadCount: fetchUnreadCount }}>
+    <NotificationContext.Provider value={{ unreadCount, refreshUnreadCount }}>
       {children}
     </NotificationContext.Provider>
   )

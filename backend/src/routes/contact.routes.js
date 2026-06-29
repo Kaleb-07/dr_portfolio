@@ -2,6 +2,7 @@ const express = require('express')
 const router = express.Router()
 const prisma = require('../prisma')
 
+/* ─── Contact Settings ──────────────────────────────────── */
 router.get('/settings', async (req, res) => {
   try {
     const settings = await prisma.contact_settings.findFirst()
@@ -40,6 +41,7 @@ router.put('/settings', async (req, res) => {
   }
 })
 
+/* ─── Inquiry Types ─────────────────────────────────────── */
 router.get('/inquiry-types', async (req, res) => {
   try {
     const types = await prisma.inquiry_types.findMany({
@@ -76,18 +78,49 @@ router.put('/inquiry-types/:id', async (req, res) => {
     res.status(500).json({ error: error.message })
   }
 })
-router.delete('/messages/:id', async (req, res) => {
+
+/* ─── Contact Messages ──────────────────────────────────── */
+
+// GET all messages – map is_read to read for frontend compatibility
+router.get('/messages', async (req, res) => {
   try {
-    const { id } = req.params
-    await prisma.contact_messages.delete({
-      where: { id: Number(id) },
+    const messages = await prisma.contact_messages.findMany({
+      orderBy: { created_at: 'desc' },
     })
-    res.json({ success: true })
+
+    const mapped = messages.map((m) => ({
+      id: m.id,
+      name: m.name,
+      email: m.email,
+      phone: m.phone,
+      organization: m.organization,
+      subject: m.subject,
+      message: m.message,
+      inquiry_type: m.inquiry_type,
+      created_at: m.created_at,
+      read: m.is_read || false, // map DB field to frontend field
+    }))
+
+    res.json(mapped)
+  } catch (error) {
+    console.error('Failed to load messages:', error)
+    res.status(500).json({ error: error.message })
+  }
+})
+
+// GET unread count – returns number of unread messages
+router.get('/messages/unread-count', async (req, res) => {
+  try {
+    const count = await prisma.contact_messages.count({
+      where: { is_read: false },
+    })
+    res.json({ count })
   } catch (error) {
     res.status(500).json({ error: error.message })
   }
 })
 
+// POST new message from public contact form
 router.post('/messages', async (req, res) => {
   try {
     const { name, email, organization, phone, subject, message, inquiryType } = req.body
@@ -110,12 +143,32 @@ router.post('/messages', async (req, res) => {
   }
 })
 
-router.get('/messages', async (req, res) => {
+// PATCH – mark a message as read
+router.patch('/messages/:id', async (req, res) => {
   try {
-    const messages = await prisma.contact_messages.findMany({
-      orderBy: { created_at: 'desc' },
+    const { id } = req.params
+    const { read } = req.body // frontend sends { read: true }
+
+    await prisma.contact_messages.update({
+      where: { id: Number(id) },
+      data: { is_read: read }, // map frontend `read` to DB `is_read`
     })
-    res.json(messages)
+
+    res.json({ success: true })
+  } catch (error) {
+    console.error('Failed to mark message read:', error)
+    res.status(500).json({ error: error.message })
+  }
+})
+
+// DELETE a message
+router.delete('/messages/:id', async (req, res) => {
+  try {
+    const { id } = req.params
+    await prisma.contact_messages.delete({
+      where: { id: Number(id) },
+    })
+    res.json({ success: true })
   } catch (error) {
     res.status(500).json({ error: error.message })
   }
