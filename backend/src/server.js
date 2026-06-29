@@ -17,6 +17,7 @@ app.use('/api/cms', cmsRoutes)
 app.use('/api/auth', authRoutes)
 app.use('/api/upload', uploadRoutes)
 app.use('/api/contact', contactRoutes)
+app.use('/api/impact', require('./routes/impact.routes'))
 
 app.get('/', (req, res) => {
   res.json({ status: 'ok', message: 'CMS Backend Running 🚀' })

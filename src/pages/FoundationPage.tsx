@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import PageBanner from '@/components/layout/PageBanner'
 import { seoPages } from '@/lib/seo'
+import { useSiteContent } from '@/hooks/useSiteContent'
 import {
   FoundationOverviewSection,
   FoundationProgramsSection,
@@ -9,6 +10,14 @@ import {
 } from '@/features/foundation'
 
 export default function FoundationPage() {
+  const { content } = useSiteContent()
+  const section = content?.sections.foundation || content?.sections.foundation_story
+
+  const heroTitle = (section?.metadata?.heroTitle as string) || 'Foundation & Community Impact'
+  const heroDescription =
+    (section?.metadata?.heroDescription as string) ||
+    'Building healthier communities through strategic philanthropy.'
+
   useEffect(() => {
     document.title = seoPages.foundation.title
   }, [])
@@ -16,8 +25,8 @@ export default function FoundationPage() {
   return (
     <>
       <PageBanner
-        title="Foundation & Community Impact"
-        description="Building healthier communities through strategic philanthropy."
+        title={heroTitle}
+        description={heroDescription}
       />
       <FoundationOverviewSection />
       <FoundationProgramsSection />
@@ -26,4 +35,3 @@ export default function FoundationPage() {
     </>
   )
 }
-

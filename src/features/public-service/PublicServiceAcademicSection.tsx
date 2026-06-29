@@ -33,15 +33,18 @@ export default function PublicServiceAcademicSection() {
     ? section.metadata.education
     : fallbackDegrees
 
+  const eduEyebrow = (section?.metadata?.eduEyebrow as string) || 'Academic Pedigree'
+  const eduTitle = (section?.metadata?.eduTitle as string) || 'Foundations of Clinical Mastery'
+
   return (
     <section className="section-padding bg-paper">
       <Container>
         <AnimatedSection>
           <p className="font-mono text-[9px] tracking-[0.25em] uppercase text-gold mb-4">
-            Academic Pedigree
+            {eduEyebrow}
           </p>
           <h2 className="font-serif text-3xl lg:text-4xl font-light text-ink mb-12">
-            Foundations of Clinical Mastery
+            {eduTitle}
           </h2>
         </AnimatedSection>
 

@@ -2,12 +2,20 @@ import { AnimatedSection, Container } from '@/components/shared'
 import { impactStories } from '@/data/foundation'
 import { motion } from 'framer-motion'
 import { useSiteContent } from '@/hooks/useSiteContent'
+import { mapCmsHtml } from '@/lib/html'
 
 export default function FoundationStoriesSection() {
   const { content } = useSiteContent()
   const section = content?.sections.foundation || content?.sections.foundation_story
-  const cmsStories = Array.isArray(section?.metadata?.impactStories) ? section.metadata.impactStories : []
+  const cmsStories = Array.isArray(section?.metadata?.impactStories)
+    ? section.metadata.impactStories
+    : []
   const displayedStories = cmsStories.length > 0 ? cmsStories : impactStories
+
+  const storiesEyebrow = (section?.metadata?.storiesEyebrow as string) || 'Impact'
+  const storiesTitle = (section?.metadata?.storiesTitle as string) ||
+    'Stories of <em class="text-teal-mid not-italic">change</em>'
+
   return (
     <section className="section-padding bg-paper relative overflow-hidden">
       {/* Background accent */}
@@ -18,12 +26,15 @@ export default function FoundationStoriesSection() {
       <Container className="relative z-10">
         <AnimatedSection>
           <div className="section-header">
-            <span className="section-tag">Impact</span>
+            <span className="section-tag">{storiesEyebrow}</span>
             <span className="section-rule" />
           </div>
-          <h2 className="font-serif text-4xl md:text-5xl font-light text-ink mb-16">
-            Stories of <em className="text-teal-mid not-italic">change</em>
-          </h2>
+          <h2
+            className="font-serif text-4xl md:text-5xl font-light text-ink mb-16"
+            dangerouslySetInnerHTML={{
+              __html: mapCmsHtml(storiesTitle),
+            }}
+          />
         </AnimatedSection>
 
         {/* Magazine layout: featured story top, two below */}

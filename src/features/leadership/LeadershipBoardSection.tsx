@@ -2,13 +2,23 @@ import { useMemo } from 'react'
 import { AnimatedSection, Container } from '@/components/shared'
 import { leadershipRoles } from '@/data/leadership'
 import { useSiteContent } from '@/hooks/useSiteContent'
+import { mapCmsHtml } from '@/lib/html'
 
 export default function LeadershipBoardSection() {
   const { content } = useSiteContent()
   const section = content?.sections.leadership || content?.sections.leadership_philosophy
+
+  const govEyebrow = (section?.metadata?.govEyebrow as string) || 'Governance'
+  const govTitle = (section?.metadata?.govTitle as string) ||
+    'Board & <em class="text-teal-mid not-italic">advisory</em> memberships'
+  const govDescription = (section?.metadata?.govDescription as string) ||
+    'Governance roles across healthcare institutions, civil society, and professional organisations.'
+
   const boardRoles = useMemo(
     () => {
-      const cmsRoles = Array.isArray(section?.metadata?.governanceRoles) ? section.metadata.governanceRoles : []
+      const cmsRoles = Array.isArray(section?.metadata?.governanceRoles)
+        ? section.metadata.governanceRoles
+        : []
       return cmsRoles.length > 0
         ? cmsRoles
         : leadershipRoles.filter((r) => r.category === 'board' || r.category === 'advisory')
@@ -26,17 +36,19 @@ export default function LeadershipBoardSection() {
       <Container className="relative z-10">
         <AnimatedSection>
           <div className="section-header">
-            <span className="section-tag">Governance</span>
+            <span className="section-tag">{govEyebrow}</span>
             <span className="section-rule" />
           </div>
-          <h2 className="font-serif text-4xl md:text-5xl font-light text-ink mb-4">
-            Board & <em className="text-teal-mid not-italic">advisory</em> memberships
-          </h2>
+          <h2
+            className="font-serif text-4xl md:text-5xl font-light text-ink mb-4"
+            dangerouslySetInnerHTML={{
+              __html: mapCmsHtml(govTitle),
+            }}
+          />
           <p className="text-sm font-light text-ink-mid leading-relaxed max-w-xl mb-14">
-            Governance roles across healthcare institutions, civil society, and professional organisations.
+            {govDescription}
           </p>
         </AnimatedSection>
-
         {/* Roster manifest — horizontal rows, no cards */}
         <div className="border-t border-rule divide-y divide-rule">
           {boardRoles.map((role, i) => (
@@ -69,16 +81,27 @@ export default function LeadershipBoardSection() {
                   <p className="text-sm font-light text-ink-mid leading-relaxed mb-4">
                     {role.description}
                   </p>
-                  {Array.isArray(role.highlights) && role.highlights.length > 0 && (
-                    <div className="space-y-2">
-                      {role.highlights.map((h: string, j: number) => (
-                        <div key={j} className="flex items-start gap-3">
-                          <span className="w-3 h-px bg-gold mt-2.5 shrink-0" />
-                          <p className="text-sm font-light text-ink-muted leading-relaxed">{h}</p>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                  {(() => {
+  const highlights = Array.isArray(role.highlights)
+    ? role.highlights
+    : typeof role.highlights === 'string'
+      ? role.highlights.split('\n').filter((line: string) => line.trim() !== '')
+      : []
+  if (highlights.length === 0) return null
+  return (
+    <div className="border-l-2 border-gold/40 pl-6 space-y-3">
+      <p className="font-mono text-[9px] tracking-[0.2em] uppercase text-gold mb-4">
+        Key Highlights
+      </p>
+      {highlights.map((h: string, j: number) => (
+        <div key={j} className="flex items-start gap-3">
+          <span className="w-4 h-px bg-teal mt-2.5 shrink-0" />
+          <p className="text-sm font-light text-ink-mid leading-relaxed">{h}</p>
+        </div>
+      ))}
+    </div>
+  )
+})()}
                 </div>
 
               </div>

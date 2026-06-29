@@ -3,13 +3,18 @@ import { motion, useInView } from 'framer-motion'
 import { Container } from '@/components/shared'
 import { futureVision } from '@/data/foundation'
 import { useSiteContent } from '@/hooks/useSiteContent'
+import { mapCmsHtml } from '@/lib/html'
 
 export default function FoundationFutureSection() {
   const ref = useRef<HTMLDivElement>(null)
   const inView = useInView(ref, { once: true, margin: '-80px' })
   const { content } = useSiteContent()
   const section = content?.sections.foundation || content?.sections.foundation_story
+
   const quote = (section?.metadata?.futureVision as string) || futureVision
+  const quoteEyebrow = (section?.metadata?.quoteEyebrow as string) || 'Future Vision'
+  const quoteTitle = (section?.metadata?.quoteTitle as string) ||
+    'Looking <em class="italic">ahead</em>'
 
   return (
     <section
@@ -51,7 +56,7 @@ export default function FoundationFutureSection() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="font-mono text-[9px] tracking-[0.3em] uppercase text-white/50 mb-6"
           >
-            Future Vision
+            {quoteEyebrow}
           </motion.p>
 
           <motion.div
@@ -66,9 +71,10 @@ export default function FoundationFutureSection() {
             animate={inView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.7, delay: 0.35 }}
             className="font-serif text-4xl md:text-5xl font-light text-white mb-8"
-          >
-            Looking <em className="italic">ahead</em>
-          </motion.h2>
+            dangerouslySetInnerHTML={{
+              __html: mapCmsHtml(quoteTitle),
+            }}
+          />
 
           {/* Decorative background quote mark */}
           <span className="absolute top-8 left-8 font-serif text-[8rem] leading-none text-white/4 pointer-events-none select-none">

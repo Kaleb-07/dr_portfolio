@@ -2,14 +2,24 @@ import { useMemo } from 'react'
 import { AnimatedSection, Container } from '@/components/shared'
 import { leadershipRoles } from '@/data/leadership'
 import { useSiteContent } from '@/hooks/useSiteContent'
+import { mapCmsHtml } from '@/lib/html'
 
 export default function LeadershipExecutiveSection() {
   const { content } = useSiteContent()
   const section = content?.sections.leadership || content?.sections.leadership_philosophy
-  const overview = (section?.metadata?.overview || {}) as { title?: string }
+
+  const overview = (section?.metadata?.overview || {}) as { title?: string; description?: string }
+
+  const execEyebrow = (section?.metadata?.execEyebrow as string) || 'Executive'
+  const execTitle = (section?.metadata?.execTitle as string) ||
+    'Founder & <em class="text-teal-mid not-italic">executive</em> leadership'
+  const execDescription = (section?.metadata?.execDescription as string) || ''
+
   const executiveRoles = useMemo(
     () => {
-      const cmsRoles = Array.isArray(section?.metadata?.executiveRoles) ? section.metadata.executiveRoles : []
+      const cmsRoles = Array.isArray(section?.metadata?.executiveRoles)
+        ? section.metadata.executiveRoles
+        : []
       return cmsRoles.length > 0
         ? cmsRoles
         : leadershipRoles.filter((r) => r.category === 'executive' || r.category === 'founder')
@@ -27,15 +37,23 @@ export default function LeadershipExecutiveSection() {
       <Container>
         <AnimatedSection>
           <div className="section-header">
-            <span className="section-tag">Executive</span>
+            <span className="section-tag">{execEyebrow}</span>
             <span className="section-rule" />
           </div>
-          <h2 className="font-serif text-4xl md:text-5xl font-light text-ink mb-16">
-            {overview.title || 'Founder &'} <em className="text-teal-mid not-italic">executive</em> leadership
-          </h2>
+          <h2
+            className="font-serif text-4xl md:text-5xl font-light text-ink mb-16"
+            dangerouslySetInnerHTML={{
+              __html: mapCmsHtml(execTitle),
+            }}
+          />
+          {execDescription && (
+            <p className="text-sm font-light text-ink-mid leading-relaxed max-w-xl mb-14">
+              {execDescription}
+            </p>
+          )}
         </AnimatedSection>
 
-        {/* Editorial numbered rows — no cards */}
+        {/* ... rest of the component (the roles list) remains unchanged ... */}
         <div className="border-t border-rule divide-y divide-rule max-w-5xl">
           {executiveRoles.map((role, i) => (
             <AnimatedSection key={role.id} delay={i * 0.12}>
@@ -71,19 +89,27 @@ export default function LeadershipExecutiveSection() {
                   </p>
 
                   {/* Highlights as indented dash list */}
-                  {Array.isArray(role.highlights) && role.highlights.length > 0 && (
-                    <div className="border-l-2 border-gold/40 pl-6 space-y-3">
-                      <p className="font-mono text-[9px] tracking-[0.2em] uppercase text-gold mb-4">
-                        Key Highlights
-                      </p>
-                      {role.highlights.map((h: string, j: number) => (
-                        <div key={j} className="flex items-start gap-3">
-                          <span className="w-4 h-px bg-teal mt-2.5 shrink-0" />
-                          <p className="text-sm font-light text-ink-mid leading-relaxed">{h}</p>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                  {(() => {
+  const highlights = Array.isArray(role.highlights)
+    ? role.highlights
+    : typeof role.highlights === 'string'
+      ? role.highlights.split('\n').filter((line: string) => line.trim() !== '')
+      : []
+  if (highlights.length === 0) return null
+  return (
+    <div className="border-l-2 border-gold/40 pl-6 space-y-3">
+      <p className="font-mono text-[9px] tracking-[0.2em] uppercase text-gold mb-4">
+        Key Highlights
+      </p>
+      {highlights.map((h: string, j: number) => (
+        <div key={j} className="flex items-start gap-3">
+          <span className="w-4 h-px bg-teal mt-2.5 shrink-0" />
+          <p className="text-sm font-light text-ink-mid leading-relaxed">{h}</p>
+        </div>
+      ))}
+    </div>
+  )
+})()}
                 </div>
 
               </div>

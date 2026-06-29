@@ -28,12 +28,22 @@ const fallbackRoles = [
   },
 ]
 
+// Helper to safely get highlights as array
+const getHighlights = (role: any): string[] => {
+  if (Array.isArray(role.highlights)) return role.highlights
+  if (typeof role.highlights === 'string') return role.highlights.split('\n').filter((line: string) => line.trim() !== '')
+  return []
+}
+
 export default function PublicServiceRolesSection() {
   const { content } = useSiteContent()
   const section = content?.sections['public-service']
   const roles = Array.isArray(section?.metadata?.roles) && section.metadata.roles.length > 0
     ? section.metadata.roles
     : fallbackRoles
+
+  const rolesEyebrow = (section?.metadata?.rolesEyebrow as string) || 'Policy &amp; Leadership'
+  const rolesTitle = (section?.metadata?.rolesTitle as string) || 'Active roles in national federations and ministerial advisory boards'
 
   return (
     <section className="section-padding bg-white">
@@ -42,11 +52,10 @@ export default function PublicServiceRolesSection() {
           <div className="lg:col-span-3 lg:sticky lg:top-24 lg:self-start">
             <AnimatedSection>
               <h2 className="font-serif text-2xl lg:text-3xl font-light text-ink mb-4">
-                Policy &amp; Leadership
+                {rolesEyebrow}
               </h2>
               <p className="text-sm font-light text-ink-mid leading-relaxed">
-                Active roles in national federations and ministerial advisory boards focused on
-                healthcare sovereignty.
+                {rolesTitle}
               </p>
             </AnimatedSection>
           </div>
@@ -64,6 +73,17 @@ export default function PublicServiceRolesSection() {
                   <p className="text-sm font-light text-ink-mid leading-relaxed">
                     {role.description}
                   </p>
+                  {/* Highlights if present */}
+                  {getHighlights(role).length > 0 && (
+                    <div className="mt-4 space-y-2">
+                      {getHighlights(role).map((h: string, j: number) => (
+                        <div key={j} className="flex items-start gap-3">
+                          <span className="w-3 h-px bg-gold mt-2.5 shrink-0" />
+                          <p className="text-sm font-light text-ink-muted leading-relaxed">{h}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </AnimatedSection>
             ))}

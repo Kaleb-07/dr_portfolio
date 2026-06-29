@@ -5,14 +5,7 @@ import { foundationOverview } from '@/data/foundation'
 import { useSiteContent } from '@/hooks/useSiteContent'
 import { mapCmsHtml } from '@/lib/html'
 
-const stats = [
-  { value: '5+', label: 'Impact Pillars' },
-  { value: '4',  label: 'Board Chairmanships' },
-  { value: '1',  label: 'CSO Board Chair' },
-  { value: '1000+', label: 'Lives Impacted' },
-]
-
-function StatBlock({ stat, index }: { stat: typeof stats[0]; index: number }) {
+function StatBlock({ stat, index }: { stat: { value: string; label: string }; index: number }) {
   const ref = useRef<HTMLDivElement>(null)
   const inView = useInView(ref, { once: true, margin: '-60px' })
 
@@ -59,6 +52,13 @@ export default function FoundationOverviewSection() {
     vision?: string
     mission?: string
   }
+
+  // ── New CMS headings ──────────────────────────────────────
+  const statsEyebrow = (section?.metadata?.statsEyebrow as string) || 'Stats'
+  const statsTitle = (section?.metadata?.statsTitle as string) || 'Our Impact in Numbers'
+  const visionEyebrow = (section?.metadata?.visionEyebrow as string) || 'Vision'
+  const missionEyebrow = (section?.metadata?.missionEyebrow as string) || 'Mission'
+
   const stats =
     Array.isArray(section?.metadata?.stats) && section.metadata.stats.length > 0
       ? section.metadata.stats
@@ -85,8 +85,8 @@ export default function FoundationOverviewSection() {
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
           className="section-header"
         >
-              <span className="section-tag">Foundation</span>
-              <span className="section-rule" />
+          <span className="section-tag">{statsEyebrow}</span>
+          <span className="section-rule" />
         </motion.div>
 
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-20">
@@ -97,17 +97,14 @@ export default function FoundationOverviewSection() {
               animate={leftInView ? { opacity: 1, y: 0 } : {}}
               transition={{ duration: 0.65, delay: 0.05 }}
               className="font-serif text-4xl md:text-5xl font-light text-ink mb-6"
-            >
-              <span
-                dangerouslySetInnerHTML={{
-                  __html: mapCmsHtml(
-                    overview.title ||
-                      section?.title ||
-                      'The <em class="text-teal-mid not-italic">LUCS</em> Foundation',
-                  ),
-                }}
-              />
-            </motion.h2>
+              dangerouslySetInnerHTML={{
+                __html: mapCmsHtml(
+                  overview.title ||
+                    section?.title ||
+                    'The <em class="text-teal-mid not-italic">LUCS</em> Foundation',
+                ),
+              }}
+            />
 
             <motion.p
               initial={{ opacity: 0, y: 20 }}
@@ -125,9 +122,11 @@ export default function FoundationOverviewSection() {
               transition={{ duration: 0.55, delay: 0.25 }}
               className="border-l-2 border-teal pl-6 mb-8"
             >
-              <p className="font-mono text-[9px] tracking-[0.2em] uppercase text-teal mb-2">Vision</p>
+              <p className="font-mono text-[9px] tracking-[0.2em] uppercase text-teal mb-2">
+                {visionEyebrow}
+              </p>
               <p className="text-sm font-light text-ink-mid leading-relaxed">
-                {(overview.vision as string) || (section?.metadata?.vision as string) || foundationOverview.vision}
+                {(overview.vision as string) || foundationOverview.vision}
               </p>
             </motion.div>
 
@@ -138,9 +137,11 @@ export default function FoundationOverviewSection() {
               transition={{ duration: 0.55, delay: 0.35 }}
               className="border-l-2 border-gold pl-6"
             >
-              <p className="font-mono text-[9px] tracking-[0.2em] uppercase text-gold mb-2">Mission</p>
+              <p className="font-mono text-[9px] tracking-[0.2em] uppercase text-gold mb-2">
+                {missionEyebrow}
+              </p>
               <p className="text-sm font-light text-ink-mid leading-relaxed">
-                {(overview.mission as string) || (section?.metadata?.mission as string) || foundationOverview.mission}
+                {(overview.mission as string) || foundationOverview.mission}
               </p>
             </motion.div>
           </div>

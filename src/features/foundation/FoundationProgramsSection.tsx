@@ -26,6 +26,8 @@ export default function FoundationProgramsSection() {
   const displayedPrograms = cmsPrograms.length > 0 ? cmsPrograms : programs
   const [activeId, setActiveId] = useState(displayedPrograms[0]?.id ?? '')
   const activeProgram = displayedPrograms.find((p) => p.id === activeId) ?? displayedPrograms[0]
+  const programsTitle = (section?.metadata?.programsTitle as string) || 'Our programs'
+  const programsEyebrow = (section?.metadata?.programsEyebrow as string) || 'Programs'
 
   useEffect(() => {
     if (!displayedPrograms.some((program) => program.id === activeId)) {
@@ -43,11 +45,12 @@ export default function FoundationProgramsSection() {
       <Container className="relative z-10">
         <AnimatedSection>
           <div className="section-header">
-            <span className="section-tag">Programs</span>
+            <span className="section-tag">{programsEyebrow}</span>
             <span className="section-rule" />
           </div>
           <h2 className="font-serif text-4xl md:text-5xl font-light text-ink mb-14">
-            Our <em className="text-teal-mid not-italic">programs</em>
+            {/* Our <em className="text-teal-mid not-italic">programs</em> */}
+            {programsTitle}
           </h2>
         </AnimatedSection>
 
