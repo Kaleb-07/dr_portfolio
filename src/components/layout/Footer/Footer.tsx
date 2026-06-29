@@ -47,6 +47,7 @@ export default function Footer() {
 
   const footerSettings = content?.sections.footer_settings
   const footerContact = content?.contact || defaultContact
+
   const socialLinks = useMemo(() => {
     const cmsLinks = Array.isArray(footerSettings?.metadata?.socialLinks)
       ? (footerSettings?.metadata?.socialLinks as Array<{
@@ -61,17 +62,14 @@ export default function Footer() {
           label: link.label || 'Social Link',
           href: link.href || '#',
           icon:
-            socialIconMap[
-              (link.icon as keyof typeof socialIconMap) || 'linkedin'
-            ] || FaLinkedinIn,
+            socialIconMap[(link.icon as keyof typeof socialIconMap) || 'linkedin'] || FaLinkedinIn,
         }))
       : defaultSocialLinks
   }, [footerSettings?.metadata?.socialLinks])
 
   return (
     <footer ref={ref} className="bg-ink text-white relative overflow-hidden">
-
-      {/* ── Ambient background glows ── */}
+      {/* Ambient background glows */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <motion.div
           initial={{ opacity: 0, scale: 0.6 }}
@@ -87,7 +85,7 @@ export default function Footer() {
         />
       </div>
 
-      {/* ── Gold top accent line ── */}
+      {/* Gold top accent line */}
       <motion.div
         initial={{ scaleX: 0 }}
         animate={inView ? { scaleX: 1 } : {}}
@@ -95,13 +93,10 @@ export default function Footer() {
         className="h-px bg-gradient-to-r from-transparent via-gold to-transparent origin-left"
       />
 
-      {/* ══════════════════════════════════════════════
-          CTA SECTION
-      ══════════════════════════════════════════════ */}
+      {/* CTA Section */}
       <div className="relative border-b border-white/8 py-14 lg:py-18">
         <Container className="relative z-10">
           <div className="text-center max-w-3xl mx-auto">
-
             <motion.div
               initial={{ opacity: 0, y: 12 }}
               animate={inView ? { opacity: 1, y: 0 } : {}}
@@ -119,8 +114,8 @@ export default function Footer() {
               transition={{ duration: 0.75, delay: 0.18, ease: [0.22, 1, 0.36, 1] }}
               className="font-serif text-4xl md:text-5xl lg:text-6xl font-light text-white mb-5 leading-[1.15]"
             >
-              Let's build the future of{' '}
-              <em className="text-teal-mid not-italic">healthcare</em> together.
+              Let's build the future of <em className="text-teal-mid not-italic">healthcare</em>{' '}
+              together.
             </motion.h2>
 
             <motion.p
@@ -146,15 +141,11 @@ export default function Footer() {
                 <span className="w-4 h-px bg-white/40 group-hover:w-6 group-hover:bg-teal transition-all duration-300" />
               </Link>
             </motion.div>
-
           </div>
         </Container>
       </div>
 
-      {/* ══════════════════════════════════════════════
-          NAVIGATION GRID
-          Connect column gets contact info appended below its links
-      ══════════════════════════════════════════════ */}
+      {/* Navigation Grid */}
       <div className="relative py-12 border-b border-white/8">
         <Container className="relative z-10">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-10 lg:gap-16">
@@ -163,9 +154,12 @@ export default function Footer() {
                 key={section.title}
                 initial={{ opacity: 0, y: 20 }}
                 animate={inView ? { opacity: 1, y: 0 } : {}}
-                transition={{ duration: 0.55, delay: 0.3 + colIndex * 0.08, ease: [0.22, 1, 0.36, 1] }}
+                transition={{
+                  duration: 0.55,
+                  delay: 0.3 + colIndex * 0.08,
+                  ease: [0.22, 1, 0.36, 1],
+                }}
               >
-                {/* Column title */}
                 <div className="flex items-center gap-3 mb-5">
                   <p className="font-mono text-xs tracking-[0.25em] uppercase text-gold shrink-0">
                     {section.title}
@@ -173,14 +167,16 @@ export default function Footer() {
                   <div className="h-px flex-1 bg-white/8" />
                 </div>
 
-                {/* Nav links */}
                 <ul className="space-y-3">
                   {section.links.map((link, linkIndex) => (
                     <motion.li
                       key={link.path}
                       initial={{ opacity: 0, x: -8 }}
                       animate={inView ? { opacity: 1, x: 0 } : {}}
-                      transition={{ duration: 0.4, delay: 0.4 + colIndex * 0.08 + linkIndex * 0.05 }}
+                      transition={{
+                        duration: 0.4,
+                        delay: 0.4 + colIndex * 0.08 + linkIndex * 0.05,
+                      }}
                     >
                       <Link
                         to={link.path}
@@ -192,7 +188,6 @@ export default function Footer() {
                   ))}
                 </ul>
 
-                {/* Contact info — appended only under the Connect column */}
                 {section.title === 'Connect' && (
                   <ul className="mt-6 space-y-3 border-t border-white/8 pt-5">
                     {[
@@ -221,9 +216,7 @@ export default function Footer() {
         </Container>
       </div>
 
-      {/* ══════════════════════════════════════════════
-          BOTTOM BAR
-      ══════════════════════════════════════════════ */}
+      {/* Bottom Bar */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={inView ? { opacity: 1 } : {}}
@@ -232,8 +225,6 @@ export default function Footer() {
       >
         <Container className="relative z-10">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-5">
-
-            {/* Logo + tagline */}
             <div className="flex flex-col items-center sm:items-start gap-1">
               <Link
                 to="/"
@@ -246,17 +237,16 @@ export default function Footer() {
               </p>
             </div>
 
-            {/* Social icons */}
             <div className="flex items-center gap-3">
               {socialLinks.map(({ icon: Icon, label, href }) => (
                 <a
-                key={label}
-                href={href}
-                aria-label={label}
+                  key={label}
+                  href={href}
+                  aria-label={label}
                   target="_blank"
                   rel="noopener noreferrer"
-                className="w-8 h-8 border border-white/10 flex items-center justify-center text-white/30 hover:border-teal hover:text-teal hover:bg-teal/5 active:border-teal active:text-teal active:bg-teal/10 active:scale-90 transition-all duration-300"
-              >
+                  className="w-8 h-8 border border-white/10 flex items-center justify-center text-white/30 hover:border-teal hover:text-teal hover:bg-teal/5 active:border-teal active:text-teal active:bg-teal/10 active:scale-90 transition-all duration-300"
+                >
                   <Icon size={13} />
                 </a>
               ))}
@@ -265,11 +255,9 @@ export default function Footer() {
             <p className="font-mono text-xs tracking-widest uppercase text-white/40">
               &copy; {year} All Rights Reserved
             </p>
-
           </div>
         </Container>
       </motion.div>
-
     </footer>
   )
 }

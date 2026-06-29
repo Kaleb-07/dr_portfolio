@@ -1,12 +1,7 @@
 import { useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, useInView } from 'framer-motion'
-import {
-  FaHeartbeat,
-  FaGraduationCap,
-  FaHospital,
-  FaHandshake,
-} from 'react-icons/fa'
+import { FaHeartbeat, FaGraduationCap, FaHospital, FaHandshake } from 'react-icons/fa'
 import { Container } from '@/components/shared'
 import { foundationOverview } from '@/data/foundation'
 import { useSiteContent } from '@/hooks/useSiteContent'
@@ -14,17 +9,17 @@ import { mapCmsHtml } from '@/lib/html'
 
 /* ── Data ──────────────────────────────────────────────────────────────── */
 const stats = [
-  { value: '5+',    label: 'Community Impact Pillars' },
-  { value: '4',     label: 'Board Chairmanships' },
-  { value: '1',     label: 'CSO Board Chairmanship' },
+  { value: '5+', label: 'Community Impact Pillars' },
+  { value: '4', label: 'Board Chairmanships' },
+  { value: '1', label: 'CSO Board Chairmanship' },
   { value: '1000+', label: 'Lives Impacted' },
 ]
 
 const pillars = [
-  { label: 'Community Health',            icon: FaHeartbeat },
-  { label: 'Education Access',            icon: FaGraduationCap },
-  { label: 'Healthcare Infrastructure',   icon: FaHospital },
-  { label: 'Professional Mentorship',     icon: FaHandshake },
+  { label: 'Community Health', icon: FaHeartbeat },
+  { label: 'Education Access', icon: FaGraduationCap },
+  { label: 'Healthcare Infrastructure', icon: FaHospital },
+  { label: 'Professional Mentorship', icon: FaHandshake },
 ]
 
 const iconMap = {
@@ -36,7 +31,7 @@ const iconMap = {
 
 /* ── Stat card ─────────────────────────────────────────────────────────── */
 function StatCard({ stat, index }: { stat: (typeof stats)[0]; index: number }) {
-  const ref    = useRef<HTMLDivElement>(null)
+  const ref = useRef<HTMLDivElement>(null)
   const inView = useInView(ref, { once: true, margin: '-60px' })
 
   return (
@@ -85,13 +80,13 @@ function StatCard({ stat, index }: { stat: (typeof stats)[0]; index: number }) {
 
 /* ── Main section ──────────────────────────────────────────────────────── */
 export default function HomeFoundation() {
-  const headerRef    = useRef<HTMLDivElement>(null)
+  const headerRef = useRef<HTMLDivElement>(null)
   const headerInView = useInView(headerRef, { once: true, margin: '-60px' })
 
-  const leftRef    = useRef<HTMLDivElement>(null)
+  const leftRef = useRef<HTMLDivElement>(null)
   const leftInView = useInView(leftRef, { once: true, margin: '-60px' })
   const { content } = useSiteContent()
-  const section = content?.sections.foundation || content?.sections.foundation_story
+  const section = content?.sections.home_foundation
   const cmsStats = section?.metadata?.stats
   const displayedStats = Array.isArray(cmsStats) && cmsStats.length > 0 ? cmsStats : stats
   const displayedPillars = section?.blocks?.length
@@ -104,13 +99,15 @@ export default function HomeFoundation() {
   return (
     <section className="section-padding bg-paper-warm overflow-hidden">
       <Container>
-
         {/* ── Section tag ── */}
         <motion.div
           ref={headerRef}
           initial={{ opacity: 0, y: 24 }}
           animate={headerInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] as [number,number,number,number] }}
+          transition={{
+            duration: 0.6,
+            ease: [0.22, 1, 0.36, 1] as [number, number, number, number],
+          }}
           className="section-header mb-12"
         >
           <span className="section-tag">{section?.eyebrow || 'Foundation'}</span>
@@ -118,7 +115,6 @@ export default function HomeFoundation() {
         </motion.div>
 
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-20">
-
           {/* ── Left: heading + description + pillars ── */}
           <div ref={leftRef}>
             {/* Decorative accent blob */}
@@ -137,7 +133,14 @@ export default function HomeFoundation() {
               transition={{ duration: 0.65, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
               className="relative z-10 font-serif text-4xl md:text-5xl font-light text-ink mb-6"
             >
-              <span dangerouslySetInnerHTML={{ __html: mapCmsHtml(section?.title || 'The <em class="text-teal-mid not-italic">LUCS Foundation</em>') }} />
+              <span
+                dangerouslySetInnerHTML={{
+                  __html: mapCmsHtml(
+                    section?.title ||
+                      'The <em class="text-teal-mid not-italic">LUCS Foundation</em>',
+                  ),
+                }}
+              />
             </motion.h2>
 
             {/* Description */}

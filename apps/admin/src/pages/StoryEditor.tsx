@@ -127,7 +127,6 @@ interface TimelineEventDraft {
 
 type Draft = { events: TimelineEventDraft[] } | SectionDraft | null
 
-// API payload types (replaces `any`)
 interface BlockSavePayload {
   id?: number
   block_type: string
@@ -184,7 +183,7 @@ const STORY_SECTIONS: StorySection[] = [
     slug: 'foundation',
     title: 'Foundation',
     description: 'Manage the LUCS Foundation section, pillars, and statistics.',
-    backendSlug: 'foundation_story',
+    backendSlug: 'home_foundation',
     blockLabel: 'Foundation Pillar',
     hint: 'Edit the heading, intro text, pillars, and stat cards.',
   },
@@ -595,11 +594,29 @@ function stripHtml(html = '') {
 }
 
 function buildSectionDraft(section: RawSectionData = {}): SectionDraft {
+  const rawTitle = section.title || ''
+  let normalTitle = ''
+  let highlight = ''
+
+  // Parse Liyana Framework title with <em> tag
+  if (section.slug === 'liyana_framework') {
+    const match = rawTitle.match(/^(.*?)<em class="[^"]*">(.*?)<\/em>(.*)$/)
+    if (match) {
+      normalTitle = (match[1] + match[3]).replace(/\s+/g, ' ').trim()
+      highlight = match[2].trim()
+    } else {
+      normalTitle = rawTitle
+      highlight = ''
+    }
+  } else {
+    normalTitle = stripHtml(rawTitle)
+  }
+
   return {
     eyebrow: section.eyebrow || '',
-    title: stripHtml(section.title || ''),
+    title: normalTitle,
     subtitle: stripHtml(section.subtitle || ''),
-    title_highlight: section.metadata?.title_highlight || '',
+    title_highlight: highlight || section.metadata?.title_highlight || '',
     description: stripHtml(section.description || ''),
     image_url: section.image_url || '',
     image_alt: section.image_alt || '',
@@ -657,7 +674,10 @@ function emptySectionDraft(): SectionDraft {
 }
 
 function getSectionFromContent(
-  content: { sections?: Record<string, RawSectionData>; timelineEvents?: RawTimelineEvent[] } | null,
+  content: {
+    sections?: Record<string, RawSectionData>
+    timelineEvents?: RawTimelineEvent[]
+  } | null,
   section: StorySection,
 ) {
   if (section.type === 'timeline') {
@@ -759,9 +779,7 @@ export default function StoryEditor() {
         } catch (fallbackErr) {
           console.error('Failed to load fallback draft:', fallbackErr)
           const fallbackDraft =
-            selectedSection.type === 'timeline'
-              ? ({ events: [] } as Draft)
-              : emptySectionDraft()
+            selectedSection.type === 'timeline' ? ({ events: [] } as Draft) : emptySectionDraft()
           if (active) {
             setDraft(fallbackDraft)
             setBackup(structuredClone(fallbackDraft))
@@ -801,7 +819,6 @@ export default function StoryEditor() {
     setExpandedStats((prev) => !prev)
   }
 
-  /* Timeline handlers */
   const addTimelineEvent = () => {
     setDraft((c) => {
       if (!c || !('events' in c)) return c
@@ -846,7 +863,6 @@ export default function StoryEditor() {
       return { ...c, events: reorderArray(c.events, index, direction) }
     })
 
-  /* Generic block handlers */
   const addBlock = () => {
     setDraft((c) => {
       if (!c || !('blocks' in c)) return c
@@ -924,7 +940,6 @@ export default function StoryEditor() {
     }
   }
 
-  /* Save */
   const saveSection = async () => {
     if (!draft || !selectedSection) return
     setMessage('')
@@ -942,8 +957,7 @@ export default function StoryEditor() {
 
         for (const [i, event] of draft.events.entries()) {
           const slugBase = event.slug || normalizeSlug(event.title || selectedSection.slug)
-          const payload = {
-            slug: typeof event.id === 'number' ? event.slug || slugBase : `${slugBase || selectedSection.slug}-${i + 1}`,
+          const payload: Record<string, unknown> = {
             year: event.year,
             title: event.title,
             subtitle: event.subtitle,
@@ -952,6 +966,11 @@ export default function StoryEditor() {
             icon: event.icon || 'sparkles',
             sort_order: i + 1,
           }
+          if (typeof event.id === 'number') {
+            if (event.slug) payload.slug = event.slug
+          } else {
+            payload.slug = `${slugBase || selectedSection.slug}-${i + 1}`
+          }
 
           try {
             if (typeof event.id === 'number') {
@@ -959,9 +978,17 @@ export default function StoryEditor() {
             } else {
               await api.post('/cms/timeline-events', payload)
             }
-          } catch (err) {
+          } catch (err: unknown) {
             console.error(`Failed to save timeline event:`, err)
-            const saveErr = new Error(`Failed to save event "${event.title}". Please try again.`)
+            let serverMsg = ''
+            if (err && typeof err === 'object' && 'response' in err) {
+              const axiosErr = err as { response?: { data?: { message?: string; error?: string } } }
+              serverMsg = axiosErr.response?.data?.message || axiosErr.response?.data?.error || ''
+            }
+            const message = serverMsg
+              ? `Failed to save event "${event.title}": ${serverMsg}`
+              : `Failed to save event "${event.title}". Please try again.`
+            const saveErr = new Error(message)
             Object.defineProperty(saveErr, 'cause', {
               value: err,
               writable: true,
@@ -972,6 +999,16 @@ export default function StoryEditor() {
         }
         setDeletedTimelineIds([])
       } else if ('blocks' in draft && selectedSection.backendSlug) {
+        // Prepare title (may be modified for Liyana)
+        let finalTitle = draft.title
+        if (isLiyana) {
+          const normal = draft.title || ''
+          const highlight = draft.title_highlight || ''
+          finalTitle = highlight
+            ? `${normal} <em class="not-italic text-teal-mid">${highlight}</em>`
+            : normal
+        }
+
         const isFoundationSection = selectedSection.slug === 'foundation'
         const foundationMetadata = isFoundationSection
           ? {
@@ -988,7 +1025,10 @@ export default function StoryEditor() {
                 value: stat.value || '',
               })),
               programs: draft.blocks.map((block, index) => ({
-                id: typeof block.id === 'number' ? String(block.id) : block.id || `program-${index + 1}`,
+                id:
+                  typeof block.id === 'number'
+                    ? String(block.id)
+                    : block.id || `program-${index + 1}`,
                 title: block.title || '',
                 description: block.body || '',
                 impact: '',
@@ -1015,7 +1055,7 @@ export default function StoryEditor() {
 
         const sectionPayload: SectionSavePayload = {
           eyebrow: draft.eyebrow || '',
-          title: draft.title || '',
+          title: finalTitle,
           subtitle: draft.subtitle || '',
           description: draft.description || '',
           image_url: draft.image_url || '',
@@ -1095,7 +1135,7 @@ export default function StoryEditor() {
       title="Story"
       undoButton={<UndoButton onClick={handleUndo} />}
     >
-      {/* Timeline Editor */}
+      {/* ── Timeline Editor ── */}
       {selectedSection.type === 'timeline' && 'events' in currentDraft && (
         <Card
           title="Career Timeline"
@@ -1186,11 +1226,11 @@ export default function StoryEditor() {
         </Card>
       )}
 
-      {/* Generic sections */}
+      {/* ── Non‑timeline sections ── */}
       {!selectedSection.type && 'blocks' in currentDraft && (
         <div className="space-y-6">
-          {/* Section Header Card */}
           <Card title={selectedSection.title} description={selectedSection.description}>
+            {/* Vision Agenda specific fields */}
             {isVision && (
               <div className="grid gap-6">
                 <Field label="Eyebrow / Section Label" hint="Short label above headline">
@@ -1239,6 +1279,7 @@ export default function StoryEditor() {
               </div>
             )}
 
+            {/* Leadership specific fields */}
             {isLeadership && (
               <div className="grid gap-6">
                 <Field label="Section Label">
@@ -1277,6 +1318,7 @@ export default function StoryEditor() {
               </div>
             )}
 
+            {/* Foundation specific fields */}
             {isFoundation && (
               <div className="grid gap-6">
                 <Field label="Section Label">
@@ -1316,7 +1358,8 @@ export default function StoryEditor() {
               </div>
             )}
 
-            {!isVision && !isLeadership && !isFoundation && (
+            {/* Generic fields (Recognition Awards, etc.) – Note: Liyana is excluded */}
+            {!isVision && !isLeadership && !isFoundation && !isLiyana && (
               <div className="grid gap-6 sm:grid-cols-2">
                 <Field label="Eyebrow / Section Label">
                   <input
@@ -1359,7 +1402,7 @@ export default function StoryEditor() {
             )}
           </Card>
 
-          {/* Foundation Stats Card - Collapsible */}
+          {/* Foundation Stats (collapsible) */}
           {isFoundation && (
             <ExpandableSection
               title="Foundation Stats"
@@ -1401,7 +1444,7 @@ export default function StoryEditor() {
                             className={formInput}
                             value={stat.label || ''}
                             onChange={(e) => {
-                            const stats = [...currentDraft.stats]
+                              const stats = [...currentDraft.stats]
                               stats[index] = { ...stats[index], label: e.target.value }
                               setDraft((c) => (c && 'blocks' in c ? { ...c, stats } : c))
                             }}
@@ -1429,8 +1472,8 @@ export default function StoryEditor() {
             </ExpandableSection>
           )}
 
-          {/* Blocks Card (framework items, pillars, awards, identity cards) */}
-      {!isLeadership && (
+          {/* Blocks Card (framework items, pillars, awards, identity cards) – visible for all non‑Leadership sections */}
+          {!isLeadership && (
             <Card
               title={selectedSection.blockLabel || 'Cards & Blocks'}
               description="Manage every visible card in this section"
@@ -1607,7 +1650,7 @@ export default function StoryEditor() {
                           </>
                         )}
 
-                        {/* Identity cards (Vision Agenda) – Full fields */}
+                        {/* Vision Identity cards */}
                         {isVision && (
                           <>
                             <Field label="Label">
@@ -1647,7 +1690,7 @@ export default function StoryEditor() {
         </div>
       )}
 
-      {/* Confirm Dialogs */}
+      {/* ── Confirm Dialogs ── */}
       <ConfirmDialog
         open={deleteTimelineIdx !== null}
         title="Delete Event"
