@@ -12,7 +12,7 @@ import {
 
 export default function FoundationPage() {
   const { content } = useSiteContent()
-  const section = content?.sections.foundation || content?.sections.foundation_story
+  const section = content?.sections.foundation_story || content?.sections.foundation
 
   const heroTitle = (section?.metadata?.heroTitle as string) || 'Foundation & Community Impact'
   const heroDescription =
