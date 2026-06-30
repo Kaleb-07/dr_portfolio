@@ -1,7 +1,4 @@
-import { mainNavigation } from '@/constants/navigation'
-import { siteConfig } from '@/constants/site'
-import heroData from '@/data/hero'
-import { impactMetrics } from '@/data/metrics'
+import { cmsContent } from '@/data/cms-content'
 
 export interface CmsBlock {
   id: number
@@ -14,7 +11,7 @@ export interface CmsBlock {
   image_alt?: string | null
   metadata?: Record<string, unknown>
   sort_order: number
-  is_active: number
+  is_active: boolean   // was: number
 }
 
 export interface CmsSection {
@@ -51,7 +48,7 @@ export interface TimelineEvent {
   title: string
   subtitle?: string | null
   description?: string | null
-  category: 'career' | 'education' | 'award' | 'milestone'
+  category: string   // was: 'career' | 'education' | 'award' | 'milestone'
   icon?: string | null
   sort_order: number
 }
@@ -86,94 +83,14 @@ export interface SiteContent {
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api'
 
-const defaultSections: Record<string, CmsSection> = {
-  vision_agenda: {
-    id: 0,
-    slug: 'vision_agenda',
-    section_type: 'hero_agenda',
-    eyebrow: siteConfig.hero.eyebrow,
-    title: heroData.title,
-    subtitle: heroData.subtitle,
-    description: heroData.description,
-    image_url: heroData.backgroundImage,
-    image_alt: heroData.name,
-    metadata: {
-      metrics: impactMetrics,
-      cta: heroData.cta,
-    },
-    blocks: [
-      {
-        id: 0,
-        section_id: 0,
-        block_type: 'identity_teaser',
-        title: 'Physician',
-        eyebrow: 'Identity I',
-        sort_order: 1,
-        is_active: 1,
-      },
-      {
-        id: 1,
-        section_id: 0,
-        block_type: 'identity_teaser',
-        title: 'Entrepreneur',
-        eyebrow: 'Identity II',
-        sort_order: 2,
-        is_active: 1,
-      },
-      {
-        id: 2,
-        section_id: 0,
-        block_type: 'identity_teaser',
-        title: 'Nation Builder',
-        eyebrow: 'Identity III',
-        sort_order: 3,
-        is_active: 1,
-      },
-    ],
-  },
-  leadership_philosophy: {
-    id: 0,
-    slug: 'leadership_philosophy',
-    section_type: 'quote',
-    eyebrow: siteConfig.philosophy.label,
-    title: null,
-    subtitle: siteConfig.philosophy.attribution,
-    description: siteConfig.philosophy.quote,
-    blocks: [],
-  },
-  footer_settings: {
-    id: 0,
-    slug: 'footer_settings',
-    section_type: 'site_footer',
-    eyebrow: 'Footer',
-    title: 'Footer & Social Media',
-    description: 'Manage footer contact details and social media links.',
-    metadata: {
-      socialLinks: [
-        { label: 'LinkedIn', href: siteConfig.social.linkedin, icon: 'linkedin' },
-        { label: 'X / Twitter', href: siteConfig.social.twitter, icon: 'x' },
-        { label: 'Instagram', href: siteConfig.social.instagram, icon: 'instagram' },
-        { label: 'Facebook', href: siteConfig.social.facebook, icon: 'facebook' },
-      ],
-    },
-    blocks: [],
-  },
-}
-
 export const defaultContent: SiteContent = {
-  sections: defaultSections,
-  sectionOrder: [],
-  identityItems: [],
-  timelineEvents: [],
-  navigation: mainNavigation.map((item, index) => ({
-    id: index + 1,
-    parent_id: null,
-    label: item.label,
-    path: item.path,
-    target: '_self',
-    sort_order: index,
-  })),
-  contact: null,
+  ...cmsContent,
+  sections: cmsContent.sections || {},
+  sectionOrder: cmsContent.sectionOrder || [],
+  identityItems: cmsContent.identityItems || [],
+  timelineEvents: cmsContent.timelineEvents || [],
+  navigation: cmsContent.navigation || [],
+  contact: cmsContent.contact || null,
 }
 
 function normalizeContent(raw: Partial<SiteContent> | null | undefined): SiteContent {
