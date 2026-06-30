@@ -72,7 +72,15 @@ export default function LeadershipEditor() {
   }>({ open: false })
 
   const askConfirm = (title: string, message: string, onConfirm: () => void) => {
-    setConfirm({ open: true, title, message, onConfirm })
+    setConfirm({
+      open: true,
+      title,
+      message,
+      onConfirm: () => {
+        onConfirm()                     // do the actual delete
+        setConfirm({ open: false })     // close the dialog
+      },
+    })
   }
 
   // Focus helper

@@ -52,11 +52,10 @@ const IconButton = ({ label, onClick, children, disabled, danger = false }: Icon
     aria-label={label}
     disabled={disabled}
     onClick={onClick}
-    className={`inline-flex h-9 w-9 items-center justify-center rounded-lg transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-40 ${
-      danger
+    className={`inline-flex h-9 w-9 items-center justify-center rounded-lg transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-40 ${danger
         ? 'bg-red-50 text-red-600 hover:bg-red-100'
         : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-    }`}
+      }`}
   >
     {children}
   </button>
@@ -70,9 +69,8 @@ const Toast = ({ message, error }: ToastProps) => {
   if (!message && !error) return null
   return (
     <div
-      className={`fixed bottom-6 right-6 flex items-center gap-3 rounded-lg px-5 py-3.5 text-sm font-medium shadow-lg ${
-        error ? 'bg-red-50 text-red-700' : 'bg-emerald-50 text-emerald-700'
-      }`}
+      className={`fixed bottom-6 right-6 flex items-center gap-3 rounded-lg px-5 py-3.5 text-sm font-medium shadow-lg ${error ? 'bg-red-50 text-red-700' : 'bg-emerald-50 text-emerald-700'
+        }`}
     >
       {error ? <AlertCircle size={18} /> : <CheckCircle2 size={18} />}
       <span>{message || error}</span>
@@ -220,11 +218,10 @@ function ExpandableItem({
   return (
     <div
       ref={isFocused ? refProp : null}
-      className={`rounded-2xl border bg-white/80 backdrop-blur-sm shadow-sm transition-all duration-300 hover:shadow-lg hover:border-emerald-300 hover:scale-[1.01] cursor-pointer ${
-        isFocused
+      className={`rounded-2xl border bg-white/80 backdrop-blur-sm shadow-sm transition-all duration-300 hover:shadow-lg hover:border-emerald-300 hover:scale-[1.01] cursor-pointer ${isFocused
           ? 'border-emerald-400 ring-2 ring-emerald-400/30 shadow-xl shadow-emerald-100/50'
           : 'border-slate-200'
-      }`}
+        }`}
     >
       <button
         onClick={() =>
@@ -347,7 +344,7 @@ const reorderArray = <T,>(arr: T[], idx: number, dir: number): T[] => {
   const next = [...arr]
   const target = idx + dir
   if (target < 0 || target >= next.length) return arr
-  ;[next[idx], next[target]] = [next[target], next[idx]]
+    ;[next[idx], next[target]] = [next[target], next[idx]]
   return next
 }
 
@@ -426,7 +423,15 @@ export default function EcosystemEditor() {
   }>({ open: false })
 
   const askConfirm = (title: string, message: string, onConfirm: () => void) => {
-    setConfirm({ open: true, title, message, onConfirm })
+    setConfirm({
+      open: true,
+      title,
+      message,
+      onConfirm: () => {
+        onConfirm()                     // do the actual delete
+        setConfirm({ open: false })     // close the dialog
+      },
+    })
   }
 
   // Focus helper
@@ -445,140 +450,140 @@ export default function EcosystemEditor() {
 
   // --------------- Fetch data helper ---------------
   const fetchData = async () => {
-  try {
-    const res = await api.get('/cms/site-content')
-    const section = res.data?.sections?.liyana_framework
-
-    // If the section hasn't been created yet, just use defaults (no error)
-    if (!section) {
-      const defaults = {
-        heroTag: 'Strategic Infrastructure',
-        heroTitle: '',
-        heroDescription: '',
-        heroMeta: [] as EcoMetaStat[],
-        networkTag: 'System Generated',
-        networkTitle: '',
-        networkDescription: '',
-        networkSectors: [] as NetworkSector[],
-        visionQuote: '',
-        visionAttribution: '',
-        visionMarker: '99',
-        breakdownTag: 'Sector Breakdown',
-        breakdownTitle: '',
-        breakdownDescription: '',
-        breakdownSectors: [] as BreakdownSector[],
-        financingNum: '06',
-        financingCategory: 'Financing',
-        financingTitle: '',
-        financingDescription: '',
-      }
-      // Set all states to defaults
-      setHeroTag(defaults.heroTag)
-      setHeroTitle(defaults.heroTitle)
-      setHeroDescription(defaults.heroDescription)
-      setHeroMeta(defaults.heroMeta)
-      setNetworkTag(defaults.networkTag)
-      setNetworkTitle(defaults.networkTitle)
-      setNetworkDescription(defaults.networkDescription)
-      setNetworkSectors(defaults.networkSectors)
-      setVisionQuote(defaults.visionQuote)
-      setVisionAttribution(defaults.visionAttribution)
-      setVisionMarker(defaults.visionMarker)
-      setBreakdownTag(defaults.breakdownTag)
-      setBreakdownTitle(defaults.breakdownTitle)
-      setBreakdownDescription(defaults.breakdownDescription)
-      setBreakdownSectors(defaults.breakdownSectors)
-      setFinancingNum(defaults.financingNum)
-      setFinancingCategory(defaults.financingCategory)
-      setFinancingTitle(defaults.financingTitle)
-      setFinancingDescription(defaults.financingDescription)
-      backupRef.current = defaults
-      setError('')
-      return defaults
-    }
-
-    // Parse metadata – the aggregated endpoint already returns it as an object,
-    // but if for some reason it's still a string, we handle both.
-    let metadata = section.metadata
-    if (typeof metadata === 'string') {
-      try {
-        metadata = JSON.parse(metadata)
-      } catch {
-        metadata = {}
-      }
-    }
-    const eco: any = metadata?.ecosystem || {}
-
-    const fresh = {
-      heroTag: eco.hero?.tag || 'Strategic Infrastructure',
-      heroTitle: eco.hero?.title || '',
-      heroDescription: eco.hero?.description || '',
-      heroMeta: eco.hero?.meta || [],
-
-      networkTag: eco.network?.hero?.tag || 'System Generated',
-      networkTitle: eco.network?.hero?.title || '',
-      networkDescription: eco.network?.hero?.description || '',
-      networkSectors: eco.network?.sectors || [],
-
-      visionQuote: eco.vision?.quote || '',
-      visionAttribution: eco.vision?.attribution || '',
-      visionMarker: eco.vision?.marker || '99',
-
-      breakdownTag: eco.breakdown?.tag || 'Sector Breakdown',
-      breakdownTitle: eco.breakdown?.title || '',
-      breakdownDescription: eco.breakdown?.description || '',
-      breakdownSectors: eco.breakdown?.sectors || [],
-      financingNum: eco.breakdown?.financing?.num || '06',
-      financingCategory: eco.breakdown?.financing?.category || 'Financing',
-      financingTitle: eco.breakdown?.financing?.title || '',
-      financingDescription: eco.breakdown?.financing?.description || '',
-    }
-
-    setHeroTag(fresh.heroTag)
-    setHeroTitle(fresh.heroTitle)
-    setHeroDescription(fresh.heroDescription)
-    setHeroMeta(fresh.heroMeta)
-    setNetworkTag(fresh.networkTag)
-    setNetworkTitle(fresh.networkTitle)
-    setNetworkDescription(fresh.networkDescription)
-    setNetworkSectors(fresh.networkSectors)
-    setVisionQuote(fresh.visionQuote)
-    setVisionAttribution(fresh.visionAttribution)
-    setVisionMarker(fresh.visionMarker)
-    setBreakdownTag(fresh.breakdownTag)
-    setBreakdownTitle(fresh.breakdownTitle)
-    setBreakdownDescription(fresh.breakdownDescription)
-    setBreakdownSectors(fresh.breakdownSectors)
-    setFinancingNum(fresh.financingNum)
-    setFinancingCategory(fresh.financingCategory)
-    setFinancingTitle(fresh.financingTitle)
-    setFinancingDescription(fresh.financingDescription)
-
-    backupRef.current = fresh
-    setError('')
-    return fresh
-  } catch (err: any) {
-    console.error('Failed to fetch ecosystem data', err)
-    throw err
-  }
-}
-
-// Initial load
-useEffect(() => {
-  let active = true
-  const load = async () => {
-    setLoading(true)
     try {
-      if (active) await fetchData()
-    } catch {
-      if (active) setError('Could not load ecosystem content. Using defaults.')
-    } finally {
-      if (active) setLoading(false)
+      const res = await api.get('/cms/site-content')
+      const section = res.data?.sections?.liyana_framework
+
+      // If the section hasn't been created yet, just use defaults (no error)
+      if (!section) {
+        const defaults = {
+          heroTag: 'Strategic Infrastructure',
+          heroTitle: '',
+          heroDescription: '',
+          heroMeta: [] as EcoMetaStat[],
+          networkTag: 'System Generated',
+          networkTitle: '',
+          networkDescription: '',
+          networkSectors: [] as NetworkSector[],
+          visionQuote: '',
+          visionAttribution: '',
+          visionMarker: '99',
+          breakdownTag: 'Sector Breakdown',
+          breakdownTitle: '',
+          breakdownDescription: '',
+          breakdownSectors: [] as BreakdownSector[],
+          financingNum: '06',
+          financingCategory: 'Financing',
+          financingTitle: '',
+          financingDescription: '',
+        }
+        // Set all states to defaults
+        setHeroTag(defaults.heroTag)
+        setHeroTitle(defaults.heroTitle)
+        setHeroDescription(defaults.heroDescription)
+        setHeroMeta(defaults.heroMeta)
+        setNetworkTag(defaults.networkTag)
+        setNetworkTitle(defaults.networkTitle)
+        setNetworkDescription(defaults.networkDescription)
+        setNetworkSectors(defaults.networkSectors)
+        setVisionQuote(defaults.visionQuote)
+        setVisionAttribution(defaults.visionAttribution)
+        setVisionMarker(defaults.visionMarker)
+        setBreakdownTag(defaults.breakdownTag)
+        setBreakdownTitle(defaults.breakdownTitle)
+        setBreakdownDescription(defaults.breakdownDescription)
+        setBreakdownSectors(defaults.breakdownSectors)
+        setFinancingNum(defaults.financingNum)
+        setFinancingCategory(defaults.financingCategory)
+        setFinancingTitle(defaults.financingTitle)
+        setFinancingDescription(defaults.financingDescription)
+        backupRef.current = defaults
+        setError('')
+        return defaults
+      }
+
+      // Parse metadata – the aggregated endpoint already returns it as an object,
+      // but if for some reason it's still a string, we handle both.
+      let metadata = section.metadata
+      if (typeof metadata === 'string') {
+        try {
+          metadata = JSON.parse(metadata)
+        } catch {
+          metadata = {}
+        }
+      }
+      const eco: any = metadata?.ecosystem || {}
+
+      const fresh = {
+        heroTag: eco.hero?.tag || 'Strategic Infrastructure',
+        heroTitle: eco.hero?.title || '',
+        heroDescription: eco.hero?.description || '',
+        heroMeta: eco.hero?.meta || [],
+
+        networkTag: eco.network?.hero?.tag || 'System Generated',
+        networkTitle: eco.network?.hero?.title || '',
+        networkDescription: eco.network?.hero?.description || '',
+        networkSectors: eco.network?.sectors || [],
+
+        visionQuote: eco.vision?.quote || '',
+        visionAttribution: eco.vision?.attribution || '',
+        visionMarker: eco.vision?.marker || '99',
+
+        breakdownTag: eco.breakdown?.tag || 'Sector Breakdown',
+        breakdownTitle: eco.breakdown?.title || '',
+        breakdownDescription: eco.breakdown?.description || '',
+        breakdownSectors: eco.breakdown?.sectors || [],
+        financingNum: eco.breakdown?.financing?.num || '06',
+        financingCategory: eco.breakdown?.financing?.category || 'Financing',
+        financingTitle: eco.breakdown?.financing?.title || '',
+        financingDescription: eco.breakdown?.financing?.description || '',
+      }
+
+      setHeroTag(fresh.heroTag)
+      setHeroTitle(fresh.heroTitle)
+      setHeroDescription(fresh.heroDescription)
+      setHeroMeta(fresh.heroMeta)
+      setNetworkTag(fresh.networkTag)
+      setNetworkTitle(fresh.networkTitle)
+      setNetworkDescription(fresh.networkDescription)
+      setNetworkSectors(fresh.networkSectors)
+      setVisionQuote(fresh.visionQuote)
+      setVisionAttribution(fresh.visionAttribution)
+      setVisionMarker(fresh.visionMarker)
+      setBreakdownTag(fresh.breakdownTag)
+      setBreakdownTitle(fresh.breakdownTitle)
+      setBreakdownDescription(fresh.breakdownDescription)
+      setBreakdownSectors(fresh.breakdownSectors)
+      setFinancingNum(fresh.financingNum)
+      setFinancingCategory(fresh.financingCategory)
+      setFinancingTitle(fresh.financingTitle)
+      setFinancingDescription(fresh.financingDescription)
+
+      backupRef.current = fresh
+      setError('')
+      return fresh
+    } catch (err: any) {
+      console.error('Failed to fetch ecosystem data', err)
+      throw err
     }
   }
-  load()
-  return () => { active = false }
-}, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Initial load
+  useEffect(() => {
+    let active = true
+    const load = async () => {
+      setLoading(true)
+      try {
+        if (active) await fetchData()
+      } catch {
+        if (active) setError('Could not load ecosystem content. Using defaults.')
+      } finally {
+        if (active) setLoading(false)
+      }
+    }
+    load()
+    return () => { active = false }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
   // Initial load
   useEffect(() => {
     let active = true

@@ -90,26 +90,26 @@ export default function LeadershipExecutiveSection() {
 
                   {/* Highlights as indented dash list */}
                   {(() => {
-  const highlights = Array.isArray(role.highlights)
-    ? role.highlights
-    : typeof role.highlights === 'string'
-      ? role.highlights.split('\n').filter((line: string) => line.trim() !== '')
-      : []
-  if (highlights.length === 0) return null
-  return (
-    <div className="border-l-2 border-gold/40 pl-6 space-y-3">
-      <p className="font-mono text-[9px] tracking-[0.2em] uppercase text-gold mb-4">
-        Key Highlights
-      </p>
-      {highlights.map((h: string, j: number) => (
-        <div key={j} className="flex items-start gap-3">
-          <span className="w-4 h-px bg-teal mt-2.5 shrink-0" />
-          <p className="text-sm font-light text-ink-mid leading-relaxed">{h}</p>
-        </div>
-      ))}
-    </div>
-  )
-})()}
+                    const highlights = Array.isArray(role.highlights)
+                      ? role.highlights
+                      : typeof role.highlights === 'string'
+                        ? role.highlights.split('\n').filter((line: string) => line.trim() !== '')
+                        : []
+                    if (highlights.length === 0) return null
+                    return (
+                      <div className="border-l-2 border-gold/40 pl-6 space-y-3">
+                        <p className="font-mono text-[9px] tracking-[0.2em] uppercase text-gold mb-4">
+                          Key Highlights
+                        </p>
+                        {highlights.map((h: string, j: number) => (
+                          <div key={j} className="flex items-start gap-3">
+                            <span className="w-4 h-px bg-teal mt-2.5 shrink-0" />
+                            <p className="text-sm font-light text-ink-mid leading-relaxed">{h}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )
+                  })()}
                 </div>
 
               </div>

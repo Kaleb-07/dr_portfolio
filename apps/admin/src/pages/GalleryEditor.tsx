@@ -54,11 +54,10 @@ const IconButton = ({ label, onClick, children, disabled, danger = false }: Icon
     aria-label={label}
     disabled={disabled}
     onClick={onClick}
-    className={`inline-flex h-9 w-9 items-center justify-center rounded-lg transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-40 ${
-      danger
+    className={`inline-flex h-9 w-9 items-center justify-center rounded-lg transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-40 ${danger
         ? 'bg-red-50 text-red-600 hover:bg-red-100'
         : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-    }`}
+      }`}
   >
     {children}
   </button>
@@ -73,9 +72,8 @@ const Toast = ({ message, error }: ToastProps) => {
   if (!message && !error) return null
   return (
     <div
-      className={`fixed bottom-6 right-6 flex items-center gap-3 rounded-lg px-5 py-3.5 text-sm font-medium shadow-lg ${
-        error ? 'bg-red-50 text-red-700' : 'bg-emerald-50 text-emerald-700'
-      }`}
+      className={`fixed bottom-6 right-6 flex items-center gap-3 rounded-lg px-5 py-3.5 text-sm font-medium shadow-lg ${error ? 'bg-red-50 text-red-700' : 'bg-emerald-50 text-emerald-700'
+        }`}
     >
       {error ? <AlertCircle size={18} /> : <CheckCircle2 size={18} />}
       <span>{message || error}</span>
@@ -226,11 +224,10 @@ function ExpandableItem({
   return (
     <div
       ref={isFocused ? refProp : null}
-      className={`rounded-2xl border bg-white/80 backdrop-blur-sm shadow-sm transition-all duration-300 hover:shadow-lg hover:border-emerald-300 hover:scale-[1.01] cursor-pointer ${
-        isFocused
+      className={`rounded-2xl border bg-white/80 backdrop-blur-sm shadow-sm transition-all duration-300 hover:shadow-lg hover:border-emerald-300 hover:scale-[1.01] cursor-pointer ${isFocused
           ? 'border-emerald-400 ring-2 ring-emerald-400/30 shadow-xl shadow-emerald-100/50'
           : 'border-slate-200'
-      }`}
+        }`}
     >
       <button
         onClick={() =>
@@ -358,7 +355,15 @@ export default function GalleryEditor() {
   }>({ open: false })
 
   const askConfirm = (title: string, message: string, onConfirm: () => void) => {
-    setConfirm({ open: true, title, message, onConfirm })
+    setConfirm({
+      open: true,
+      title,
+      message,
+      onConfirm: () => {
+        onConfirm()                     // do the actual delete
+        setConfirm({ open: false })     // close the dialog
+      },
+    })
   }
 
   // Focus effect
@@ -387,14 +392,14 @@ export default function GalleryEditor() {
         items:
           Array.isArray(aboutGallery.blocks) && aboutGallery.blocks.length > 0
             ? aboutGallery.blocks.map((block: any) => ({
-                id: String(block.id),
-                src: block.image_url || '',
-                alt: block.image_alt || block.title || '',
-                caption: block.body || '',
-                category: String(block.metadata?.category || 'community'),
-                date: String(block.metadata?.date || ''),
-                location: String(block.metadata?.location || ''),
-              }))
+              id: String(block.id),
+              src: block.image_url || '',
+              alt: block.image_alt || block.title || '',
+              caption: block.body || '',
+              category: String(block.metadata?.category || 'community'),
+              date: String(block.metadata?.date || ''),
+              location: String(block.metadata?.location || ''),
+            }))
             : section.items,
       }
       setSection(fresh)
@@ -508,7 +513,7 @@ export default function GalleryEditor() {
       const items = [...prev.items]
       const target = index + direction
       if (target < 0 || target >= items.length) return prev
-      ;[items[index], items[target]] = [items[target], items[index]]
+        ;[items[index], items[target]] = [items[target], items[index]]
       return { ...prev, items }
     })
   }

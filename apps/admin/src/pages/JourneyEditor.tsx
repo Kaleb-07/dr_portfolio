@@ -55,11 +55,10 @@ const IconButton = ({ label, onClick, children, disabled, danger = false }: Icon
     aria-label={label}
     disabled={disabled}
     onClick={onClick}
-    className={`inline-flex h-9 w-9 items-center justify-center rounded-lg transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-40 ${
-      danger
+    className={`inline-flex h-9 w-9 items-center justify-center rounded-lg transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-40 ${danger
         ? 'bg-red-50 text-red-600 hover:bg-red-100'
         : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-    }`}
+      }`}
   >
     {children}
   </button>
@@ -74,9 +73,8 @@ const Toast = ({ message, error }: ToastProps) => {
   if (!message && !error) return null
   return (
     <div
-      className={`fixed bottom-6 right-6 flex items-center gap-3 rounded-lg px-5 py-3.5 text-sm font-medium shadow-lg ${
-        error ? 'bg-red-50 text-red-700' : 'bg-emerald-50 text-emerald-700'
-      }`}
+      className={`fixed bottom-6 right-6 flex items-center gap-3 rounded-lg px-5 py-3.5 text-sm font-medium shadow-lg ${error ? 'bg-red-50 text-red-700' : 'bg-emerald-50 text-emerald-700'
+        }`}
     >
       {error ? <AlertCircle size={18} /> : <CheckCircle2 size={18} />}
       <span>{message || error}</span>
@@ -239,11 +237,10 @@ function ExpandableItem({
   return (
     <div
       ref={isFocused ? refProp : null}
-      className={`rounded-2xl border bg-white/80 backdrop-blur-sm shadow-sm transition-all duration-300 hover:shadow-lg hover:border-emerald-300 hover:scale-[1.01] cursor-pointer ${
-        isFocused
+      className={`rounded-2xl border bg-white/80 backdrop-blur-sm shadow-sm transition-all duration-300 hover:shadow-lg hover:border-emerald-300 hover:scale-[1.01] cursor-pointer ${isFocused
           ? 'border-emerald-400 ring-2 ring-emerald-400/30 shadow-xl shadow-emerald-100/50'
           : 'border-slate-200'
-      }`}
+        }`}
     >
       <button
         onClick={() =>
@@ -381,7 +378,15 @@ export default function JourneyEditor() {
   }>({ open: false })
 
   const askConfirm = (title: string, message: string, onConfirm: () => void) => {
-    setConfirm({ open: true, title, message, onConfirm })
+    setConfirm({
+      open: true,
+      title,
+      message,
+      onConfirm: () => {
+        onConfirm()                     // do the actual delete
+        setConfirm({ open: false })     // close the dialog
+      },
+    })
   }
 
   // Expand/collapse states
@@ -544,7 +549,7 @@ export default function JourneyEditor() {
       const blocks = [...current.about.blocks]
       const target = index + direction
       if (target < 0 || target >= blocks.length) return current
-      ;[blocks[index], blocks[target]] = [blocks[target], blocks[index]]
+        ;[blocks[index], blocks[target]] = [blocks[target], blocks[index]]
       return { ...current, about: { ...current.about, blocks } }
     })
 
@@ -606,7 +611,7 @@ export default function JourneyEditor() {
       const blocks = [...current.principles.blocks]
       const target = index + direction
       if (target < 0 || target >= blocks.length) return current
-      ;[blocks[index], blocks[target]] = [blocks[target], blocks[index]]
+        ;[blocks[index], blocks[target]] = [blocks[target], blocks[index]]
       return { ...current, principles: { ...current.principles, blocks } }
     })
 
@@ -668,7 +673,7 @@ export default function JourneyEditor() {
       const blocks = [...current.philosophy.blocks]
       const target = index + direction
       if (target < 0 || target >= blocks.length) return current
-      ;[blocks[index], blocks[target]] = [blocks[target], blocks[index]]
+        ;[blocks[index], blocks[target]] = [blocks[target], blocks[index]]
       return { ...current, philosophy: { ...current.philosophy, blocks } }
     })
 
@@ -717,7 +722,7 @@ export default function JourneyEditor() {
       const next = [...current.events]
       const target = index + direction
       if (target < 0 || target >= next.length) return current
-      ;[next[index], next[target]] = [next[target], next[index]]
+        ;[next[index], next[target]] = [next[target], next[index]]
       return { ...current, events: next }
     })
 
@@ -968,43 +973,43 @@ export default function JourneyEditor() {
             ))
           )}
         </Card>
-        
+
         {/* ── Leadership Philosophy ─────────────────────── */}
-<Card title="Leadership Philosophy" description="Primary quote and attribution.">
-  <div className="grid gap-6 md:grid-cols-2 mb-6">
-    <Field label="Eyebrow">
-      <input
-        className={formInput}
-        value={draft.philosophy.eyebrow}
-        onChange={(e) => updatePhilosophy({ eyebrow: e.target.value })}
-      />
-    </Field>
-    <Field label="Title">
-      <input
-        className={formInput}
-        value={draft.philosophy.title}
-        onChange={(e) => updatePhilosophy({ title: e.target.value })}
-      />
-    </Field>
-    <div className="md:col-span-2">
-      <Field label="Quote Text">
-        <textarea
-          className={formInput}
-          rows={5}
-          value={draft.philosophy.description}
-          onChange={(e) => updatePhilosophy({ description: e.target.value })}
-        />
-      </Field>
-    </div>
-    <Field label="Attribution">
-      <input
-        className={formInput}
-        value={draft.philosophy.subtitle}
-        onChange={(e) => updatePhilosophy({ subtitle: e.target.value })}
-      />
-    </Field>
-  </div>
-</Card>
+        <Card title="Leadership Philosophy" description="Primary quote and attribution.">
+          <div className="grid gap-6 md:grid-cols-2 mb-6">
+            <Field label="Eyebrow">
+              <input
+                className={formInput}
+                value={draft.philosophy.eyebrow}
+                onChange={(e) => updatePhilosophy({ eyebrow: e.target.value })}
+              />
+            </Field>
+            <Field label="Title">
+              <input
+                className={formInput}
+                value={draft.philosophy.title}
+                onChange={(e) => updatePhilosophy({ title: e.target.value })}
+              />
+            </Field>
+            <div className="md:col-span-2">
+              <Field label="Quote Text">
+                <textarea
+                  className={formInput}
+                  rows={5}
+                  value={draft.philosophy.description}
+                  onChange={(e) => updatePhilosophy({ description: e.target.value })}
+                />
+              </Field>
+            </div>
+            <Field label="Attribution">
+              <input
+                className={formInput}
+                value={draft.philosophy.subtitle}
+                onChange={(e) => updatePhilosophy({ subtitle: e.target.value })}
+              />
+            </Field>
+          </div>
+        </Card>
 
         {/* Principles Card */}
         <Card

@@ -38,9 +38,9 @@ export default function FoundationEditor() {
   const [foundStories, setFoundStories] = useState<Story[]>([])
   const [foundVisionQuote, setFoundVisionQuote] = useState('')
   const [foundHeroEyebrow, setFoundHeroEyebrow] = useState('')
-const [foundHeroTitle, setFoundHeroTitle] = useState('Foundation & Community Impact')
-const [foundHeroDescription, setFoundHeroDescription] = useState('Building healthier communities through strategic philanthropy.')
-  
+  const [foundHeroTitle, setFoundHeroTitle] = useState('Foundation & Community Impact')
+  const [foundHeroDescription, setFoundHeroDescription] = useState('Building healthier communities through strategic philanthropy.')
+
   // Sub‑section headings
   const [foundStatsEyebrow, setFoundStatsEyebrow] = useState('Stats')
   const [foundStatsTitle, setFoundStatsTitle] = useState('Our Impact in Numbers')
@@ -67,7 +67,15 @@ const [foundHeroDescription, setFoundHeroDescription] = useState('Building healt
   }>({ open: false })
 
   const askConfirm = (title: string, message: string, onConfirm: () => void) => {
-    setConfirm({ open: true, title, message, onConfirm })
+    setConfirm({
+      open: true,
+      title,
+      message,
+      onConfirm: () => {
+        onConfirm()                     // do the actual delete
+        setConfirm({ open: false })     // close the dialog
+      },
+    })
   }
 
   // Focus helper
@@ -106,8 +114,8 @@ const [foundHeroDescription, setFoundHeroDescription] = useState('Building healt
     setFoundQuoteEyebrow('')
     setFoundQuoteTitle('')
     setFoundHeroEyebrow('')
-setFoundHeroTitle('Foundation & Community Impact')
-setFoundHeroDescription('Building healthier communities through strategic philanthropy.')
+    setFoundHeroTitle('Foundation & Community Impact')
+    setFoundHeroDescription('Building healthier communities through strategic philanthropy.')
   }
 
   const applyData = (data: any) => {
@@ -129,9 +137,9 @@ setFoundHeroDescription('Building healthier communities through strategic philan
     setFoundMissionEyebrow(data.missionEyebrow || 'Mission')
     setFoundQuoteEyebrow(data.quoteEyebrow || '')
     setFoundQuoteTitle(data.quoteTitle || '')
-setFoundHeroEyebrow(data.heroEyebrow || '')
-setFoundHeroTitle(data.heroTitle || 'Foundation & Community Impact')
-setFoundHeroDescription(data.heroDescription || 'Building healthier communities through strategic philanthropy.')
+    setFoundHeroEyebrow(data.heroEyebrow || '')
+    setFoundHeroTitle(data.heroTitle || 'Foundation & Community Impact')
+    setFoundHeroDescription(data.heroDescription || 'Building healthier communities through strategic philanthropy.')
 
     // Arrays
     if (Array.isArray(data.stats)) setFoundStats(data.stats)
@@ -198,10 +206,10 @@ setFoundHeroDescription(data.heroDescription || 'Building healthier communities 
         missionEyebrow: foundMissionEyebrow,
         futureVision: foundVisionQuote,
         quoteEyebrow: foundQuoteEyebrow,
-quoteTitle: foundQuoteTitle,
-heroEyebrow: foundHeroEyebrow,
-heroTitle: foundHeroTitle,
-heroDescription: foundHeroDescription,
+        quoteTitle: foundQuoteTitle,
+        heroEyebrow: foundHeroEyebrow,
+        heroTitle: foundHeroTitle,
+        heroDescription: foundHeroDescription,
       }
       await api.put('/impact/foundation_story', payload)
       await fetchData()
@@ -234,27 +242,27 @@ heroDescription: foundHeroDescription,
         error={error}
       >
         {/* ── Hero Banner ─────────────────────────────────────── */}
-<Card title="Hero Banner" description="The banner at the top of the Foundation page.">
-  <div className="grid gap-6 md:grid-cols-2">
-    <Field label="Title">
-      <input
-        className={formInput}
-        value={foundHeroTitle}
-        onChange={(e) => setFoundHeroTitle(e.target.value)}
-      />
-    </Field>
-    <div className="md:col-span-2">
-      <Field label="Description">
-        <textarea
-          className={formInput}
-          rows={4}
-          value={foundHeroDescription}
-          onChange={(e) => setFoundHeroDescription(e.target.value)}
-        />
-      </Field>
-    </div>
-  </div>
-</Card>
+        <Card title="Hero Banner" description="The banner at the top of the Foundation page.">
+          <div className="grid gap-6 md:grid-cols-2">
+            <Field label="Title">
+              <input
+                className={formInput}
+                value={foundHeroTitle}
+                onChange={(e) => setFoundHeroTitle(e.target.value)}
+              />
+            </Field>
+            <div className="md:col-span-2">
+              <Field label="Description">
+                <textarea
+                  className={formInput}
+                  rows={4}
+                  value={foundHeroDescription}
+                  onChange={(e) => setFoundHeroDescription(e.target.value)}
+                />
+              </Field>
+            </div>
+          </div>
+        </Card>
         {/* ── Overview ─────────────────────────────────────── */}
         <Card title="Overview" description="Main title and description.">
           <div className="grid gap-6 md:grid-cols-2">
@@ -660,31 +668,31 @@ heroDescription: foundHeroDescription,
         </Card>
 
         <Card title="Future Vision Quote" description="The closing quote on the Foundation page.">
-  <div className="grid gap-4 md:grid-cols-2 mb-6">
-    <Field label="Section Eyebrow">
-      <input
-        className={formInput}
-        value={foundQuoteEyebrow}
-        onChange={(e) => setFoundQuoteEyebrow(e.target.value)}
-      />
-    </Field>
-    <Field label="Section Title">
-      <input
-        className={formInput}
-        value={foundQuoteTitle}
-        onChange={(e) => setFoundQuoteTitle(e.target.value)}
-      />
-    </Field>
-  </div>
-  <Field label="Quote">
-    <textarea
-      className={formInput}
-      rows={6}
-      value={foundVisionQuote}
-      onChange={(e) => setFoundVisionQuote(e.target.value)}
-    />
-  </Field>
-</Card>
+          <div className="grid gap-4 md:grid-cols-2 mb-6">
+            <Field label="Section Eyebrow">
+              <input
+                className={formInput}
+                value={foundQuoteEyebrow}
+                onChange={(e) => setFoundQuoteEyebrow(e.target.value)}
+              />
+            </Field>
+            <Field label="Section Title">
+              <input
+                className={formInput}
+                value={foundQuoteTitle}
+                onChange={(e) => setFoundQuoteTitle(e.target.value)}
+              />
+            </Field>
+          </div>
+          <Field label="Quote">
+            <textarea
+              className={formInput}
+              rows={6}
+              value={foundVisionQuote}
+              onChange={(e) => setFoundVisionQuote(e.target.value)}
+            />
+          </Field>
+        </Card>
       </EditorShell>
 
       <ConfirmDialog
