@@ -11,7 +11,7 @@ export interface CmsBlock {
   image_alt?: string | null
   metadata?: Record<string, unknown>
   sort_order: number
-  is_active: boolean   // was: number
+  is_active: boolean // was: number
 }
 
 export interface CmsSection {
@@ -48,7 +48,7 @@ export interface TimelineEvent {
   title: string
   subtitle?: string | null
   description?: string | null
-  category: string   // was: 'career' | 'education' | 'award' | 'milestone'
+  category: string // was: 'career' | 'education' | 'award' | 'milestone'
   icon?: string | null
   sort_order: number
 }
@@ -105,7 +105,7 @@ function normalizeContent(raw: Partial<SiteContent> | null | undefined): SiteCon
       ? raw.timelineEvents
       : defaultContent.timelineEvents,
     navigation: raw?.navigation?.length ? raw.navigation : defaultContent.navigation,
-    contact: raw?.contact ?? null,
+    contact: raw?.contact ?? defaultContent.contact,
   }
 }
 

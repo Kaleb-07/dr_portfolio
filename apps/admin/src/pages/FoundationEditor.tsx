@@ -39,7 +39,9 @@ export default function FoundationEditor() {
   const [foundVisionQuote, setFoundVisionQuote] = useState('')
   const [foundHeroEyebrow, setFoundHeroEyebrow] = useState('')
   const [foundHeroTitle, setFoundHeroTitle] = useState('Foundation & Community Impact')
-  const [foundHeroDescription, setFoundHeroDescription] = useState('Building healthier communities through strategic philanthropy.')
+  const [foundHeroDescription, setFoundHeroDescription] = useState(
+    'Building healthier communities through strategic philanthropy.',
+  )
 
   // Sub‑section headings
   const [foundStatsEyebrow, setFoundStatsEyebrow] = useState('Stats')
@@ -72,8 +74,8 @@ export default function FoundationEditor() {
       title,
       message,
       onConfirm: () => {
-        onConfirm()                     // do the actual delete
-        setConfirm({ open: false })     // close the dialog
+        onConfirm() // do the actual delete
+        setConfirm({ open: false }) // close the dialog
       },
     })
   }
@@ -139,7 +141,9 @@ export default function FoundationEditor() {
     setFoundQuoteTitle(data.quoteTitle || '')
     setFoundHeroEyebrow(data.heroEyebrow || '')
     setFoundHeroTitle(data.heroTitle || 'Foundation & Community Impact')
-    setFoundHeroDescription(data.heroDescription || 'Building healthier communities through strategic philanthropy.')
+    setFoundHeroDescription(
+      data.heroDescription || 'Building healthier communities through strategic philanthropy.',
+    )
 
     // Arrays
     if (Array.isArray(data.stats)) setFoundStats(data.stats)
@@ -171,7 +175,9 @@ export default function FoundationEditor() {
       }
     }
     load()
-    return () => { active = false }
+    return () => {
+      active = false
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -277,9 +283,7 @@ export default function FoundationEditor() {
               <input
                 className={formInput}
                 value={foundOverview.title}
-                onChange={(e) =>
-                  setFoundOverview((p) => ({ ...p, title: e.target.value }))
-                }
+                onChange={(e) => setFoundOverview((p) => ({ ...p, title: e.target.value }))}
               />
             </Field>
             <Field label="Description">
@@ -287,9 +291,7 @@ export default function FoundationEditor() {
                 className={formInput}
                 rows={4}
                 value={foundOverview.description}
-                onChange={(e) =>
-                  setFoundOverview((p) => ({ ...p, description: e.target.value }))
-                }
+                onChange={(e) => setFoundOverview((p) => ({ ...p, description: e.target.value }))}
               />
             </Field>
           </div>
@@ -353,9 +355,7 @@ export default function FoundationEditor() {
                     value={stat.label}
                     onChange={(e) =>
                       setFoundStats((prev) =>
-                        prev.map((s) =>
-                          s.id === stat.id ? { ...s, label: e.target.value } : s,
-                        ),
+                        prev.map((s) => (s.id === stat.id ? { ...s, label: e.target.value } : s)),
                       )
                     }
                   />
@@ -366,9 +366,7 @@ export default function FoundationEditor() {
                     value={stat.value}
                     onChange={(e) =>
                       setFoundStats((prev) =>
-                        prev.map((s) =>
-                          s.id === stat.id ? { ...s, value: e.target.value } : s,
-                        ),
+                        prev.map((s) => (s.id === stat.id ? { ...s, value: e.target.value } : s)),
                       )
                     }
                   />
@@ -381,6 +379,7 @@ export default function FoundationEditor() {
         {/* ── Vision & Mission ─────────────────────────────── */}
         <Card title="Vision & Mission" description="Core statements.">
           <div className="grid gap-6 md:grid-cols-2">
+            i
             <div className="border-l-2 border-teal pl-4">
               <Field label="Eyebrow">
                 <input
@@ -394,9 +393,7 @@ export default function FoundationEditor() {
                   className={formInput}
                   rows={4}
                   value={foundOverview.vision}
-                  onChange={(e) =>
-                    setFoundOverview((p) => ({ ...p, vision: e.target.value }))
-                  }
+                  onChange={(e) => setFoundOverview((p) => ({ ...p, vision: e.target.value }))}
                 />
               </Field>
             </div>
@@ -413,9 +410,7 @@ export default function FoundationEditor() {
                   className={formInput}
                   rows={4}
                   value={foundOverview.mission}
-                  onChange={(e) =>
-                    setFoundOverview((p) => ({ ...p, mission: e.target.value }))
-                  }
+                  onChange={(e) => setFoundOverview((p) => ({ ...p, mission: e.target.value }))}
                 />
               </Field>
             </div>
@@ -480,9 +475,7 @@ export default function FoundationEditor() {
                     value={prog.title}
                     onChange={(e) =>
                       setFoundPrograms((prev) =>
-                        prev.map((p) =>
-                          p.id === prog.id ? { ...p, title: e.target.value } : p,
-                        ),
+                        prev.map((p) => (p.id === prog.id ? { ...p, title: e.target.value } : p)),
                       )
                     }
                   />
@@ -535,9 +528,7 @@ export default function FoundationEditor() {
                     value={prog.status}
                     onChange={(e) =>
                       setFoundPrograms((prev) =>
-                        prev.map((p) =>
-                          p.id === prog.id ? { ...p, status: e.target.value } : p,
-                        ),
+                        prev.map((p) => (p.id === prog.id ? { ...p, status: e.target.value } : p)),
                       )
                     }
                   >
@@ -552,9 +543,7 @@ export default function FoundationEditor() {
                     value={prog.icon}
                     onChange={(e) =>
                       setFoundPrograms((prev) =>
-                        prev.map((p) =>
-                          p.id === prog.id ? { ...p, icon: e.target.value } : p,
-                        ),
+                        prev.map((p) => (p.id === prog.id ? { ...p, icon: e.target.value } : p)),
                       )
                     }
                   >
@@ -628,9 +617,7 @@ export default function FoundationEditor() {
                     value={story.title}
                     onChange={(e) =>
                       setFoundStories((prev) =>
-                        prev.map((s) =>
-                          s.id === story.id ? { ...s, title: e.target.value } : s,
-                        ),
+                        prev.map((s) => (s.id === story.id ? { ...s, title: e.target.value } : s)),
                       )
                     }
                   />
